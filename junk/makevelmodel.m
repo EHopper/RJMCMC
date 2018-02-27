@@ -28,7 +28,7 @@ rsc(ium)=2.21e-6*avdep(ium).^2-6.6e-4*avdep(ium)+0.075;
 
 dr(mi:end)=rsc(mi:end).*((vs(mi:end)-4.5)/4.5)*3.4268;
 rho(mi:end)=3.4268+dr(mi:end);
-
+rho=round(rho*1000)/1000; vp=round(vp*1000)/1000;
 
 all=[vs;vp;t;avdep;rho;rsc;dep];
 end

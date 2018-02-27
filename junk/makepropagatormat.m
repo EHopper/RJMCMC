@@ -1,7 +1,7 @@
 %(nn,tleng, alpan,betan,rhon,c, alpam,betam,rhom, thikm, nl, iwave)
 clearvars
 addpath('C:\Users\Emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\junk\');
-vs=[1.2, 3.5, 4.4, 4.7]; idep=[23, 35, 60, 100]+1; 
+vs=[4,4.6]; idep=[60,80]+1; 
 [vp,rho,thick] = makevelmodel(vs,idep);
 vp = round(vp*1e3)/1e3; rho=round(rho*1e3)/1e3;
 
@@ -42,7 +42,7 @@ e(4,2)=1.;
 e(4,3)=0;
 e(4,4)=1./(rhon*csq*gaman);
 
-for i=35+1%:350%tleng/0.25+1%   %loop over frequency  use freq(i) etc. (200)
+for i=1+1%:350%tleng/0.25+1%   %loop over frequency  use freq(i) etc. (200)
    freq=(i-1)/tleng;
    omega=2*pi*freq;
    pk=omega/c; pks(i)=pk;
@@ -64,10 +64,10 @@ for i=35+1%:350%tleng/0.25+1%   %loop over frequency  use freq(i) etc. (200)
       cospm=cos(pm);
       cosqm=cos(qm);
 
-      vars={'ralpm','rbetm'};
-      for kk = 1:length(vars)
-          eval([vars{kk} '= round(' vars{kk} '*1e16)/1e16;']);
-      end
+%       vars={'ralpm','rbetm'};
+%       for kk = 1:length(vars)
+%           eval([vars{kk} '= round(' vars{kk} '*1e16)/1e16;']);
+%       end
 
 %.....construction of progator matrix (a) from bottom to top.
 
