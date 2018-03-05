@@ -207,7 +207,8 @@ class PipelineTest(unittest.TestCase):
             ("input model",model,pipeline.SynthModel(
                     vs = np.array([4.,4.5, 4.7,5.]), 
                     vp = np.array([6.9357, 7.875, 8.225, 8.75]),
-                    thickness = np.array([30, 40, 60, 60]), 
+                    thickness = np.array([30, 40, 60, 60]),
+                    layertops = np.array([0, 30, 70, 130]),
                     avdep = np.array([15, 50, 100, 160]),
                     rho = np.array([2.9496, 3.4268, 3.4390, 3.4367]),
                     ray_param = 0.0618,
@@ -218,6 +219,7 @@ class PipelineTest(unittest.TestCase):
                     vs = np.array([3,4.2,4.6,5.2]),
                     vp = np.array([5.0506,7.3307,8.05,9.1]),
                     thickness = np.array([30, 40, 60, 60]), 
+                    layertops = np.array([0, 30, 70, 130]),
                     avdep = np.array([15, 50, 100, 160]),
                     rho = np.array([2.5426, 3.0674, 3.4329, 3.4406]),
                     ray_param = 0.0618,
@@ -228,6 +230,7 @@ class PipelineTest(unittest.TestCase):
                     vs = np.array([4.,4.5, 4.7,5.]), 
                     vp = np.array([6.9357, 7.875, 8.225, 8.75]),
                     thickness = np.array([6., 21.5, 87.5, 87.5]), 
+                    layertops = np.array([0, 6, 27.5, 115]),
                     avdep = np.array([3., 16.75, 71.25, 158.75]),
                     rho = np.array([2.9496, 3.4268, 3.4379, 3.4367]),
                     ray_param = 0.0618,
@@ -238,7 +241,8 @@ class PipelineTest(unittest.TestCase):
               pipeline.SynthModel(
                     vs = np.array([4.,4.5, 4.7,5.]), 
                     vp = np.array([6.9357, 7.9062, 8.225, 8.75]),
-                    thickness = np.array([6., 54., 87.5, 87.5]), 
+                    thickness = np.array([6., 54., 87.5, 87.5]),
+                    layertops = np.array([0, 6, 60, 147.5]),
                     avdep = np.array([3., 33., 103.75, 191.25]),
                     rho = np.array([2.9496, 3.2579, 3.4391, 3.4381]),
                     ray_param = 0.0618,
@@ -249,6 +253,7 @@ class PipelineTest(unittest.TestCase):
                      vs = np.array([1.7, 2.6, 3.6, 4.4]),
                      vp = np.array([3.238876, 4.408495,6.1488126, 7.7179102]),
                      thickness = np.array([30., 40., 60., 60.]),
+                     layertops = np.array([0, 30, 70, 130]),
                      avdep = np.array([15., 50., 100., 160.]),
                      rho = np.array([2.2723679, 2.4495676, 2.7493737, 3.193219]),
                      ray_param = 0.0618,
@@ -259,6 +264,7 @@ class PipelineTest(unittest.TestCase):
                      vs = np.array([4.5, 4.6, 4.7, 5.]),
                      vp = np.array([7.875, 8.05, 8.225, 8.75]),
                      thickness = np.array([30., 40., 60., 60.]),
+                     layertops = np.array([0, 30, 70, 130]),
                      avdep = np.array([15., 50., 100., 160.]),
                      rho = np.array([3.4268, 3.431978, 3.438984, 3.43669]),
                      ray_param = 0.0618,
@@ -2509,7 +2515,7 @@ class PipelineTest(unittest.TestCase):
     
     def test_SurfaceWaveDisp(self, name, model, swd_obs):
         model = pipeline.MakeFullModel(model)
-        self.assertSurfaceWaveDispEqual(pipeline.SynthesiseSWD(model, swd_obs),
+        self.assertSurfaceWaveDispEqual(pipeline.SynthesiseSWD(model, swd_obs.period),
                                         swd_obs)
         
 # =============================================================================
@@ -2534,7 +2540,7 @@ class PipelineTest(unittest.TestCase):
     def test_Mahalanobis(self, name, model, swd_obs, round_to, expected):
         fullmodel = pipeline.MakeFullModel(model)
         rf_obs = pipeline.SynthesiseRF(fullmodel)
-        swd_obs = pipeline.SynthesiseSWD(fullmodel, swd_obs)
+        swd_obs = pipeline.SynthesiseSWD(fullmodel, swd_obs.period)
         cov = pipeline.CalcCovarianceMatrix(model, rf_obs, swd_obs)
         rf_obs = rf_obs.amp; swd_obs = swd_obs.c
         out = pipeline.Mahalanobis(rf_obs, np.round(rf_obs,round_to), swd_obs,
@@ -2591,9 +2597,51 @@ class PipelineTest(unittest.TestCase):
             keep_yn[k] = pipeline.AcceptFromLikelihood(fit_to_obs_m, 
                    fit_to_obs_m0, cov_m, cov_m0, model_change)[0]
         self.assertAlmostEqual(np.mean(keep_yn), expected, places = 1)
+    
+    model = pipeline.Model(vs = np.array([4, 4.5]), idep = np.array([6, 8]), 
+                           all_deps = np.arange(0.,100.,5), 
+                           std_rf = 0, lam_rf = 0, std_swd = 0)
+    @parameterized.expand([
+            ("Moho only", model,  np.array([4, 4, 4, 4, 4, 4, 4, 
+                                            4, 4, 4, 4, 4, 4, 4,
+                                            4.5, 4.5, 4.5, 4.5, 4.5,
+                                            4.5, 4.5, 4.5, 4.5, 4.5,
+                                            4.5, 4.5, 4.5, 4.5, 4.5,
+                                            4.5, 4.5, 4.5, 4.5, 4.5,
+                                            4.5, 4.5, 4.5, 4.5, 4.5])),
+            ("More complex", model._replace(vs = np.array([1.8, 2.7, 3.5, 4.4, 4.8]),
+                                            idep = np.array([2,4,7,10,15])),
+                        np.array([1.8, 1.8, 1.8, 1.8, 1.8, 1.8,
+                                  2.7, 2.7, 2.7, 2.7, 2.7, 
+                                  3.5, 3.5, 3.5, 3.5, 3.5, 3.5,
+                                  4.4, 4.4, 4.4, 4.4, 4.4, 4.4, 4.4, 4.4,
+                                  4.8, 4.8, 4.8, 4.8, 4.8, 4.8, 4.8, 4.8,
+                                  4.8, 4.8, 4.8, 4.8, 4.8, 4.8])),
+            ])
+    def test_SaveModel(self, name, model, expected):
+        fullmodel = pipeline.MakeFullModel(model)
+        ddeps=np.zeros(model.all_deps.size*2-1)
+        ddeps[::2] = model.all_deps
+        ddeps[1::2] = model.all_deps[:-1]+np.diff(model.all_deps)/2
+        np.testing.assert_array_equal(
+                pipeline.SaveModel(fullmodel, ddeps), expected)
         
-        
+    del model, m_change, deps, swd_obs
+    
+# =============================================================================
+#         Test the whole thing???!
+# =============================================================================
+    all_lims = pipeline.Limits(
+            vs = (0.5,5.5), dep = (0,200), std_rf = (0,0.05),
+            lam_rf = (0.05, 0.5), std_swd = (0,0.15))
+    deps = np.concatenate((np.arange(0,10,0.2), np.arange(10,60,1), np.arange(60,201,5)))
+    model = pipeline.Model(vs = np.array([3.4, 4.5]), all_deps = deps,
+                           idep = np.array([60, 80]),  
+                           std_rf = 0, lam_rf = 0, std_swd = 0)
+    rf_obs = pipeline.SynthesiseRF(pipeline.MakeFullModel(model))
+    
 
+    
 
 if __name__ == "__main__":
     unittest.main()

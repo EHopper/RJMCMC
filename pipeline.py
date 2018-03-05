@@ -83,6 +83,7 @@ class SynthModel(typing.NamedTuple):
     vp: np.array
     rho: np.array
     thickness: np.array
+    layertops: np.array
     avdep: np.array
     ray_param: float
 
@@ -113,7 +114,7 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
         # First, need to define the Vp and rho
     fullmodel = MakeFullModel(model)
     rf_synth_m0 = SynthesiseRF(fullmodel) # forward model the RF data
-    swd_synth_m0 = SynthesiseSWD(fullmodel, swd_obs) # forward model the SWD data
+    swd_synth_m0 = SynthesiseSWD(fullmodel, swd_obs.period) # forward model the SWD data
     
     # Calculate fit
     fit_to_obs_m0 = Mahalanobis(
@@ -127,8 +128,14 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
 #           Define parameters for convergence
 # =============================================================================
     num_posterior = 200
-    all_models = np.zeros((model.all_deps.size,num_posterior+1))
     burn_in = 2e5 # Number of models to run before bothering to test convergence
+    ddeps=np.zeros(model.all_deps.size*2-1)
+    ddeps[::2] = model.all_deps
+    ddeps[1::2] = model.all_deps[:-1]+np.diff(model.all_deps)/2
+    conv_models = np.zeros((ddeps.size,num_posterior+1))
+    conv_models[:,0] = ddeps
+    all_models = np.zeros((ddeps.size,int(max_iter/500)))
+    all_models[:,0] = ddeps
     all_phi = np.zeros(max_iter) # all misfits
     all_alpha = np.zeros(max_iter)-1 # all likelihoods
     all_keep = np.zeros(max_iter)-1
@@ -158,7 +165,7 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
         else:
             cov_m = cov_m0
             rf_synth_m = SynthesiseRF(new_model) # forward model the RF data
-            swd_synth_m = SynthesiseSWD(swd_obs) # forward model the SWD data
+            swd_synth_m = SynthesiseSWD(swd_obs, period) # forward model the SWD data
         
         # Calculate fit
         fit_to_obs_m = Mahalanobis(
@@ -195,11 +202,18 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
                                             alpha_0_std, alpha_0_mean,
                                             itr, nw)
         
+        # Save every 500th iteration to see progress
+        all_models[:,itr+1] = SaveModel(fullmodel, all_models[:,0])
+        
         # Save every 500th iteration after convergence (KL14)
-        if converged and converged <= 1e6:
+        if converged:
             converged = converged + 1
             if not converged % 500: 
-                all_models[:,(converged/500)+1] = SaveModel(model)
+                conv_models[:,(converged/500)+1] = SaveModel(
+                        fullmodel, conv_models[:,0])
+                
+                if converged/500 >= num_posterior:
+                    return (conv_models, all_models, all_phi, all_alpha)
             
         
     
@@ -331,7 +345,7 @@ def MakeFullModel(model) -> SynthModel:
     vp = np.round(vp, 3)
     rho = np.round(rho, 3)
     
-    return SynthModel(model.vs, vp, rho, thickness, avdep, ray_param)  
+    return SynthModel(model.vs, vp, rho, thickness, layertops, avdep, ray_param)  
 
 
 # =============================================================================
@@ -803,12 +817,12 @@ def _ETMTMSumFFT(slepian_tapers, data_1, data_2, num_window):
 #   Attenuation for Near-Surface Site Characterization," Ph.D. Dissertation,
 #   Georgia Institute of Technology.
 
-def SynthesiseSWD(model, swd_obs) -> SurfaceWaveDisp: # fill this out when you know how
-    freq = 1/swd_obs.period
+def SynthesiseSWD(model, period) -> SurfaceWaveDisp: # fill this out when you know how
+    freq = 1/period
     
     if model.vs.size == 1:
         cr = _CalcRaylPhaseVelInHalfSpace(model.vp[0], model.vs[0])
-        return SurfaceWaveDisp(period = swd_obs.period,
+        return SurfaceWaveDisp(period = period,
                                c = np.ones(freq.size)*cr) 
         # no freq. dependence in homogeneous half space
     
@@ -827,7 +841,7 @@ def SynthesiseSWD(model, swd_obs) -> SurfaceWaveDisp: # fill this out when you k
         cr[i_om] = _FindMinValueSecularFunction(omega[i_om], k_lims[:,i_om],
           n_ksteps, model.thickness, model.rho, model.vp, model.vs, mu)
       
-    return SurfaceWaveDisp(period = swd_obs.period, c = cr)
+    return SurfaceWaveDisp(period = period, c = cr)
 
 def _CalcRaylPhaseVelInHalfSpace(vp, vs):
     # Note: they actually do this in a cleverer way (see commented MATLAB code)
@@ -1050,9 +1064,12 @@ def TestConvergence(all_phi, all_alpha, phi_0_std, phi_0_mean,
     
     
 
-def SaveModel(model):
+def SaveModel(fullmodel, deps):
+    vs = np.zeros_like(deps)
+    for k in range(fullmodel.layertops.size):
+        vs[deps>=fullmodel.layertops[k]] = fullmodel.vs[k]
     
-    return
+    return vs
     
 
 
