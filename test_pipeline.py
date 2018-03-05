@@ -131,6 +131,8 @@ class PipelineTest(unittest.TestCase):
                                dt = 0.25)  # length and dt matter
     swd_obs = pipeline.SurfaceWaveDisp(period = np.arange(1), # only length matters
                                        c = np.arange(0)) # irrelevant 
+    # Note that all determinants have undergone the fix (as in pipeline)
+    # to make them easier to deal with - i.e. make all so floor(log10(det))=0
     
     @parameterized.expand([
             #("1x1 rf", model, rf_obs, swd_obs, pipeline.CovarianceMatrix(1,1,1)),
@@ -144,7 +146,7 @@ class PipelineTest(unittest.TestCase):
                         invCovar = np.array([[72.33026556,-67.144357,0],
                                     [-67.144357,72.33026556,0],
                                     [0,0,5]]), 
-                        detCovar = 0.00027650942305,
+                        detCovar = 2.7650942305, # 0.00027650942305,
                                ),
                          ),
             ("3x3 rf, 4 sw", model, rf_obs._replace(amp = np.arange(3)), 
@@ -163,7 +165,7 @@ class PipelineTest(unittest.TestCase):
                                     [24.970184,-97.549094,80.1131353,0,0,0,0],
                                     [0,0,0,5,0,0,0],[0,0,0,0,5,0,0],
                                     [0,0,0,0,0,5,0],[0,0,0,0,0,0,5]]),
-                        detCovar = 0.00000002761189,
+                        detCovar = 2.761189, #0.00000002761189,
                                ),
                          ),
             ("change std", model._replace(std_rf = np.sqrt(10), std_swd = 2),
@@ -177,7 +179,7 @@ class PipelineTest(unittest.TestCase):
                         invCovar = np.array([[0.7233027,-0.671444,0],
                                     [-0.671444,0.7233027,0],
                                     [0,0,0.25]]), 
-                        detCovar = 55.3018846104696,
+                        detCovar = 5.53018846104696, #55.3018846104696,
                                ),
                          ),
             ("change lam",model._replace(lam_rf = 1), rf_obs, swd_obs,
@@ -190,17 +192,12 @@ class PipelineTest(unittest.TestCase):
                         invCovar = np.array([[11.42587289,-4.0363154497,0],
                                     [-4.0363154497,11.42587289,0],
                                     [0,0,5]]), 
-                        detCovar = 0.0017504133111,
+                        detCovar = 1.7504133111, #0.0017504133111,
                              ),
                          )
             ])
     def test_CalcCovarianceMatrix(self, name, model, rf_obs, swd_obs, expected):
         cov = pipeline.CalcCovarianceMatrix(model, rf_obs, swd_obs)
-        # Account for the bodge to make the determinant ratio work
-        bodge_det = expected.detCovar*10**(4*(expected.Covar[1,].size))
-        num10 = 10**int(np.log10(bodge_det))
-        expected = expected._replace(detCovar = bodge_det/num10)
-        cov = cov._replace(detCovar = cov.detCovar/num10)
         self.assertCovarianceMatrixEqual(cov, expected)
     del model, rf_obs, swd_obs
 

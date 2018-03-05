@@ -99,22 +99,21 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
     #       Set this in the master code so can start multiple unique chains.
     #       random_seed must be passed to any subfunction that uses random no.
     
-    
     # =========================================================================
     #      Start by calculating for some (arbitrary) initial model
     # =========================================================================
-    model = InitialModel(rf_obs.amp,random_seed)
-    if not CheckPrior(model, lims):
+    model_0 = InitialModel(rf_obs.amp,random_seed)
+    if not CheckPrior(model_0, lims):
         return "Starting model does not fit prior distribution"
     
     # Calculate covariance matrix (and inverse, and determinant)
-    cov_m0 = CalcCovarianceMatrix(model,rf_obs,swd_obs)
+    cov_m0 = CalcCovarianceMatrix(model_0,rf_obs,swd_obs)
     
     # Calculate synthetic data
         # First, need to define the Vp and rho
-    fullmodel = MakeFullModel(model)
-    rf_synth_m0 = SynthesiseRF(fullmodel) # forward model the RF data
-    swd_synth_m0 = SynthesiseSWD(fullmodel, swd_obs.period) # forward model the SWD data
+    fullmodel_0 = MakeFullModel(model_0)
+    rf_synth_m0 = SynthesiseRF(fullmodel_0) # forward model the RF data
+    swd_synth_m0 = SynthesiseSWD(fullmodel_0, swd_obs.period) # forward model the SWD data
     
     # Calculate fit
     fit_to_obs_m0 = Mahalanobis(
@@ -129,13 +128,14 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
 # =============================================================================
     num_posterior = 200
     burn_in = 2e5 # Number of models to run before bothering to test convergence
-    ddeps=np.zeros(model.all_deps.size*2-1)
-    ddeps[::2] = model.all_deps
-    ddeps[1::2] = model.all_deps[:-1]+np.diff(model.all_deps)/2
+    ddeps=np.zeros(model_0.all_deps.size*2-1)
+    ddeps[::2] = model_0.all_deps
+    ddeps[1::2] = model_0.all_deps[:-1]+np.diff(model_0.all_deps)/2
     conv_models = np.zeros((ddeps.size,num_posterior+1))
     conv_models[:,0] = ddeps
-    all_models = np.zeros((ddeps.size,int(max_iter/1)))
+    all_models = np.zeros((ddeps.size,int(max_iter/1)+1))
     all_models[:,0] = ddeps
+    all_models[:,1] = SaveModel(fullmodel_0, ddeps)
     all_phi = np.zeros(max_iter) # all misfits
     all_alpha = np.zeros(max_iter)-1 # all likelihoods
     all_keep = np.zeros(max_iter)-1
@@ -150,13 +150,18 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
     #       Iterate by Reverse Jump Markov Chain Monte Carlo
     # =========================================================================    
     for itr in range(1,max_iter):
+        if not itr % 5: 
+            print("Iteration {}..".format(itr))
         
         # Generate new model by perturbing the old model
-        new_model, changes_model = Mutate(model,itr)
+        model, changes_model = Mutate(model_0,itr)
         
-        if not CheckPrior(new_model, lims): # check if mutated model compatible with prior distr.
+        if not CheckPrior(model, lims): # check if mutated model compatible with prior distr.
+            print("FAIL PRIORS")
+            print(model._replace(all_deps = 0))
             continue  # if not, continue to next iteration
         
+        fullmodel = MakeFullModel(model)
         if changes_model.which_change == 'Noise': 
             # only need to recalculate covariance matrix if changed hyperparameter
             cov_m = CalcCovarianceMatrix(model,rf_obs,swd_obs)
@@ -164,9 +169,8 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
             swd_synth_m = swd_synth_m0
         else:
             cov_m = cov_m0
-            new_full_model = MakeFullModel(new_model)
-            rf_synth_m = SynthesiseRF(new_full_model) # forward model the RF data
-            swd_synth_m = SynthesiseSWD(new_full_model, swd_obs.period) # forward model the SWD data
+            rf_synth_m = SynthesiseRF(fullmodel) # forward model the RF data
+            swd_synth_m = SynthesiseSWD(fullmodel, swd_obs.period) # forward model the SWD data
         
         # Calculate fit
         fit_to_obs_m = Mahalanobis(
@@ -184,10 +188,14 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
                 )
         all_keep[itr-1] = keep_yn
         if keep_yn: # should be aiming to keep about 40% of perturbations
-            model = new_model
+#            print("Keeping it!!!")
+#            print(model._replace(all_deps = 0))
+            model_0 = model
+            fullmodel_0 = fullmodel
             cov_m0 = cov_m
             rf_synth_m0 = rf_synth_m
             swd_synth_m0 = swd_synth_m
+            fit_to_obs_m0 = fit_to_obs_m
             
             # Test if have converged
             nw = np.min((int(1e5), burn_in))
@@ -214,11 +222,11 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
                         fullmodel, conv_models[:,0])
                 
                 if converged/500 >= num_posterior:
-                    return (conv_models, all_models, all_phi, all_alpha)
+                    return (conv_models, all_models, all_phi, all_alpha, all_keep)
             
         
     
-    return (conv_models, all_models, all_phi, all_alpha)
+    return (conv_models, all_models, all_phi, all_alpha, all_keep)
 
 
  
@@ -282,7 +290,7 @@ def MakeFullModel(model) -> SynthModel:
     #  Now calculate the thickness and average depth of the layers
     layertops = np.concatenate([[0],(dep[1:]+dep[0:-1])/2])
     if layertops.size == 1:
-        thickness = np.array([30]) # arbitrary
+        thickness = np.array([dep]) # arbitrary
     else:
         thickness = np.diff(layertops)
     thickness = np.concatenate([thickness, [thickness[-1]]])
@@ -390,7 +398,8 @@ def CalcCovarianceMatrix(model,rf_obs,swd_obs) -> CovarianceMatrix:
     #        this up so that it doesn't get lost in the rounding error.
     #  detc=np.linalg.det(covar)
     detc = np.linalg.det(covar*1e4)
-        
+    detc = detc / (10**int(np.log10(detc)))
+
     return CovarianceMatrix(covar,invc,detc,R)
 
 
@@ -425,13 +434,14 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
     perturb = random.sample(perturbs, 1)[0]
     
     if perturb=='Vs':          # Change Vs in a layer
-        vs=model.vs
-        i_vs = random.randint(0,vs.size-1)
-        theta =_GetStdForGaussian(perturb)
-        vs[i_vs] = np.round(np.random.normal(vs[i_vs],theta),2)
-        changes_model = ModelChange(theta,model.vs[i_vs],vs[i_vs],
-                                    which_change = perturb)
-        new_model = model._replace(vs=vs)
+        i_vs = random.randint(0,model.vs.size-1)
+        old = model.vs[i_vs]
+        theta =_GetStdForGaussian(perturb, itr)
+        new = np.round(np.random.normal(old,theta),4)
+        changes_model = ModelChange(theta, old, new, which_change = perturb)
+        new_vs = model.vs
+        new_vs[i_vs] = new
+        new_model = model._replace(vs = new_vs)
         
     elif perturb=='Dep':       # Change Depth of one node
         # Remember, we assume possible model points follow the following sequence
@@ -439,7 +449,7 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
         idep = model.idep
         i_id = random.randint(0,idep.size-1)
         # perturb around index in alldeps array
-        theta =_GetStdForGaussian(perturb)
+        theta =_GetStdForGaussian(perturb, itr)
         idep[i_id] = round(np.random.normal(idep[i_id],theta))
         changes_model = ModelChange(theta,model.idep[i_id],idep[i_id],
                                     which_change = perturb)
@@ -453,13 +463,13 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
                 if idx not in idep]
         i_d = unused_idep[random.randint(0,len(unused_idep)-1)]
         unused_d = model.all_deps[i_d]
-        theta = _GetStdForGaussian(perturb)
+        theta = _GetStdForGaussian(perturb, itr)
         # identify index of closest nucleus for old Vs value
         i_old = abs(model.all_deps[idep]-unused_d).argmin()
         # Make new array of depth indices, and identify new value index, i_new
         idep = np.sort(np.append(idep,i_d))
         i_new = np.where(idep==i_d)[0]
-        vs = np.insert(vs,i_new,np.round(np.random.normal(vs[i_old],theta),2))
+        vs = np.insert(vs,i_new,np.round(np.random.normal(vs[i_old],theta),4))
         changes_model = ModelChange(theta,model.vs[i_old],vs[i_new],
                                     which_change = perturb)
         new_model=model._replace(idep=idep,vs=vs)
@@ -469,7 +479,7 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
         idep = model.idep
         vs = model.vs
         i_id = random.randint(0,idep.size-1)
-        theta = _GetStdForGaussian(perturb)
+        theta = _GetStdForGaussian(perturb, itr)
         idep = np.delete(idep,i_id)
         vs = np.delete(vs,i_id)
         i_new = abs(model.all_deps[idep]-model.all_deps[model.idep[i_id]]).argmin()  
@@ -480,19 +490,19 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
     else: # perturb=='Hyperparameter', Change a hyperparameter
         hyperparams = ['Std_RF','Lam_RF','Std_SWD']
         hyperparam = hyperparams[random.randint(0,len(hyperparams)-1)]
-        theta = _GetStdForGaussian(hyperparam)
+        theta = _GetStdForGaussian(hyperparam, itr)
         
         if hyperparam == 'Std_RF':
             old = model.std_rf
-            new = np.round(np.random.normal(old,theta),2)
+            new = np.round(np.random.normal(old,theta),5)
             new_model = model._replace(std_rf = new)
         elif hyperparam == 'Lam_RF':
             old = model.lam_rf
-            new = np.round(np.random.normal(old,theta),2) 
+            new = np.round(np.random.normal(old,theta),4) 
             new_model = model._replace(lam_rf = new)
         elif hyperparam == 'Std_SWD':
             old = model.std_swd
-            new = np.round(np.random.normal(old,theta),2)
+            new = np.round(np.random.normal(old,theta),4)
             new_model = model._replace(std_swd = new)
             
         changes_model = ModelChange(theta, old, new,
@@ -500,7 +510,7 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
             
     return new_model, changes_model
 
-def _GetStdForGaussian(perturb) -> float:
+def _GetStdForGaussian(perturb, itr) -> float:
     if perturb=='Vs':          # Change Vs in a layer
         theta=0.05             # B&c12's theta1
     elif perturb=='Dep':       # Change Depth of one node
@@ -513,6 +523,9 @@ def _GetStdForGaussian(perturb) -> float:
         theta=1e-2             # B&c12's theta_h_j
     elif perturb=='Lam_RF':    # Change hyperparameter - lam_swd
         theta=1e-2
+    
+    if itr < 250: 
+        theta = theta*2
     
     return theta
 
@@ -1026,26 +1039,38 @@ def AcceptFromLikelihood(fit_to_obs_m, fit_to_obs_m0,
                          cov_m, cov_m0, model_change) -> bool:
     # Form is dependent on which variable changed
     perturb = model_change.which_change
-    
+    #print(perturb)
     if perturb == 'Vs' or perturb == 'Dep':
+        #print([perturb, fit_to_obs_m,fit_to_obs_m0])
         alpha_m_m0 = np.exp(-(fit_to_obs_m - fit_to_obs_m0)/2)
     elif perturb == 'Birth':
         dv = np.abs(model_change.old_param - model_change.new_param)
+        #print([perturb, fit_to_obs_m,fit_to_obs_m0])
+#        print([dv, model_change.theta, fit_to_obs_m, fit_to_obs_m0,
+#               ((dv*dv/(2*model_change.theta**2)) - 
+#                             (fit_to_obs_m - fit_to_obs_m0)/2)])
         alpha_m_m0 = ((model_change.theta * np.sqrt(2*np.pi) / dv) * 
                       np.exp((dv*dv/(2*model_change.theta**2)) - 
                              (fit_to_obs_m - fit_to_obs_m0)/2))
     elif perturb == 'Death':
         dv = np.abs(model_change.old_param - model_change.new_param)
+        #print([perturb, fit_to_obs_m,fit_to_obs_m0])
+#        print([dv, model_change.theta, fit_to_obs_m, fit_to_obs_m0,
+#               (-(dv*dv/(2*model_change.theta**2)) - 
+#                             (fit_to_obs_m - fit_to_obs_m0)/2)])
         alpha_m_m0 = ((dv / (model_change.theta * np.sqrt(2*np.pi))) * 
                       np.exp(-(dv*dv/(2*model_change.theta**2)) - 
                              (fit_to_obs_m - fit_to_obs_m0)/2))
     elif perturb == 'Noise':
-#        print(cov_m0.detCovar/cov_m.detCovar)
+        #print([perturb, fit_to_obs_m,fit_to_obs_m0])
+#        print([cov_m0.detCovar/cov_m.detCovar, fit_to_obs_m, fit_to_obs_m0,
+#               cov_m0.detCovar, cov_m.detCovar])
         alpha_m_m0 = ((cov_m0.detCovar/cov_m.detCovar) *
                       np.exp(-(fit_to_obs_m - fit_to_obs_m0)/2))
 
 
     keep_yn = random.random() # generate random number between 0-1
+    print([perturb, keep_yn, alpha_m_m0])
     return (keep_yn < alpha_m_m0, alpha_m_m0)
     
 # =============================================================================
