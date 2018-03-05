@@ -9,7 +9,9 @@ dep=deps(idep);
 vp=zeros(size(vs)); rho=vp; rsc=vp; dr=vp; t=vp;
 t(1:end-1)=(dep(1:end-1)-[-dep(1) dep(1:end-2)])/2+...
     (dep(2:end)-dep(1:end-1))/2;
-avdep=cumsum([0 t(1:end-1)])+t([1:end-1 end-1])/2;
+if length(vs == 1); avdep = t; 
+else; avdep=cumsum([0 t(1:end-1)])+t([1:end-1 end-1])/2;
+end
 
 ic=find(vs<4.5); 
 if isempty(ic); mi =1; ice=0; else; ice=ic(end); mi = ice+1; end

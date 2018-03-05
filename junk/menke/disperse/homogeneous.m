@@ -36,6 +36,7 @@ cr  = cvs*sqrt(x);
 crest = cvs*((0.862+1.14*nu)/(1+nu));
 index = find(abs(cr-crest) == min(abs(cr-crest)));
 cvr = cr(index);
+cvr = crest;
 if isempty(cvr)
    error('No root found for homogeneous half space')
 end

@@ -88,7 +88,7 @@ global TOL; TOL = 0.01;
 % Assumed maximum number of modes at any frequency
 global MAXROOT; MAXROOT = 5;
 % Maximum number of increments to search between vrmin and vrmax
-global NUMINC; NUMINC = 200;
+global NUMINC; NUMINC = 25;
 % Number of points (depths) for calculating displacement-stress vectors (eigenfunctions)
 global NUMPOINTS; NUMPOINTS = 1000;
 % Wavelength multiplier for calculating displacement-stress vectors (eigenfunctions)

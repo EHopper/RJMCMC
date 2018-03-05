@@ -14,22 +14,35 @@ D = [ 0.02	4.0969666667	4.1940173913;
       0.1	3.4109		2.575373913 ];
   
 
-% earth model
-thk = [30];
-dns = [2.5 3.0];
-r = 1.78;
-vp = [6.0 8.0];
-vs = vp/r;
+%% earth model
+clearvars;
+tic
+thk = '';
+% dns = [2.5 3.0];
+% r = 1.78;
+% vp = [6.0 8.0];
+% vs = vp/r;
+vs = [4., 1.2, 4.3, 2.7, 3.1]; idep = [2 17 42 58 91]+1;
+
+addpath('C:\Users\Emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\junk\');
+[vp, dns, thk] = makevelmodel(vs, idep); thk=thk(1:end-1);
 
 % Define a vector of frequencies (in Hz)
-freq = D(:,1)';
+freq = 0.02:0.01:0.1;%D(:,1)';
 Nf = length(freq);
 fmax = max(freq);
 
 % Call mat_disperse.m to solve the eigenvalue problem and calculate phase
 % velocities, displacement-stress functions, and surface wave displacements
 vrref = mat_disperse(thk,dns,vp,vs,freq);
-
+fprintf('\n\n')
+for k = 1:ceil(length(freq)/3)
+   fprintf('%.4f, %.4f, %.4f,\n',vrref(3*k-2,1), vrref(3*k-1,1),...
+       vrref(3*k,1));
+    
+end
+toc
+%%
 for itt = [1:100]
 
 figure(2)
