@@ -16,9 +16,7 @@ import typing
 import numpy as np
 import random
 import matlab
-from scipy.signal import butter, detrend
-from scipy.optimize import brent as findmin
-from spectrum.mtm import dpss 
+
 # install as conda config --add channels conda-forge; conda install spectrum
 
 # =============================================================================
@@ -37,8 +35,8 @@ class BodyWaveform(typing.NamedTuple):
     dt: float
     
 class RotBodyWaveform(typing.NamedTuple):
-    amp_P: np.array # horizontal (radial) energy
-    amp_SV: np.array # vertical energy
+    amp_P: np.array # P energy
+    amp_SV: np.array # SV energy
     dt: float
 
 class SurfaceWaveDisp(typing.NamedTuple):
@@ -78,7 +76,7 @@ class ModelChange(typing.NamedTuple):
     theta: float
     old_param: float
     new_param: float
-    change_covar: int
+    which_change: str
     
 class SynthModel(typing.NamedTuple):
     vs: np.array
@@ -99,6 +97,7 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
     # N.B.  The variable random_seed ensures that the process is repeatable.
     #       Set this in the master code so can start multiple unique chains.
     #       random_seed must be passed to any subfunction that uses random no.
+    
     
     # =========================================================================
     #      Start by calculating for some (arbitrary) initial model
@@ -123,13 +122,27 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
             cov_m0.invCovar,             # CovarianceMatrix
             )
     
+    
+# =============================================================================
+#           Define parameters for convergence
+# =============================================================================
+    num_posterior = 200
+    all_models = np.zeros((model.all_deps.size,num_posterior+1))
+    burn_in = 2e5 # Number of models to run before bothering to test convergence
+    all_phi = np.zeros(max_iter) # all misfits
+    all_alpha = np.zeros(max_iter)-1 # all likelihoods
+    all_keep = np.zeros(max_iter)-1
+    # Within one chain, we test for convergence by misfit being and remaining
+    # low, and likelihood being and remaining high
+    
+    all_phi[0] = fit_to_obs_m0
     converged = 0  # variable defines # of iterations since convergence
     
     
     # =========================================================================
     #       Iterate by Reverse Jump Markov Chain Monte Carlo
     # =========================================================================    
-    for itr in range(max_iter):
+    for itr in range(1,max_iter):
         
         # Generate new model by perturbing the old model
         new_model, changes_model = Mutate(model,itr)
@@ -137,7 +150,7 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
         if not CheckPrior(new_model): # check if mutated model compatible with prior distr.
             continue  # if not, continue to next iteration
         
-        if changes_model.change_covar: 
+        if changes_model.change_covar == 'Noise': 
             # only need to recalculate covariance matrix if changed hyperparameter
             cov_m = CalcCovarianceMatrix(model,rf_obs,swd_obs)
             rf_synth_m = rf_synth_m0
@@ -153,12 +166,15 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
                 swd_obs,swd_synth_m,  # SurfaceWaveDisp
                 cov_m,             # CovarianceMatrix
                 )
+        all_phi[itr] = fit_to_obs_m
         
         # Calculate probability of keeping mutation
-        keep_yn = AcceptFromLikelihood(
+        (keep_yn, all_alpha[itr-1]) = AcceptFromLikelihood(
                 fit_to_obs_m, fit_to_obs_m0, # float
-                cov_m, cov_m0, # CovarianceMatrix               
+                cov_m, cov_m0, # CovarianceMatrix  
+                changes_model, # form depends on which change
                 )
+        all_keep[itr-1] = keep_yn
         if keep_yn: # should be aiming to keep about 40% of perturbations
             model = new_model
             cov_m0 = cov_m
@@ -166,17 +182,28 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
             swd_synth_m0 = swd_synth_m
             
             # Test if have converged
-            if not converged:
-                converged = TestConvergence()
+            nw = np.min((int(1e5), burn_in))
+            if itr == burn_in:
+                phi_0_std = all_phi[:nw].std()
+                phi_0_mean = all_phi[:nw].mean()
+                alpha_0_std = all_alpha[:nw-1].std()
+                alpha_0_mean = all_alpha[:nw-1].mean()
+            # Test after burn_in iterations every 1000 iterations
+            if itr > burn_in and not converged and not (itr-burn_in) % 1e3:
+                converged = TestConvergence(all_phi[:itr], all_alpha[:itr-1],
+                                            phi_0_std, phi_0_mean, 
+                                            alpha_0_std, alpha_0_mean,
+                                            itr, nw)
         
         # Save every 500th iteration after convergence (KL14)
-        if converged:
+        if converged and converged <= 1e6:
             converged = converged + 1
             if not converged % 500: 
-                SaveModel(model)
+                all_models[:,(converged/500)+1] = SaveModel(model)
             
         
-    return model
+    
+    return (all_models, all_phi, all_alpha)
 
 
  
@@ -238,7 +265,10 @@ def MakeFullModel(model) -> SynthModel:
             
     #  Now calculate the thickness and average depth of the layers
     layertops = np.concatenate([[0],(dep[1:]+dep[0:-1])/2])
-    thickness = np.diff(layertops)
+    if layertops.size == 1:
+        thickness = np.array([30]) # arbitrary
+    else:
+        thickness = np.diff(layertops)
     thickness = np.concatenate([thickness, [thickness[-1]]])
     avdep = layertops + thickness/2
     
@@ -369,7 +399,7 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
         perturbs=('Vs','Dep','Death','Hyperparameter')
     else: 
         perturbs=('Vs','Dep','Birth','Death','Hyperparameter')
-    perturb = perturbs[random.randint(0,len(perturbs)-1)]
+    perturb = random.sample(perturbs, 1)[0]
     
     if perturb=='Vs':          # Change Vs in a layer
         vs=model.vs
@@ -387,7 +417,8 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
         # perturb around index in alldeps array
         theta =_GetStdForGaussian(perturb)
         idep[i_id] = round(np.random.normal(idep[i_id],theta))
-        changes_model = ModelChange(theta,model.idep[i_id],idep[i_id],change_covar=0)
+        changes_model = ModelChange(theta,model.idep[i_id],idep[i_id],
+                                    which_change = perturb)
         new_model = model._replace(idep=idep)
         
     elif perturb=='Birth':     # Layer Birth
@@ -405,7 +436,8 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
         idep = np.sort(np.append(idep,i_d))
         i_new = np.where(idep==i_d)
         vs = np.insert(vs,i_new,np.random.normal(vs[i_old],theta))
-        changes_model = ModelChange(theta,model.vs[i_old],vs[i_new],change_covar=0)
+        changes_model = ModelChange(theta,model.vs[i_old],vs[i_new],
+                                    which_change = perturb)
         new_model=model._replace(idep=idep,vs=vs)
         
     elif perturb=='Death':     # Layer Death
@@ -418,7 +450,8 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
         vs = np.delete(vs,i_id)
         # identify index of closest nucleus for new Vs value
         i_new = abs(model.all_deps[idep]-model.all_deps[model.idep[i_id]])  
-        changes_model = ModelChange(theta,model.vs[i_id],vs[i_new],change_covar=0)
+        changes_model = ModelChange(theta,model.vs[i_id],vs[i_new],
+                                    which_change = perturb)
         new_model = model._replace(idep=idep,vs=vs)
         
     else: # perturb=='Hyperparameter', Change a hyperparameter
@@ -439,7 +472,8 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
             new = np.random.normal(old.theta)
             new_model = model._replace(std_swd = new)
             
-        changes_model = ModelChange(theta, old, new, change_covar = 1)
+        changes_model = ModelChange(theta, old, new,
+                                    which_change = 'Noise')
             
     return new_model, changes_model
 
@@ -475,7 +509,7 @@ def SynthesiseRF(fullmodel) -> RecvFunc:
     # Multiply by rotation matrix
     wv = _RotateToPSV(wv, fullmodel.vp[0], fullmodel.vs[0], fullmodel.ray_param)
     # Prep data (filter, crop, align)
-    wv = _PrepWaveform(wv, Ts = [1, 50]) 
+    wv = _PrepWaveform(wv, Ts = [1, 100]) 
     
     # And deconvolve it
     rf = _CalculateRF(wv)
@@ -535,10 +569,10 @@ def _SynthesiseWV(synthmodel) -> BodyWaveform:
     # S_vert = np.real(np.fft.ifft(transfer_S_vert))/dt
     
     # Filter and cut to size
-    P_horz = BpFilt(P_horz,T[0],T[1],dt)[:round(tmax/dt)]
-    P_vert = BpFilt(P_vert,T[0],T[1],dt)[:round(tmax/dt)]
-    # S_horz = BpFilt(S_horz,T[0],T[1],dt)[:round(tmax/dt)]
-    # S_vert = BpFilt(S_vert,T[0],T[1],dt)[:round(tmax/dt)]
+    P_horz = matlab.BpFilt(P_horz,T[0],T[1],dt)[:round(tmax/dt)]
+    P_vert = matlab.BpFilt(P_vert,T[0],T[1],dt)[:round(tmax/dt)]
+    # S_horz = matlab.BpFilt(S_horz,T[0],T[1],dt)[:round(tmax/dt)]
+    # S_vert = matlab.BpFilt(S_vert,T[0],T[1],dt)[:round(tmax/dt)]
     
     # Normalise
     P_max = np.max(np.concatenate([P_horz, P_vert]))
@@ -657,27 +691,30 @@ def _PrepWaveform(waveform, Ts) -> RotBodyWaveform:
     #   ASSUMING dt == 0.05 s !!)
     tot_time = 100
     n_fft = 2**(int(tot_time/dt).bit_length()) # next power of 2
-    amp_P = np.concatenate([ # pad the beginning with zeros
-            np.zeros(int(tot_time/2 / dt - tshift)), amp_P])
+    i_arr = int(n_fft/2)
+    amp_P = np.concatenate([ # pad the beginning with zeros so incident phase 
+            np.zeros(i_arr - tshift), amp_P]) # at tot_time/2
     amp_P = np.concatenate([ # pad the end with zeros
-            amp_P, np.zeros(n_fft - amp_P.size + 1)])
+            amp_P, np.zeros(n_fft - amp_P.size)])
     amp_SV = np.concatenate([ # pad the beginning with zeros
-            np.zeros(int(tot_time/2 / dt - tshift)), amp_SV])
+            np.zeros(i_arr - tshift), amp_SV])
     amp_SV = np.concatenate([ # pad the end with zeros
-            amp_SV, np.zeros(n_fft - amp_SV.size + 1)])
+            amp_SV, np.zeros(n_fft - amp_SV.size)])
             
     # Bandpass filter
-    amp_P = BpFilt(amp_P, Ts[0], Ts[1], dt)
-    amp_SV = BpFilt(amp_SV, Ts[0], Ts[1], dt)
+    amp_P = matlab.BpFilt(amp_P, Ts[0], Ts[1], dt)
+    amp_SV = matlab.BpFilt(amp_SV, Ts[0], Ts[1], dt)
     
     # Taper the data
     #    This is written so all positions are INDICES not actual time
     taper_width = 5  # Arbitrary (ish), but works for real data processing
     taper_length = 30 # Arbitrary (ish), but works for real data processing
-    amp_P = Taper(amp_P, int(taper_width/dt), tshift - int(taper_length/2/dt),
-                  tshift + int(taper_length/2/dt))
-    amp_SV = Taper(amp_SV, int(taper_width/dt), tshift - int(taper_length/2/dt),
-                  tshift + int(taper_length/2/dt))
+    # Note: this taper cuts off deep multiples - but these are likely to be
+    #       really weak in the real data anyway!
+    amp_P = matlab.Taper(amp_P, int(taper_width/dt), i_arr - int(taper_length/2/dt), 
+                  i_arr + int(taper_length/2/dt))
+    amp_SV = matlab.Taper(amp_SV, int(taper_width/dt), i_arr - int(taper_length/2/dt), 
+                  i_arr + int(taper_length/2/dt))
     return RotBodyWaveform(amp_P, amp_SV, dt)
    
 
@@ -692,41 +729,43 @@ def _CalculateRF(waveform) -> RecvFunc:
     #   Use a 50 second window, num_Slepian = 4, num_tapers = 7
     win_length = 50 # Have 100s long signal
     i_shift = 0.1  # these windows will overlap by 90% (10% shift each time)
-    num_windows = 7
+    num_tapers = 7
     n_samp = 2**(int(win_length / waveform.dt).bit_length()) # for FFT - 1024 samples
-    tapers = dpss(n_samp, int((num_windows+1)/2))[0]
+    tapers = matlab.slepian(n_samp, num_tapers)
     
     # We have already required (in PrepWaveform) that tot_time = 100
         
     # Pad with zeros to give wiggle room on large ETMTM windows
     pad = np.zeros(int(np.ceil(n_samp*i_shift)))
     Daughter = np.concatenate([pad, waveform.amp_SV, pad])
-    i_starts = np.arange(0,Daughter.size - (n_samp - 1), i_shift*n_samp)
+    i_starts = np.arange(0,Daughter.size - (n_samp - 1), int(i_shift*n_samp))
     
     i_t0 = int(waveform.amp_P.size/2)
     incident_win = i_t0+int(n_samp/2)*np.array([-1, 1])
     Parent = waveform.amp_P[incident_win[0]:incident_win[1]]
     
     
-    P_fft = _ETMTMSumFFT(tapers, Parent, Parent, num_windows)
+    P_fft = _ETMTMSumFFT(tapers, Parent, Parent, num_tapers)
     norm_by = np.max(np.abs(np.real(np.fft.ifft(P_fft/(P_fft + 10)))))
-    w_RFs = np.zeros((num_windows, Daughter.size))
+    w_RFs = np.zeros((i_starts.size, Daughter.size))
     max_RF = 0
     
-    for i in range(num_windows):
+    for i in range(i_starts.size):
         # Isolate and taper the daughter window
-        Daughter_win = Taper( Daughter[i_starts[i] : i_starts[i] + n_samp], 
-                             int(n_samp/5), 0, n_samp)
-        w_D_fft = _ETMTMSumFFT(tapers, Parent, Daughter_win, num_windows)
+        Daughter_win = matlab.Taper( Daughter[i_starts[i] : i_starts[i] + n_samp], 
+                             int(n_samp/5), int(n_samp/5), int(4*n_samp/5))
+        w_D_fft = _ETMTMSumFFT(tapers, Parent, Daughter_win, num_tapers)
         w_RF = np.real(np.fft.ifft(w_D_fft/(P_fft + 10)))/norm_by # Arbitrary water level = 10
+        w_RF = np.fft.fftshift(w_RF)
         w_RFs[i, i_starts[i]:i_starts[i]+n_samp] = w_RF
-        max_RF = np.max(max_RF, np.max(np.abs(w_RF)))
+        max_RF = np.max([max_RF, np.max(np.abs(w_RF))])
 
     # Want time window from incident phase to + 30s
     # and resample with larger dt
     n_jump = int(rf_dt / waveform.dt)
     i_t0 = i_t0 + pad.size 
-    RF = np.mean(w_RFs, 0)[i_t0 : i_t0 + rf_tmax/waveform.dt : n_jump]
+    RF = np.mean(w_RFs, 0)[i_t0 : i_t0 + int(rf_tmax/waveform.dt) : n_jump]
+    RF = RF/np.max(np.abs(RF)) * max_RF
 
     return RecvFunc(amp = RF, dt = rf_dt)
 
@@ -734,15 +773,15 @@ def _CalculateRF(waveform) -> RecvFunc:
 #   Helffrich, G., 2006. Extended-time multitaper frequency domain 
 #       cross-correlation receiver-function estimation. Bull. Seismol. Soc. Am.
 #        96, 344–347.
-def _ETMTMSumFFT(slepians, data_1, data_2, num_window):
+def _ETMTMSumFFT(slepian_tapers, data_1, data_2, num_window):
     which_window = num_window-1 # as zero-indexed
     if which_window == 0:
-        return (np.conj(np.fft.fft(slepians[:,which_window]*data_1)) * 
-                np.fft.fft(slepians[:,which_window]*data_2))
+        return (np.conj(np.fft.fft(slepian_tapers[:,which_window]*data_1)) * 
+                np.fft.fft(slepian_tapers[:,which_window]*data_2))
     else:
-        return (np.conj(np.fft.fft(slepians[:,which_window]*data_1)) * 
-                np.fft.fft(slepians[:,which_window]*data_2) + 
-                _ETMTMSumFFT(slepians, data_1, data_2, num_window-1))
+        return (np.conj(np.fft.fft(slepian_tapers[:,which_window]*data_1)) * 
+                np.fft.fft(slepian_tapers[:,which_window]*data_2) + 
+                _ETMTMSumFFT(slepian_tapers, data_1, data_2, num_window-1))
 
 
 # =============================================================================
@@ -769,20 +808,24 @@ def SynthesiseSWD(model, swd_obs) -> SurfaceWaveDisp: # fill this out when you k
     
     if model.vs.size == 1:
         cr = _CalcRaylPhaseVelInHalfSpace(model.vp[0], model.vs[0])
-        return np.ones(freq.size)*cr  # no freq. dependence in homogeneous half space
+        return SurfaceWaveDisp(period = swd_obs.period,
+                               c = np.ones(freq.size)*cr) 
+        # no freq. dependence in homogeneous half space
     
     # Set bounds of tested Rayleigh wave phase velocity
     cr_max = np.max(model.vs)
     cr_min = 0.98 * _CalcRaylPhaseVelInHalfSpace(np.min(model.vp), 
                                                  np.min(model.vs))
     omega = 2*np.pi*freq 
-    n_ksteps = 25 # Original code had 200, but this should speed things up
+    n_ksteps = 15 # Original code had 200, but this should speed things up
+    cr = np.zeros(omega.size)
     
     # Look for the wavenumber (i.e. vel) with minimum secular function value 
     k_lims = np.vstack((omega/cr_max, omega/cr_min))
+    mu = model.rho * model.vs**2
     for i_om in range(omega.size):
         cr[i_om] = _FindMinValueSecularFunction(omega[i_om], k_lims[:,i_om],
-          n_ksteps, model.thickness, model.rho, model.vp, model.vs)
+          n_ksteps, model.thickness, model.rho, model.vp, model.vs, mu)
       
     return SurfaceWaveDisp(period = swd_obs.period, c = cr)
 
@@ -813,44 +856,27 @@ def _CalcRaylPhaseVelInHalfSpace(vp, vs):
     
     return phase_vel_rayleigh
 
-def _FindMinValueSecularFunction(omega, k_lims, n_ksteps, thick, rho, vp, vs):
+def _FindMinValueSecularFunction(omega, k_lims, n_ksteps, thick, rho, vp, vs, mu):
     tol_s = 0.1 # This is as original code
     
     # Define vector of possible wavenumbers to try
     wavenumbers = np.linspace(k_lims[0], k_lims[1], n_ksteps)
-
-    
-    # Set up common variables for _Secular
-    #   these will either be 1 x vs.length OR wavenumbers.length x vs.length
-    wavenumbers = np.reshape(wavenumbers, (wavenumbers.size,1))
-    mu = _m3D(rho * vs**2) # 1 x 1 x nl
-    all_nu_s = np.sqrt(wavenumbers**2 - omega**2/vs**2) # nk x nl
-    all_gamma_s = np.abs(all_nu_s/wavenumbers) # nk x nl
-    all_nu_p = np.sqrt(wavenumbers**2 - omega**2/vp**2) # nk x nl
-    all_gamma_p = np.abs(all_nu_p/wavenumbers) # nk x nl
-    all_chi = 2*wavenumbers - all_nu_s/wavenumbers**2  # nk x nl
-    thick = _m3D(thick)
     
 
     f1 = 1e-10  # arbitrarily low values so f2 < f1 & f2 < f3 never true for 2 rounds
     f2 = 1e-9
     k1 = 0 # irrelevant, will not be used unless enter IF statement below
     k2 = 0 # and should be replaced with real values before then
+    c = 0
     for i_k in range(-1, -wavenumbers.size-1,-1):
-        nu_s = _m3D(all_nu_s[i_k])
-        gamma_s = _m3D(all_gamma_s[i_k])
-        nu_p = _m3D(all_nu_p[i_k])
-        gamma_p = _m3D(all_gamma_p[i_k])
-        chi = _m3D(all_chi[i_k])
         k3 = wavenumbers[i_k]
         
-        f3 = _Secular(k3, omega, thick, mu, nu_s, gamma_s, nu_p, gamma_p, chi)
+        f3 = _Secular(k3, omega, thick, mu, rho, vp, vs)
         
         if f2 < f1 and f2 < f3: # if f2 has minimum of the 3 values
             # Find minimum more finely
-            fmin, kmin = findmin(_Secular, brack = (k3, k1),
-                                 args = (omega, thick, rho, vp, vs),
-                                         full_output = True)[0:1]
+            kmin, fmin = matlab.findmin(_Secular, brack = (k3, k2, k1),
+                                 args = (omega, thick, mu, rho, vp, vs))
             if fmin < tol_s:
                 c = omega/kmin
                 break
@@ -861,74 +887,94 @@ def _FindMinValueSecularFunction(omega, k_lims, n_ksteps, thick, rho, vp, vs):
              k2 = k3
                
     if c == 0 and n_ksteps < 250:
-        c = _FindMinValueSecularFunction(omega, k_lims, n_ksteps+25, thick, 
-                                         thick, mu, nu_s[i_k], gamma_s[i_k], 
-                                         nu_p[i_k], gamma_p[i_k], chi[i_k])
+        c = _FindMinValueSecularFunction(omega, k_lims, n_ksteps+25, thick,
+                                         rho, vp, vs, mu)
         
     return c
 
 def _m3D(x):
     return np.reshape(x,(1,1,x.size))
     
-def _Secular(k, om, thick, mu, nu_s, gamma_s, nu_p, gamma_p, chi):
+def _Secular(k, om, thick, mu, rho, vp, vs):
     # Ok.  This is written in kind of a weird way (following the MATLAB code)
     # but that's because it minimises repetition of any multiplication etc - 
     # so it should be faster to run, even if it seems like an odd way of doing 
     # things...
     
+    # Check to see if the trial phase velocity is equal to the shear wave velocity
+    # or compression wave velocity of one of the layers
+    epsilon = 0.0001;
+    while np.any(np.abs(om/k-vs)<epsilon) or np.any(np.abs(om/k-vp)<epsilon):
+        k = k * (1+epsilon)
+    
+    
+    # First, calculate some commonly used variables
+    k = k+0j
+    nu_s = np.sqrt(k**2 - om**2/vs**2) # 1 x nl
+    inds = np.imag(-1j*nu_s)>0
+    nu_s[inds] = -nu_s[inds]
+    gamma_s = _m3D(nu_s/k) # 1 x nl
+    nu_p = np.sqrt(k**2 - om**2/vp**2) # 1 x nl
+    inds = np.imag(-1j*nu_p)>0
+    nu_p[inds] = -nu_p[inds]
+    gamma_p = _m3D(nu_p/k) # 1 x nl
+    chi = 2*k - (om**2/vs**2)/k  # nk x nl
+    thick = _m3D(thick)
+    
+
+    
     # First, calculate the E and Lambda matrices (up-going and 
     # down-going matrices) for the P-SV case.
     ar1 = np.ones((1,1,mu.size))
     ar0 = np.zeros((1,1,mu.size))
-    muchi = mu*chi
-    munup = 2*mu*nu_p
-    munus = 2*mu*nu_s
+    muchi = _m3D(mu*chi)
+    munup = _m3D(2*mu*nu_p)
+    munus = _m3D(2*mu*nu_s)
+    
     E11 = np.vstack((np.hstack((-ar1,gamma_s)),np.hstack((-gamma_p, ar1))))
     E12 = np.vstack((np.hstack((-ar1, gamma_s)), np.hstack((gamma_p, -ar1))))
     E21 = np.vstack((np.hstack((munup, -muchi)), np.hstack((muchi, -munus))))
     E22 = np.vstack((np.hstack((-munup, muchi)), np.hstack((muchi, -munus))))
-    du  = np.vstack((np.hstack((np.exp(-nu_p)*thick, ar0)),
-                     np.hstack((ar0, np.exp(-nu_s)*thick))))
-    X = np.zeros(4,4,mu.size-1)
+    du  = np.vstack((np.hstack((np.exp(-nu_p*thick), ar0)),
+                     np.hstack((ar0, np.exp(-nu_s*thick)))))
+    X = np.zeros((4,4,mu.size-1))+0j
+
     for iv in range(mu.size - 2):
         A = np.vstack((np.hstack((E11[:,:,iv+1],-E12[:,:,iv])),
                        np.hstack((E21[:,:,iv+1], -E22[:,:,iv]))))
         B = np.vstack((np.hstack((E11[:,:,iv],-E12[:,:,iv+1])),
                        np.hstack((E21[:,:,iv], -E22[:,:,iv+1]))))
         L = np.vstack((np.hstack((du[:,:,iv],np.zeros((2,2)))),
-                       np.hstack(np.zeros((2,2)),du[:,:,iv+1])))
+                       np.hstack((np.zeros((2,2)),du[:,:,iv+1]))))
         X[:,:,iv] = matlab.mldivide(A,np.matmul(B,L))
     
     # And the deepest layer (above the halfspace)
+    iv = mu.size - 2
     A = np.vstack((np.hstack((E11[:,:,iv+1],-E12[:,:,iv])),
                    np.hstack((E21[:,:,iv+1], -E22[:,:,iv]))))
     B = np.vstack((E11[:,:,iv],E21[:,:,iv]))
     L = du[:,:,iv]
-    X[:,0:1,-1] = matlab.mldivide(A, np.matmul(B,L))
+    X[:,:2,-1] = matlab.mldivide(A, np.matmul(B,L))
     
     
     #  Calculate the modified R/T coefficients
-    Td = np.zeros(2,2,mu.size-1)
-    Rd = np.zeros(2,2,mu.size-1)
+    Td = np.zeros((2,2,mu.size-1))+0j
+    Rd = np.zeros((2,2,mu.size-1))+0j
     
-    Td[:,:,mu.size-1] = X[0:1,0:1,mu.size-1] # The deepest layer above HS
-    Rd[:,:,mu.size-1] = X[2:3,0:1,mu.size-1]
-    for iv in range(mu.size-2,0,-1):
+    Td[:,:,mu.size-2] = X[:2,:2,mu.size-2] # The deepest layer above HS
+    Rd[:,:,mu.size-2] = X[2:,:2,mu.size-2]
+    for iv in range(mu.size-3,-1,-1):
         Td[:,:,iv] = matlab.mldivide(
-                np.matmul(
-                        np.array([[1-X[2,2], -X[2,3]],[-X[3,2], 1-X[3,3]]]), 
-                        Rd[:,:,iv+1]
-                        ),
-                X[0:1,0:1,iv]
-                )
-        Rd[:,:,iv] = X[2:3,1:2] + np.matmul(np.matmul(X[2:3,2:3],Rd[:,:,iv+1]),
+                        (np.identity(2) - np.matmul(X[:2,2:,iv],Rd[:,:,iv+1])),
+                        X[:2,:2,iv])
+        Rd[:,:,iv] = X[2:,:2,iv] + np.matmul(np.matmul(X[2:,2:,iv],Rd[:,:,iv+1]),
                                               Td[:,:,iv])
     
     
     # And finally, calculate the absolute value of the secular function
-    d = (np.abs(np.det(E21[:,:,0] + 
-                      np.matmul(np.matmul(E22[:,:,0],du[:,:,0]), Rd[:,:,0])))
-                    /(nu_s[0,0,0]*nu_p[0,0,0]*mu[0,0,0]**2))
+    d = (np.abs(np.linalg.det(E21[:,:,0] + 
+                      np.matmul(np.matmul(E22[:,:,0],du[:,:,0]), Rd[:,:,0]))
+                    /(nu_s[0]*nu_p[0]*mu[0]**2)))
     
     
 
@@ -941,8 +987,8 @@ def _Secular(k, om, thick, mu, nu_s, gamma_s, nu_p, gamma_p, chi):
 #       Find the misfit (scaled by covariance matrix)
 # =============================================================================
 def Mahalanobis(rf_obs,rf_synth, swd_obs,swd_synth, inv_cov) -> float:
-    g_m = np.concatenate(rf_synth, swd_synth)
-    d_obs = np.concatenate(rf_obs, swd_obs)
+    g_m = np.concatenate((rf_synth, swd_synth))
+    d_obs = np.concatenate((rf_obs, swd_obs))
     misfit = g_m - d_obs
     
     # N.B. with np.matmul, it prepends or appends an additional dimension 
@@ -953,52 +999,60 @@ def Mahalanobis(rf_obs,rf_synth, swd_obs,swd_synth, inv_cov) -> float:
 # =============================================================================
 #       Choose whether or not to accept the change
 # =============================================================================
-def AcceptFromLikelihood() -> bool:
-    pass
+def AcceptFromLikelihood(fit_to_obs_m, fit_to_obs_m0, 
+                         cov_m, cov_m0, model_change) -> bool:
+    # Form is dependent on which variable changed
+    perturb = model_change.which_change
+    
+    if perturb == 'Vs' or perturb == 'Dep':
+        alpha_m_m0 = np.exp(-(fit_to_obs_m - fit_to_obs_m0)/2)
+    elif perturb == 'Birth':
+        dv = np.abs(model_change.old_param - model_change.new_param)
+        alpha_m_m0 = ((model_change.theta * np.sqrt(2*np.pi) / dv) * 
+                      np.exp((dv*dv/(2*model_change.theta**2)) - 
+                             (fit_to_obs_m - fit_to_obs_m0)/2))
+    elif perturb == 'Death':
+        dv = np.abs(model_change.old_param - model_change.new_param)
+        alpha_m_m0 = ((dv / (model_change.theta * np.sqrt(2*np.pi))) * 
+                      np.exp(-(dv*dv/(2*model_change.theta**2)) - 
+                             (fit_to_obs_m - fit_to_obs_m0)/2))
+    elif perturb == 'Noise':
+        alpha_m_m0 = ((cov_m0.detCovar/cov_m.detCovar) *
+                      np.exp(-(fit_to_obs_m - fit_to_obs_m0)/2))
 
 
+    keep_yn = random.random() # generate random number between 0-1
+    return (keep_yn < alpha_m_m0, alpha_m_m0)
+    
 # =============================================================================
 #       Test if model has converged or not
 # =============================================================================
-def TestConvergence() -> int:
-    pass
-
-def SaveModel():
-    pass
-
-
-# =============================================================================
-#   Other generally useful functions
-# =============================================================================
-
-# Butterworth bandpass filter edited slightly from 
-#   http://scipy.github.io/old-wiki/pages/Cookbook/ButterworthBandpass
-
-def ButterBandpass(short_T, long_T, dt, order=2):
-     nyq = 0.5 / dt
-     low = 1 / (nyq*long_T)
-     high = 1 / (nyq*short_T)
-     b, a = butter(order, [low, high], btype='bandpass')
-     return b, a
-
-def BpFilt(data, short_T, long_T, dt, order=2):
-     b, a = ButterBandpass(short_T, long_T, dt, order=order)
-     data = data - np.mean(data)
-     y = matlab.filtfilt(b, a, data) # Note: filtfilt rather than lfilt applies a 
-                               # forward and backward filter, so no phase shift
-     y = detrend(y)
-     return y
- 
-def Taper(data, i_taper_width, i_taper_start, i_taper_end):
-    # This will apply a (modified) Hann window to data (a np.array), such that
-    # there is a cosine taper (i_taper_width points long) that is equal to 1 
-    # between i_taper_start (index) and i_taper_end (index)
+def TestConvergence(all_phi, all_alpha, phi_0_std, phi_0_mean, 
+                    alpha_0_std, alpha_0_mean, itr, nw) -> int:
+    # One test of convergence is that likelihood is and stays high (alpha)
+    # and misfit is and stays low (phi)
+    # Output: = 0 if not converged yet, = 1 if converged
+    converged = 1
     
-    taper = np.concatenate([np.zeros(i_taper_start - i_taper_width),
-                            np.insert(np.hanning(2*i_taper_width),i_taper_width,
-                                      np.ones(i_taper_end - i_taper_start)),
-                            np.zeros(i_taper_end - i_taper_width*2 - i_taper_start)])
+    # Not really a unique way to define this, so...
+    # For each of alpha and phi, want to check that values are stable
+    # Check standard deviation of new population vs. original population
+    if 0.1 * phi_0_std < all_phi[itr-nw:itr].std: return 0
+    if 0.1 * alpha_0_std < all_alpha[itr-nw-1:itr-1].std: return 0
     
-    return data * taper
+    # For each of alpha and phi, want to check values are low/high respectively
+    if 0.1 * phi_0_mean < all_phi[itr-nw:itr].mean: return 0
+    if 0.1 * all_alpha[itr-nw-1:itr-1].mean < alpha_0_mean: return 0
+    
+    
+    return converged
+    
+    
+    
+
+def SaveModel(model):
+    
+    return
+    
 
 
