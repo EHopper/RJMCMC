@@ -22,13 +22,13 @@ class PipelineTest(unittest.TestCase):
         np.testing.assert_array_equal(actual.idep, expected.idep) # integers
         self.assertAlmostEqual(actual.std_rf, expected.std_rf)
         self.assertAlmostEqual(actual.lam_rf, expected.lam_rf)
-        self.assertAlmostEqual(actual.std_swd, expected.std_swd)
+        self.assertAlmostEqual(actual.std_swd, expected.std_swd, places = 4)
     
     def assertCovarianceMatrixEqual(self, actual, expected):
         np.testing.assert_array_almost_equal(actual.R, expected.R, decimal = 6)
         np.testing.assert_array_almost_equal(actual.Covar, expected.Covar, decimal = 6)
         np.testing.assert_array_almost_equal(actual.invCovar, expected.invCovar, decimal = 6)
-        self.assertAlmostEqual(actual.detCovar, expected.detCovar, places = 12)
+        self.assertAlmostEqual(actual.detCovar, expected.detCovar, places = 6)
         
     def assertFullVelModelEqual(self, actual, expected):
         np.testing.assert_array_almost_equal(actual.vs, expected.vs, decimal = 3)
@@ -67,15 +67,16 @@ class PipelineTest(unittest.TestCase):
     
     
     #  Test initial model 
-    deps = np.append(np.arange(0,60,1), np.arange(60,201,5))
-    normdist =  np.random.normal(0,0.5,1000) # Gaussian distribution, std = 0.5
+    deps = np.concatenate((np.arange(0,10,0.2), 
+                           np.arange(10,60,1), np.arange(60,201,5)))
+    normdist =  np.random.normal(0,0.5,int(1e6)) # Gaussian distribution, std = 0.5
     
     @parameterized.expand([
         ("Seed == 1", normdist, 1,
-             pipeline.Model(vs = np.array(1.17), all_deps = deps, idep = np.array(8), 
+             pipeline.Model(vs = np.array(1.17), all_deps = deps, idep = np.array(16), 
                             std_rf = 0.5, lam_rf = 0.2, std_swd = 0.15)),       
         ("Seed == 10", normdist, 10, 
-             pipeline.Model(vs = 3.36, all_deps = deps, idep = 54, 
+             pipeline.Model(vs = 3.36, all_deps = deps, idep = 109, 
                             std_rf = 0.5, lam_rf = 0.2, std_swd = 0.15)),
     ])
        
@@ -108,6 +109,10 @@ class PipelineTest(unittest.TestCase):
             ("Std_rf", lims, model._replace(std_rf = 0.51),False),
             ("Std_swd", lims._replace(std_swd = (0,0.1)), model, False),
             ("Lam_rf", lims, model._replace(lam_rf = 1), False),
+#            ("One layer", lims,
+#                 model._replace(vs = np.array(1), idep = np.array(16)), True),
+            ("One layer", lims,
+                 model._replace(vs = np.array([1]), idep = np.array([16])), True)
             ])
     
     def test_CheckPrior(self,name,lims,model,expected):
@@ -191,6 +196,11 @@ class PipelineTest(unittest.TestCase):
             ])
     def test_CalcCovarianceMatrix(self, name, model, rf_obs, swd_obs, expected):
         cov = pipeline.CalcCovarianceMatrix(model, rf_obs, swd_obs)
+        # Account for the bodge to make the determinant ratio work
+        bodge_det = expected.detCovar*10**(4*(expected.Covar[1,].size))
+        num10 = 10**int(np.log10(bodge_det))
+        expected = expected._replace(detCovar = bodge_det/num10)
+        cov = cov._replace(detCovar = cov.detCovar/num10)
         self.assertCovarianceMatrixEqual(cov, expected)
     del model, rf_obs, swd_obs
 
@@ -2631,15 +2641,19 @@ class PipelineTest(unittest.TestCase):
 # =============================================================================
 #         Test the whole thing???!
 # =============================================================================
-    all_lims = pipeline.Limits(
-            vs = (0.5,5.5), dep = (0,200), std_rf = (0,0.05),
-            lam_rf = (0.05, 0.5), std_swd = (0,0.15))
-    deps = np.concatenate((np.arange(0,10,0.2), np.arange(10,60,1), np.arange(60,201,5)))
-    model = pipeline.Model(vs = np.array([3.4, 4.5]), all_deps = deps,
-                           idep = np.array([60, 80]),  
-                           std_rf = 0, lam_rf = 0, std_swd = 0)
-    rf_obs = pipeline.SynthesiseRF(pipeline.MakeFullModel(model))
-    
+#    all_lims = pipeline.Limits(
+#            vs = (0.5,5.5), dep = (0,200), std_rf = (0,0.05),
+#            lam_rf = (0.05, 0.5), std_swd = (0,0.15))
+#    deps = np.concatenate((np.arange(0,10,0.2), np.arange(10,60,1), np.arange(60,201,5)))
+#    model = pipeline.Model(vs = np.array([3.4, 4.5]), all_deps = deps,
+#                           idep = np.array([60, 80]),  
+#                           std_rf = 0, lam_rf = 0, std_swd = 0)
+#    
+#    def test_JointInversion(self, name, model, all_lims, rndm_sd, max_it):
+#        rf_obs = pipeline.SynthesiseRF(pipeline.MakeFullModel(model))
+#        swd_obs = pipeline.SynthesiseSWD(pipeline.MakeFullModel(model), 1/np.arange(0.02,0.1, 0.01))
+#        out = pipeline.JointInversion(rf_obs, swd_obs, all_lims, max_it, rndm_sd)
+#    
 
     
 

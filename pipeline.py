@@ -103,7 +103,7 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
     # =========================================================================
     #      Start by calculating for some (arbitrary) initial model
     # =========================================================================
-    model = InitialModel(rf_obs,random_seed)
+    model = InitialModel(rf_obs.amp,random_seed)
     if not CheckPrior(model, lims):
         return "Starting model does not fit prior distribution"
     
@@ -134,7 +134,7 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
     ddeps[1::2] = model.all_deps[:-1]+np.diff(model.all_deps)/2
     conv_models = np.zeros((ddeps.size,num_posterior+1))
     conv_models[:,0] = ddeps
-    all_models = np.zeros((ddeps.size,int(max_iter/500)))
+    all_models = np.zeros((ddeps.size,int(max_iter/1)))
     all_models[:,0] = ddeps
     all_phi = np.zeros(max_iter) # all misfits
     all_alpha = np.zeros(max_iter)-1 # all likelihoods
@@ -154,24 +154,25 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
         # Generate new model by perturbing the old model
         new_model, changes_model = Mutate(model,itr)
         
-        if not CheckPrior(new_model): # check if mutated model compatible with prior distr.
+        if not CheckPrior(new_model, lims): # check if mutated model compatible with prior distr.
             continue  # if not, continue to next iteration
         
-        if changes_model.change_covar == 'Noise': 
+        if changes_model.which_change == 'Noise': 
             # only need to recalculate covariance matrix if changed hyperparameter
             cov_m = CalcCovarianceMatrix(model,rf_obs,swd_obs)
             rf_synth_m = rf_synth_m0
             swd_synth_m = swd_synth_m0
         else:
             cov_m = cov_m0
-            rf_synth_m = SynthesiseRF(new_model) # forward model the RF data
-            swd_synth_m = SynthesiseSWD(swd_obs, period) # forward model the SWD data
+            new_full_model = MakeFullModel(new_model)
+            rf_synth_m = SynthesiseRF(new_full_model) # forward model the RF data
+            swd_synth_m = SynthesiseSWD(new_full_model, swd_obs.period) # forward model the SWD data
         
         # Calculate fit
         fit_to_obs_m = Mahalanobis(
-                rf_obs,rf_synth_m, # RecvFunc
-                swd_obs,swd_synth_m,  # SurfaceWaveDisp
-                cov_m,             # CovarianceMatrix
+                rf_obs.amp, rf_synth_m.amp, # RecvFunc
+                swd_obs.c, swd_synth_m.c,  # SurfaceWaveDisp
+                cov_m.invCovar,             # CovarianceMatrix
                 )
         all_phi[itr] = fit_to_obs_m
         
@@ -217,7 +218,7 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
             
         
     
-    return (all_models, all_phi, all_alpha)
+    return (conv_models, all_models, all_phi, all_alpha)
 
 
  
@@ -234,10 +235,11 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
 # inverted for the dispersion data.
 def InitialModel(rf_obs,random_seed) -> Model:
     random.seed(a = random_seed)
-    vs = np.array(round(random.uniform(0.5,5.5),2))   # arbitrary
-    all_deps = np.append(np.arange(0,60,1), np.arange(60,201,5))
-    idep = np.array(random.randrange(0,len(all_deps)))  # arbitrary
-    std_rf = round(np.std(rf_obs,ddof=1),1) # start off assuming all data is noise (KL14)
+    vs = np.array([round(random.uniform(0.5,5.5),2)])   # arbitrary
+    all_deps = np.concatenate((np.arange(0,10,0.2), 
+                                np.arange(10,60,1), np.arange(60,201,5)))
+    idep = np.array([random.randrange(0,len(all_deps))])  # arbitrary
+    std_rf = round(np.std(rf_obs,ddof=1),2) # start off assuming all data is noise (KL14)
     lam_rf = 0.2 # this is as the example given by KL14
     std_swd = 0.15 # arbitrary - the max allowed in Geoff Abers' code
     return Model(vs, all_deps, idep, std_rf, lam_rf, std_swd)
@@ -260,11 +262,11 @@ def CheckPrior(model: Model, limits: Limits) -> bool:
     )
     
 def _InBounds(value, limit):
-    min, max = limit
-    if type(value) == np.ndarray:
-        return all(np.logical_and(min <= value, value <= max))
+    min_v, max_v = limit
+    if type(value) == np.ndarray: # and value.size > 1:
+        return all(np.logical_and(min_v <= value, value <= max_v))
     else: 
-        return min <= value <= max
+        return min_v <= value <= max_v
 
 # =============================================================================
 #       Calculate Rest of model required for synthetics
@@ -379,9 +381,16 @@ def CalcCovarianceMatrix(model,rf_obs,swd_obs) -> CovarianceMatrix:
     covar[-swd_obs.period.size:,-swd_obs.period.size:]=(
             np.identity(swd_obs.period.size)*model.std_swd**2)
     
-    detc=np.linalg.det(covar)
     invc=np.linalg.inv(covar)
-    
+    #  Note: Need to take the determinant for use in calculating the acceptance
+    #        probability if changing a hyperparameter.  However, given that 
+    #        this is a 130x130 odd matrix with all values <1, the determinant
+    #        is WAY too small.  However, we actually only care about the RATIO
+    #        between the new and old determinant, so it is fine to just scale
+    #        this up so that it doesn't get lost in the rounding error.
+    #  detc=np.linalg.det(covar)
+    detc = np.linalg.det(covar*1e4)
+        
     return CovarianceMatrix(covar,invc,detc,R)
 
 
@@ -407,9 +416,9 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
     # Choose one uniformly - although...
     # KL14 suggest a limit of k Gaussians in the first 1000k(k+1) iterations
     # (where k Gaussians == k+1 nuclei here)
-    if model.dep.size==1: # and don't kill your only layer...
+    if model.idep.size==1: # and don't kill your only layer...
         perturbs=('Vs','Dep','Birth','Hyperparameter')
-    elif itr <= 1000*(model.dep.size-1)*(model.dep.size): # as KL14
+    elif itr <= 1000*(model.idep.size-1)*(model.idep.size): # as KL14
         perturbs=('Vs','Dep','Death','Hyperparameter')
     else: 
         perturbs=('Vs','Dep','Birth','Death','Hyperparameter')
@@ -419,8 +428,9 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
         vs=model.vs
         i_vs = random.randint(0,vs.size-1)
         theta =_GetStdForGaussian(perturb)
-        vs[i_vs] = np.random.normal(vs[i_vs],theta)
-        changes_model = ModelChange(theta,model.vs[i_vs],vs[i_vs],change_covar=0)
+        vs[i_vs] = np.round(np.random.normal(vs[i_vs],theta),2)
+        changes_model = ModelChange(theta,model.vs[i_vs],vs[i_vs],
+                                    which_change = perturb)
         new_model = model._replace(vs=vs)
         
     elif perturb=='Dep':       # Change Depth of one node
@@ -441,15 +451,15 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
         vs = model.vs
         unused_idep = [idx for idx,val in enumerate(model.all_deps) 
                 if idx not in idep]
-        unused_d = unused_idep[random.randint(0,len(unused_idep))]
-        i_d = np.where(model.all_deps==unused_d)
+        i_d = unused_idep[random.randint(0,len(unused_idep)-1)]
+        unused_d = model.all_deps[i_d]
         theta = _GetStdForGaussian(perturb)
         # identify index of closest nucleus for old Vs value
         i_old = abs(model.all_deps[idep]-unused_d).argmin()
         # Make new array of depth indices, and identify new value index, i_new
         idep = np.sort(np.append(idep,i_d))
-        i_new = np.where(idep==i_d)
-        vs = np.insert(vs,i_new,np.random.normal(vs[i_old],theta))
+        i_new = np.where(idep==i_d)[0]
+        vs = np.insert(vs,i_new,np.round(np.random.normal(vs[i_old],theta),2))
         changes_model = ModelChange(theta,model.vs[i_old],vs[i_new],
                                     which_change = perturb)
         new_model=model._replace(idep=idep,vs=vs)
@@ -462,28 +472,27 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
         theta = _GetStdForGaussian(perturb)
         idep = np.delete(idep,i_id)
         vs = np.delete(vs,i_id)
-        # identify index of closest nucleus for new Vs value
-        i_new = abs(model.all_deps[idep]-model.all_deps[model.idep[i_id]])  
+        i_new = abs(model.all_deps[idep]-model.all_deps[model.idep[i_id]]).argmin()  
         changes_model = ModelChange(theta,model.vs[i_id],vs[i_new],
                                     which_change = perturb)
         new_model = model._replace(idep=idep,vs=vs)
         
     else: # perturb=='Hyperparameter', Change a hyperparameter
-        hyperparams = ['Std_RF','Lam_RF','Std_SW']
+        hyperparams = ['Std_RF','Lam_RF','Std_SWD']
         hyperparam = hyperparams[random.randint(0,len(hyperparams)-1)]
         theta = _GetStdForGaussian(hyperparam)
         
         if hyperparam == 'Std_RF':
             old = model.std_rf
-            new = np.random.normal(old,theta)
+            new = np.round(np.random.normal(old,theta),2)
             new_model = model._replace(std_rf = new)
         elif hyperparam == 'Lam_RF':
             old = model.lam_rf
-            new = np.random.normal(old,theta) 
+            new = np.round(np.random.normal(old,theta),2) 
             new_model = model._replace(lam_rf = new)
-        elif hyperparam == 'Std_SW':
+        elif hyperparam == 'Std_SWD':
             old = model.std_swd
-            new = np.random.normal(old.theta)
+            new = np.round(np.random.normal(old,theta),2)
             new_model = model._replace(std_swd = new)
             
         changes_model = ModelChange(theta, old, new,
@@ -1031,6 +1040,7 @@ def AcceptFromLikelihood(fit_to_obs_m, fit_to_obs_m0,
                       np.exp(-(dv*dv/(2*model_change.theta**2)) - 
                              (fit_to_obs_m - fit_to_obs_m0)/2))
     elif perturb == 'Noise':
+#        print(cov_m0.detCovar/cov_m.detCovar)
         alpha_m_m0 = ((cov_m0.detCovar/cov_m.detCovar) *
                       np.exp(-(fit_to_obs_m - fit_to_obs_m0)/2))
 
