@@ -8,10 +8,16 @@ Created on Mon Mar  5 14:23:28 2018
 import pipeline
 import numpy as np
 import matplotlib.pyplot as plt
+import pstats
+import cProfile
+ 
+pr = cProfile.Profile()
+pr.enable()
+
 
 #def try_running():
 max_it=500
-rnd_sd = 50
+rnd_sd = 10
 
 
 deps = np.concatenate((np.arange(0,10,0.2), np.arange(10,60,1), np.arange(60,201,5)))
@@ -58,3 +64,8 @@ plt.plot(np.log10(out[3]))
 
 print(np.mean(out[4]))
 
+pr.disable()
+s=open('thingy2.txt','w')
+sortby = 'cumulative'
+ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+ps.print_stats()

@@ -13,10 +13,10 @@ import numpy as np
 from scipy.signal import butter, detrend
 from scipy.optimize import brent
 from spectrum.mtm import dpss 
-
+# install as conda config --add channels conda-forge; conda install spectrum
 
 def findmin(func, args, brack):
-    return brent(func, args, brack, tol=1.48e-08, 
+    return brent(func, args, brack, tol=1e-3, 
                    full_output = True, maxiter=500)[0:2]
     
 def slepian(n_samp, num_tapers):
@@ -27,8 +27,8 @@ def filtfilt(b, a, data):
 
 def mldivide(a, b):
     # This works as long as the rank is the same as the number of num vars
-    if np.linalg.matrix_rank(a) == a.shape[1]:
-        return np.linalg.lstsq(a, b)[0]
+    #if np.linalg.matrix_rank(a) == a.shape[1]:
+    return np.linalg.lstsq(a, b)[0]
     # from https://stackoverflow.com/questions/33559946/numpy-vs-mldivide-matlab-operator
 #    else:
 #        from itertools import combinations
