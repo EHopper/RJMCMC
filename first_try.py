@@ -22,7 +22,7 @@ rnd_sd = 10
 
 deps = np.concatenate((np.arange(0,10,0.2), np.arange(10,60,1), np.arange(60,201,5)))
 model = pipeline.Model(vs = np.array([3.4, 4.5]), all_deps = deps,
-                       idep = np.array([60, 80]),  
+                       idep = np.array([60, 120]),  
                        std_rf = 0, lam_rf = 0, std_swd = 0)
 
 rf_obs = pipeline.SynthesiseRF(pipeline.MakeFullModel(model))

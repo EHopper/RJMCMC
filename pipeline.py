@@ -149,14 +149,14 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
     #       Iterate by Reverse Jump Markov Chain Monte Carlo
     # =========================================================================    
     for itr in range(1,max_iter):
-        if not itr % 5: 
+        if not itr % 20: 
             print("Iteration {}..".format(itr))
         
         # Generate new model by perturbing the old model
         model, changes_model = Mutate(model_0,itr)
         
         if not CheckPrior(model, lims): # check if mutated model compatible with prior distr.
-            print('Failed Prior')
+            #print('Failed Prior')
             continue  # if not, continue to next iteration
         
         fullmodel = MakeFullModel(model)
@@ -260,7 +260,7 @@ def InitialModel(rf_obs,random_seed) -> Model:
 #     limits for all the parameters
 def CheckPrior(model: Model, limits: Limits) -> bool:
     return (
-        _InBounds(model.idep, (0,model.all_deps.size-1)) and
+        _InBounds(model.idep, (0,model.all_deps.size-2)) and
         _InBounds(model.vs, limits.vs) and
         _InBounds(model.all_deps[model.idep], limits.dep) and
         _InBounds(model.std_rf, limits.std_rf) and
@@ -439,14 +439,14 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
         theta =_GetStdForGaussian(perturb, itr)
         new = np.round(np.random.normal(old,theta),4)
         changes_model = ModelChange(theta, old, new, which_change = perturb)
-        new_vs = model.vs
+        new_vs = model.vs.copy()
         new_vs[i_vs] = new
         new_model = model._replace(vs = new_vs)
         
     elif perturb=='Dep':       # Change Depth of one node
         # Remember, we assume possible model points follow the following sequence
         # 1 km spacing from 0-60 km; 5 km spacing from 60-200 km        
-        idep = model.idep
+        idep = model.idep.copy()
         i_id = random.randrange(0,idep.size)
         # perturb around index in alldeps array
         theta =_GetStdForGaussian(perturb, itr)
@@ -457,8 +457,8 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
         
     elif perturb=='Birth':     # Layer Birth
         # choose unoccupied position, unused_d (index i_d), with uniform probability
-        idep = model.idep
-        vs = model.vs
+        idep = model.idep.copy()
+        vs = model.vs.copy()
         unused_idep = [idx for idx,val in enumerate(model.all_deps) 
                 if idx not in idep]
         i_d = random.sample(unused_idep, 1)[0]
@@ -476,8 +476,8 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
         
     elif perturb=='Death':     # Layer Death
         # choose occupied position, i_id, with uniform probability
-        idep = model.idep
-        vs = model.vs
+        idep = model.idep.copy()
+        vs = model.vs.copy()
         i_id = random.randrange(0,idep.size) # this is a [min, max) range
         theta = _GetStdForGaussian(perturb, itr)
         kill_d = model.all_deps[idep[i_id]]
