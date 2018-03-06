@@ -853,7 +853,8 @@ def SynthesiseSWD(model, period) -> SurfaceWaveDisp: # fill this out when you kn
     cr_min = 0.98 * _CalcRaylPhaseVelInHalfSpace(np.min(model.vp), 
                                                  np.min(model.vs))
     omega = 2*np.pi*freq 
-    n_ksteps = 15 # Original code had 200, but this should speed things up
+    n_ksteps = 25 # assume this is finely spaced enough for our purposes
+        # was set to 15 when including findmin # Original code had 200, but this should speed things up
     cr = np.zeros(omega.size)
     
     # Look for the wavenumber (i.e. vel) with minimum secular function value 
@@ -893,7 +894,7 @@ def _CalcRaylPhaseVelInHalfSpace(vp, vs):
     return phase_vel_rayleigh
 
 def _FindMinValueSecularFunction(omega, k_lims, n_ksteps, thick, rho, vp, vs, mu):
-    tol_s = 0.1 # This is as original code
+    #tol_s = 0.1 # This is as original code
     
     # Define vector of possible wavenumbers to try
     wavenumbers = np.linspace(k_lims[0], k_lims[1], n_ksteps)
@@ -901,7 +902,7 @@ def _FindMinValueSecularFunction(omega, k_lims, n_ksteps, thick, rho, vp, vs, mu
 
     f1 = 1e-10  # arbitrarily low values so f2 < f1 & f2 < f3 never true for 2 rounds
     f2 = 1e-9
-    k1 = 0 # irrelevant, will not be used unless enter IF statement below
+    #k1 = 0 # irrelevant, will not be used unless enter IF statement below
     k2 = 0 # and should be replaced with real values before then
     c = 0
     for i_k in range(-1, -wavenumbers.size-1,-1):
@@ -911,20 +912,23 @@ def _FindMinValueSecularFunction(omega, k_lims, n_ksteps, thick, rho, vp, vs, mu
         
         if f2 < f1 and f2 < f3: # if f2 has minimum of the 3 values
             # Find minimum more finely
-            kmin, fmin = matlab.findmin(_Secular, brack = (k3, k2, k1),
-                                 args = (omega, thick, mu, rho, vp, vs))
-            if fmin < tol_s:
-                c = omega/kmin
-                break
+#            kmin, fmin = matlab.findmin(_Secular, brack = (k3, k2, k1),
+#                                 args = (omega, thick, mu, rho, vp, vs))
+#            if fmin < tol_s:
+#                c = omega/kmin
+#                break
+            # Doing it properly (as above) is REALLY SLOW
+            c = omega/k2
+            break
         else:
              f1 = f2  # cycle through wavenumber values
              f2 = f3
-             k1 = k2
+             #k1 = k2
              k2 = k3
                
-    if c == 0 and n_ksteps < 250:
+    if c == 0 and n_ksteps <= 250:
         #print(n_ksteps)
-        c = _FindMinValueSecularFunction(omega, k_lims, n_ksteps+200, thick,
+        c = _FindMinValueSecularFunction(omega, k_lims, n_ksteps+100, thick,
                                          rho, vp, vs, mu)
         
     return c

@@ -16,13 +16,13 @@ pr.enable()
 
 
 #def try_running():
-max_it=500
-rnd_sd = 10
+max_it=400000
+rnd_sd = 50
 
 
 deps = np.concatenate((np.arange(0,10,0.2), np.arange(10,60,1), np.arange(60,201,5)))
-model = pipeline.Model(vs = np.array([3.4, 4.5]), all_deps = deps,
-                       idep = np.array([60, 120]),  
+model = pipeline.Model(vs = np.array([1.8, 2.4, 3.4, 4.5, 4.7, 4.65]), all_deps = deps,
+                       idep = np.array([10, 32, 41, 60, 96, 120]),  
                        std_rf = 0, lam_rf = 0, std_swd = 0)
 
 rf_obs = pipeline.SynthesiseRF(pipeline.MakeFullModel(model))
