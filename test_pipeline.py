@@ -277,6 +277,15 @@ class PipelineTest(unittest.TestCase):
                      ray_param = 0.0618,
                       )
               ),
+              ("Last layer only", model._replace(vs = np.array([4.7]),
+                                                 idep = np.array([128])),
+                pipeline.SynthModel(vs = np.array([4.7]), vp = np.array([8.225]),
+                                    thickness = np.array(deps[128]),
+                                    layertops = np.array([0]), 
+                                    avdep = np.array(deps[128]/2),
+                                    rho = np.array([3.439]), ray_param = 0.0618)
+                
+                ),
             
             ])
     def test_MakeFullVelModel(self, name, model, expected):
