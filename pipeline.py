@@ -17,7 +17,6 @@ import numpy as np
 import random
 import matlab
 
-# install as conda config --add channels conda-forge; conda install spectrum
 
 # =============================================================================
 # Set up classes for commonly used variables
@@ -186,7 +185,7 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
                 changes_model, # form depends on which change
                 )
         all_keep[itr-1] = keep_yn
-        print([changes_model.which_change, keep_yn])
+        #print([changes_model.which_change, all_keep[itr-1], round(fit_to_obs_m,0)])
         if keep_yn: # should be aiming to keep about 40% of perturbations
             model_0 = model
             fullmodel_0 = fullmodel
@@ -924,7 +923,8 @@ def _FindMinValueSecularFunction(omega, k_lims, n_ksteps, thick, rho, vp, vs, mu
              k2 = k3
                
     if c == 0 and n_ksteps < 250:
-        c = _FindMinValueSecularFunction(omega, k_lims, n_ksteps+25, thick,
+        #print(n_ksteps)
+        c = _FindMinValueSecularFunction(omega, k_lims, n_ksteps+200, thick,
                                          rho, vp, vs, mu)
         
     return c
@@ -1044,7 +1044,6 @@ def AcceptFromLikelihood(fit_to_obs_m, fit_to_obs_m0,
         alpha_m_m0 = np.exp(-(fit_to_obs_m - fit_to_obs_m0)/2)
     elif perturb == 'Birth':
         dv = np.abs(model_change.old_param - model_change.new_param)
-
         alpha_m_m0 = ((model_change.theta * np.sqrt(2*np.pi) / dv) * 
                       np.exp((dv*dv/(2*model_change.theta**2)) - 
                              (fit_to_obs_m - fit_to_obs_m0)/2))
