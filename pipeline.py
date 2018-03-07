@@ -112,7 +112,7 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
         # First, need to define the Vp and rho
     fullmodel_0 = MakeFullModel(model_0)
     rf_synth_m0 = SynthesiseRF(fullmodel_0) # forward model the RF data
-    swd_synth_m0 = SynthesiseSWD(fullmodel_0, swd_obs.period) # forward model the SWD data
+    swd_synth_m0 = SynthesiseSWD(fullmodel_0, swd_obs.period, 0) # forward model the SWD data
     
     # Calculate fit
     fit_to_obs_m0 = Mahalanobis(
@@ -132,7 +132,7 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
     ddeps[1::2] = model_0.all_deps[:-1]+np.diff(model_0.all_deps)/2
     conv_models = np.zeros((ddeps.size,num_posterior+1))
     conv_models[:,0] = ddeps
-    all_models = np.zeros((ddeps.size,int(max_iter/1)+1))
+    all_models = np.zeros((ddeps.size,int(max_iter/100)+1))
     all_models[:,0] = ddeps
     all_models[:,1] = SaveModel(fullmodel_0, ddeps)
     all_phi = np.zeros(max_iter) # all misfits
@@ -168,7 +168,7 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
         else:
             cov_m = cov_m0
             rf_synth_m = SynthesiseRF(fullmodel) # forward model the RF data
-            swd_synth_m = SynthesiseSWD(fullmodel, swd_obs.period) # forward model the SWD data
+            swd_synth_m = SynthesiseSWD(fullmodel, swd_obs.period, itr) # forward model the SWD data
         
         # Calculate fit
         fit_to_obs_m = Mahalanobis(
@@ -209,8 +209,11 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
                                             itr, nw)
         
         # Save every 500th iteration to see progress
-        all_models[:,itr+1] = SaveModel(fullmodel, all_models[:,0])
-        
+        if not itr % 100:
+            all_models[:,int(itr/100)+1] = SaveModel(fullmodel, all_models[:,0])
+            np.save('testsave',all_models[:-2])
+            
+            
         # Save every 500th iteration after convergence (KL14)
         if converged:
             converged = converged + 1
@@ -427,7 +430,7 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
     # (where k Gaussians == k+1 nuclei here)
     if model.idep.size==1: # and don't kill your only layer...
         perturbs=('Vs','Dep','Birth','Hyperparameter')
-    elif itr <= 1000*(model.idep.size-1)*(model.idep.size): # as KL14
+    elif itr <= 500*(model.idep.size-1)*(model.idep.size) or model.idep.size >=20: # as KL14
         perturbs=('Vs','Dep','Death','Hyperparameter')
     else: 
         perturbs=('Vs','Dep','Birth','Death','Hyperparameter')
@@ -624,22 +627,42 @@ def _SynthesiseWV(synthmodel) -> BodyWaveform:
     
 
 def _CalcPropagatorMatrix(synthmodel,wavenumber,calc_from_layer):
+    # We can speed this up (fractionally!) by making sure we only do each
+    # calculation once - hence this looks a bit confusing!
     vp = synthmodel.vp[calc_from_layer]
     vs = synthmodel.vs[calc_from_layer]
     rho = synthmodel.rho[calc_from_layer]
     c = 1/synthmodel.ray_param # phase velocity
-    gamma = 2*(vs/c)**2
-    eta_vp = np.sqrt((c/vp)**2-1)
-    eta_vs = np.sqrt((c/vs)**2-1)
+    
+    rhoc2 = rho*c*c
+    one_rhoc2 = 1/rhoc2
+    rhovp2 = rho*vp*vp
+    one_rhovp2 = 1/rhovp2
+    vs_vp = vs/vp
+    c_vp2 = c/vp*c/vp
+    
+    gamma = 2*vs/c*vs/c
+    eta_vp = np.sqrt(c_vp2-1)
+    eta_vs = np.sqrt(c/vs*c/vs-1)
+    
+    gamma1 = gamma-1
+    gamma1_etavp = gamma1/eta_vp
+    gamma1_etavs = gamma1/eta_vs
+    gammaetavs = gamma*eta_vs
+    gamma2 = gamma*gamma
+    gamma12 = gamma1*gamma1
     
     if calc_from_layer == synthmodel.vs.size - 1:
         # Calculate propagation through the half space
-        return np.array([
-                [-2*(vs/vp)**2, 0, (rho*vp**2)**-1, 0],
-                [0,c**2*(gamma-1)*(vp**2*eta_vp)**-1,0,(rho*vp**2*eta_vp)**-1],
-                [(gamma-1)*(gamma*eta_vs)**-1,0,-(rho*c**2*gamma*eta_vs)**-1,0],
-                [0,1,0,(rho*c**2*gamma)**-1],
-                ])
+        return np.array([[-2*vs_vp*vs_vp, 0, one_rhovp2, 0],
+                         [0, c_vp2*gamma1_etavp, 0, one_rhovp2/eta_vp],
+                         [gamma1_etavs/gamma, 0, -one_rhoc2/gammaetavs, 0],
+                         [0, 1, 0, one_rhoc2/gamma]])
+        
+#        np.array([[-2*(vs/vp)**2, 0, (rho*vp**2)**-1, 0], # Slightly easier to read
+#                [0,c**2*(gamma-1)*(vp**2*eta_vp)**-1,0,(rho*vp**2*eta_vp)**-1],
+#                [(gamma-1)*(gamma*eta_vs)**-1,0,-(rho*c**2*gamma*eta_vs)**-1,0],
+#                [0,1,0,(rho*c**2*gamma)**-1]])
     
     else:
         # Calculate propagation through each layer 
@@ -647,32 +670,59 @@ def _CalcPropagatorMatrix(synthmodel,wavenumber,calc_from_layer):
         P = wavenumber*eta_vp*thick
         Q = wavenumber*eta_vs*thick
         
-        a_n = np.array([
-                [
-                    gamma*np.cos(P)-(gamma-1)*np.cos(Q),
-                    1j*((gamma-1)*eta_vp**-1*np.sin(P)+gamma*eta_vs*np.sin(Q)),
-                    -(rho*c**2)**-1*(np.cos(P)-np.cos(Q)),
-                    1j*(rho*c**2)**-1*(eta_vp**-1*np.sin(P)+eta_vs*np.sin(Q)),
-                    ],
-                [
-                    -1j*(gamma*eta_vp*np.sin(P)+(gamma-1)*eta_vs**-1*np.sin(Q)),
-                    -(gamma-1)*np.cos(P)+gamma*np.cos(Q),
-                    1j*(rho*c**2)**-1*(eta_vp*np.sin(P)+eta_vs**-1*np.sin(Q)),
-                    -(rho*c**2)**-1*(np.cos(P)-np.cos(Q)),
-                    ],
-                [
-                    rho*c**2*gamma*(gamma-1)*(np.cos(P)-np.cos(Q)),
-                    1j*rho*c**2*((gamma-1)**2*eta_vp**-1*np.sin(P)+gamma**2*eta_vs*np.sin(Q)),
-                    -(gamma-1)*np.cos(P)+gamma*np.cos(Q),
-                    1j*((gamma-1)*eta_vp**-1*np.sin(P)+gamma*eta_vs*np.sin(Q)),
-                    ],
-                [
-                    1j*rho*c**2*(gamma**2*eta_vp*np.sin(P)+(gamma-1)**2*eta_vs**-1*np.sin(Q)),
-                    rho*c**2*gamma*(gamma-1)*(np.cos(P)-np.cos(Q)),
-                    -1j*(gamma*eta_vp*np.sin(P)+(gamma-1)*eta_vs**-1*np.sin(Q)),
-                    gamma*np.cos(P)-(gamma-1)*np.cos(Q),
-                    ],
-                ])
+        cosP = np.cos(P)
+        sinP = np.sin(P)
+        cosQ = np.cos(Q)
+        sinQ = np.sin(Q)
+        gammacosP = gamma*cosP
+        gammacosQ = gamma*cosQ
+        sinP_etavp = sinP/eta_vp
+        sinQ_etavs = sinQ/eta_vs
+        sinQetavs = sinQ*eta_vs
+        sinPetavp = sinP*eta_vp
+        
+        a11 = gammacosP - (gammacosQ - cosQ)
+        a12 = 1j*(gamma1_etavp*sinP + gammaetavs*sinQ)
+        a13 = -(cosP-cosQ)/rhoc2
+        a14 = 1j*((sinP_etavp + sinQetavs)/rhoc2)
+        a21 = -1j*(gamma*sinPetavp + gamma1_etavs*sinQ)
+        a22 = -gammacosP + cosP + gammacosQ    
+        a23 = 1j*((sinPetavp + sinQ_etavs)/rhoc2)
+        a31 = rhoc2*gamma*(gammacosP-gammacosQ-cosP+cosQ)
+        a32 = 1j*rhoc2*(sinP_etavp*gamma12 + gamma2*sinQetavs)
+        a41 = 1j*rhoc2*(gamma2*sinPetavp + gamma12*sinQ_etavs)
+        
+        a_n = np.array([[a11, a12, a13, a14],
+                        [a21, a22, a23, a13],
+                        [a31, a32, a22, a12],
+                        [a41, a31, a21, a11]])
+        
+#        a_n = np.array([
+#                [
+#                    gamma*np.cos(P)-(gamma-1)*np.cos(Q),
+#                    1j*((gamma-1)*eta_vp**-1*np.sin(P)+gamma*eta_vs*np.sin(Q)),
+#                    -(rho*c**2)**-1*(np.cos(P)-np.cos(Q)),
+#                    1j*(rho*c**2)**-1*(eta_vp**-1*np.sin(P)+eta_vs*np.sin(Q)),
+#                    ],
+#                [
+#                    -1j*(gamma*eta_vp*np.sin(P)+(gamma-1)*eta_vs**-1*np.sin(Q)),
+#                    -(gamma-1)*np.cos(P)+gamma*np.cos(Q),
+#                    1j*(rho*c**2)**-1*(eta_vp*np.sin(P)+eta_vs**-1*np.sin(Q)),
+#                    -(rho*c**2)**-1*(np.cos(P)-np.cos(Q)),
+#                    ],
+#                [
+#                    rho*c**2*gamma*(gamma-1)*(np.cos(P)-np.cos(Q)),
+#                    1j*rho*c**2*((gamma-1)**2*eta_vp**-1*np.sin(P)+gamma**2*eta_vs*np.sin(Q)),
+#                    -(gamma-1)*np.cos(P)+gamma*np.cos(Q),
+#                    1j*((gamma-1)*eta_vp**-1*np.sin(P)+gamma*eta_vs*np.sin(Q)),
+#                    ],
+#                [
+#                    1j*rho*c**2*(gamma**2*eta_vp*np.sin(P)+(gamma-1)**2*eta_vs**-1*np.sin(Q)),
+#                    rho*c**2*gamma*(gamma-1)*(np.cos(P)-np.cos(Q)),
+#                    -1j*(gamma*eta_vp*np.sin(P)+(gamma-1)*eta_vs**-1*np.sin(Q)),
+#                    gamma*np.cos(P)-(gamma-1)*np.cos(Q),
+#                    ],
+#                ])
         out= np.matmul(
                 _CalcPropagatorMatrix(synthmodel,wavenumber,calc_from_layer+1), 
                 a_n)
@@ -839,7 +889,16 @@ def _ETMTMSumFFT(slepian_tapers, data_1, data_2, num_window):
 #   Attenuation for Near-Surface Site Characterization," Ph.D. Dissertation,
 #   Georgia Institute of Technology.
 
-def SynthesiseSWD(model, period) -> SurfaceWaveDisp: # fill this out when you know how
+def SynthesiseSWD(model, period, itr) -> SurfaceWaveDisp: 
+    # Save time in early iterations when just trying to get the ballpark answer
+    # by using a coarser estimate for the forward modelled dispersion
+    if itr < 1e5: 
+        ifcoarse = True
+    else:
+        ifcoarse = False
+        
+    
+    
     freq = 1/period
     
     if model.vs.size == 1:
@@ -853,16 +912,25 @@ def SynthesiseSWD(model, period) -> SurfaceWaveDisp: # fill this out when you kn
     cr_min = 0.98 * _CalcRaylPhaseVelInHalfSpace(np.min(model.vp), 
                                                  np.min(model.vs))
     omega = 2*np.pi*freq 
-    n_ksteps = 25 # assume this is finely spaced enough for our purposes
+    n_ksteps = 20 # assume this is finely spaced enough for our purposes
         # was set to 15 when including findmin # Original code had 200, but this should speed things up
     cr = np.zeros(omega.size)
     
     # Look for the wavenumber (i.e. vel) with minimum secular function value 
     k_lims = np.vstack((omega/cr_max, omega/cr_min))
+    
+    
     mu = model.rho * model.vs**2
     for i_om in range(omega.size):
-        cr[i_om] = _FindMinValueSecularFunction(omega[i_om], k_lims[:,i_om],
-          n_ksteps, model.thickness, model.rho, model.vp, model.vs, mu)
+        # Limit wavenumber search range in order to speed things up??
+        # Tried this and it definitely broke everything...
+        
+        if ifcoarse:
+            cr[i_om] = _FindMinValueSecularFunctionCoarse(omega[i_om], k_lims[:,i_om],
+              n_ksteps, model.thickness, model.rho, model.vp, model.vs, mu)
+        else:
+            cr[i_om] = _FindMinValueSecularFunctionFine(omega[i_om], k_lims[:,i_om],
+              n_ksteps, model.thickness, model.rho, model.vp, model.vs, mu)
       
     return SurfaceWaveDisp(period = period, c = cr)
 
@@ -893,7 +961,7 @@ def _CalcRaylPhaseVelInHalfSpace(vp, vs):
     
     return phase_vel_rayleigh
 
-def _FindMinValueSecularFunction(omega, k_lims, n_ksteps, thick, rho, vp, vs, mu):
+def _FindMinValueSecularFunctionCoarse(omega, k_lims, n_ksteps, thick, rho, vp, vs, mu):
     #tol_s = 0.1 # This is as original code
     
     # Define vector of possible wavenumbers to try
@@ -902,7 +970,40 @@ def _FindMinValueSecularFunction(omega, k_lims, n_ksteps, thick, rho, vp, vs, mu
 
     f1 = 1e-10  # arbitrarily low values so f2 < f1 & f2 < f3 never true for 2 rounds
     f2 = 1e-9
-    #k1 = 0 # irrelevant, will not be used unless enter IF statement below
+    k2 = 0 # irrelevant, will not be used unless enter IF statement below
+           # and should be replaced with real values before then
+    c = 0
+    for i_k in range(-1, -wavenumbers.size-1,-1):
+        k3 = wavenumbers[i_k]
+        
+        f3 = _Secular(k3, omega, thick, mu, rho, vp, vs)
+        
+        if f2 < f1 and f2 < f3: # if f2 has minimum of the 3 values
+            # Doing it properly (as _FindMinValueSecularFunctionFine) is REALLY SLOW
+            c = omega/k2
+            break
+        else:
+             f1 = f2  # cycle through wavenumber values
+             f2 = f3
+             k2 = k3
+               
+    if c == 0 and n_ksteps <= 250:
+        print(n_ksteps)
+        c = _FindMinValueSecularFunctionCoarse(omega, k_lims, n_ksteps+100, thick,
+                                         rho, vp, vs, mu)
+        
+    return c
+
+def _FindMinValueSecularFunctionFine(omega, k_lims, n_ksteps, thick, rho, vp, vs, mu):
+    tol_s = 0.1 # This is as original code
+    
+    # Define vector of possible wavenumbers to try
+    wavenumbers = np.linspace(k_lims[0], k_lims[1], n_ksteps)
+    
+
+    f1 = 1e-10  # arbitrarily low values so f2 < f1 & f2 < f3 never true for 2 rounds
+    f2 = 1e-9
+    k1 = 0 # irrelevant, will not be used unless enter IF statement below
     k2 = 0 # and should be replaced with real values before then
     c = 0
     for i_k in range(-1, -wavenumbers.size-1,-1):
@@ -912,23 +1013,21 @@ def _FindMinValueSecularFunction(omega, k_lims, n_ksteps, thick, rho, vp, vs, mu
         
         if f2 < f1 and f2 < f3: # if f2 has minimum of the 3 values
             # Find minimum more finely
-#            kmin, fmin = matlab.findmin(_Secular, brack = (k3, k2, k1),
-#                                 args = (omega, thick, mu, rho, vp, vs))
-#            if fmin < tol_s:
-#                c = omega/kmin
-#                break
-            # Doing it properly (as above) is REALLY SLOW
-            c = omega/k2
-            break
+            kmin, fmin = matlab.findmin(_Secular, brack = (k3, k2, k1),
+                                 args = (omega, thick, mu, rho, vp, vs))
+            if fmin < tol_s:
+                c = omega/kmin
+                break
+
         else:
              f1 = f2  # cycle through wavenumber values
              f2 = f3
-             #k1 = k2
+             k1 = k2
              k2 = k3
                
     if c == 0 and n_ksteps <= 250:
-        #print(n_ksteps)
-        c = _FindMinValueSecularFunction(omega, k_lims, n_ksteps+100, thick,
+        print(n_ksteps)
+        c = _FindMinValueSecularFunctionFine(omega, k_lims, n_ksteps+100, thick,
                                          rho, vp, vs, mu)
         
     return c
