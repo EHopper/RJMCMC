@@ -45,6 +45,10 @@ good_mods = good_mods[:,-int(nit/6):]
 mean_mod = np.mean(good_mods, axis = 1)
 std_mod = np.std(good_mods, axis = 1)
 
+good_mod = pipeline.Model(vs = mean_mod, all_deps = all_models[:,0],
+                          idep = np.arange(0,mean_mod.size),
+                          lam_rf = 0, std_rf = 0, std_swd = 0)
+fullmodel = pipeline.MakeFullModel(good_mod)
 
 
 fig1 = plt.figure();
@@ -55,7 +59,7 @@ for k in range(all_models[1,].size-1):
     plt.plot(all_models[:,k],all_models[:,0],
           '-',linewidth=1,color=colstr)
 ax1.invert_yaxis()
-ax1.plot(actual_model,all_models[:,0],'r-',linewidth=3)
+#ax1.plot(actual_model,all_models[:,0],'r-',linewidth=3)
 ax1.plot(all_models[:,-1],all_models[:,0],'c-',linewidth=1)
 ax1.set_xlim((1.5,5))
 ax1.set_xlabel('Shear Velocity (km/s)')
@@ -71,7 +75,7 @@ ax3.invert_yaxis()
 ax3.plot(mean_mod,all_models[:,0],'c-',linewidth = 2)
 ax3.plot(mean_mod+std_mod, all_models[:,0],'c-',linewidth = 1)
 ax3.plot(mean_mod-std_mod, all_models[:,0],'c-',linewidth = 1)
-ax3.plot(actual_model,all_models[:,0],'r--',linewidth=1)
+#ax3.plot(actual_model,all_models[:,0],'r--',linewidth=1)
 ax3.set_xlim((1.5,5))
 ax3.set_xlabel('Shear Velocity (km/s)')
 ax3.set_ylabel('Depth (km)')
@@ -124,6 +128,40 @@ ax2.set_xlim((1.5,5))
 fig1.savefig('VelocityModelSuite.png')
 fig2.savefig('VelocityModelSuite_heatmap.png')
 #plt.colorbar()
+
+rf_obs = pipeline.RecvFunc(amp = np.array([0.073, 0.125, 0.102, 0.022, 
+                       -0.027, -0.015, 0.013, 0.011, -0.004, 0.004, 0.032, 0.037, 
+                       0.003, -0.037, -0.048, -0.020, 0.033, 0.080, 0.089, 0.056, 
+                       0.012, -0.016, -0.014, 0.003, 0.013, 0.006, -0.003, -0.003, 
+                       -0.000, -0.001, -0.004, -0.001, 0.007, 0.009, -0.003, -0.021, 
+                       -0.031, -0.027, -0.014, -0.001, 0.010, 0.018, 0.014, -0.002, 
+                       -0.017, -0.023, -0.024, -0.021, -0.011, -0.000, 0.004, 0.002, 
+                       0.004, 0.012, 0.015, 0.006, -0.004, -0.000, 0.012, 0.018, 
+                       0.011, -0.004, -0.011, -0.007, 0.002, 0.004, 0.001, -0.001, 
+                       -0.002, -0.002, -0.003, -0.003, -0.003, -0.005, -0.009, -0.014, 
+                       -0.017, -0.016, -0.020, -0.029, -0.032, -0.022, -0.004, 0.007, 
+                       0.006, -0.001, -0.005, -0.007, -0.010, -0.015, -0.012, 0.001, 
+                       0.014, 0.016, 0.008, -0.002, -0.011, -0.019, -0.017, -0.006, 
+                       0.006, 0.012, 0.013, 0.013, 0.006, -0.014, -0.033, -0.024, 
+                       0.009, 0.030, 0.018, -0.005, -0.011, -0.000, 0.003, -0.008, 
+                       -0.013, -0.002, 0.016, 0.022]), dt = 0.25)
+
+swd_obs = pipeline.SurfaceWaveDisp(period = np.array([9.0, 10.1, 11.6, 13.5, 
+                        16.2, 20.3, 25.0, 32.0, 40.0, 50.0, 60.0, 80.0]),
+                        c = np.array([3.212, 3.215, 3.233, 3.288, 
+                       3.339, 3.388, 3.514, 3.647, 3.715, 3.798, 3.847, 3.937]))
+
+    
+plt.figure(); plt.title('Receiver Function - real: red; synth: grey')
+rft = np.arange(0,rf_obs.dt*rf_obs.amp.size,rf_obs.dt)
+plt.plot(rft, rf_obs.amp, 'r-', linewidth=2)
+synth_rf = pipeline.SynthesiseRF(fullmodel)
+plt.plot(rft,synth_rf.amp, '-',color = '0.25', linewidth=1)
+
+synth_swd = pipeline.SynthesiseSWD(fullmodel, swd_obs.period, 1e6)
+plt.figure(); plt.title('Surface Wave Dispersion - real: red; synth: grey')
+plt.plot(swd_obs.period, swd_obs.c,  'r-', linewidth=2)
+plt.plot(synth_swd.period, synth_swd.c, '-',color = '0.25', linewidth=1)
 
 #%%
 plt.figure(); plt.title('Receiver Function - real: red; synth: grey')
