@@ -799,8 +799,8 @@ def _PrepWaveform(waveform, Ts) -> RotBodyWaveform:
     #       really weak in the real data anyway!
     amp_P = matlab.Taper(amp_P, int(taper_width/dt), i_arr - int(taper_length/2/dt), 
                   i_arr + int(taper_length/2/dt))
-    amp_SV = matlab.Taper(amp_SV, int(taper_width/dt), i_arr - int(taper_length/2/dt), 
-                  i_arr + int(taper_length/2/dt))
+    #amp_SV = matlab.Taper(amp_SV, int(taper_width/dt), i_arr - int(taper_length/2/dt), 
+    #              i_arr + int(taper_length/2/dt))
     return RotBodyWaveform(amp_P, amp_SV, dt)
    
 
