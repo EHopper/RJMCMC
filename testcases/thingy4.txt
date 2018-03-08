@@ -1,0 +1,946 @@
+         26459888137 function calls (26123397324 primitive calls) in 55893.133 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    3.338    3.338 55875.085 55875.085 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:94(JointInversion)
+    95199    7.156    0.000 43207.824    0.454 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:892(SynthesiseSWD)
+ 16768409 6910.937    0.000 43059.604    0.003 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:1038(_Secular)
+902617/902616   52.612    0.000 25773.170    0.029 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:964(_FindMinValueSecularFunctionCoarse)
+338211174  682.387    0.000 23111.554    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\matlab.py:28(mldivide)
+338211174 7268.988    0.000 22429.167    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:1813(lstsq)
+236751/236374   14.234    0.000 17424.376    0.074 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:997(_FindMinValueSecularFunctionFine)
+    95199    1.636    0.000 10856.073    0.114 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:545(SynthesiseRF)
+    95199  290.936    0.003 9392.772    0.099 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:559(_SynthesiseWV)
+361717560/33224451 7148.219    0.000 8887.165    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:629(_CalcPropagatorMatrix)
+   280797    0.834    0.000 8631.138    0.031 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\matlab.py:18(findmin)
+   280797    1.120    0.000 8630.304    0.031 C:\Users\emily\Anaconda3\lib\site-packages\scipy\optimize\optimize.py:1927(brent)
+   280797    2.590    0.000 8629.184    0.031 C:\Users\emily\Anaconda3\lib\site-packages\scipy\optimize\optimize.py:1984(_minimize_scalar_brent)
+   280797   32.327    0.000 8625.699    0.031 C:\Users\emily\Anaconda3\lib\site-packages\scipy\optimize\optimize.py:1812(optimize)
+1165549228  816.270    0.000 6218.631    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\shape_base.py:239(hstack)
+676422348 4740.209    0.000 4740.209    0.000 {built-in method numpy.linalg.lapack_lite.zgelsd}
+1165549228  698.300    0.000 3804.004    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\shape_base.py:288(<listcomp>)
+1080737977 3421.022    0.000 3421.022    0.000 {built-in method numpy.core.multiarray.array}
+-1957776104 1742.447   -0.000 3119.512   -0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\shape_base.py:11(atleast_1d)
+599733137  376.829    0.000 2969.990    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\shape_base.py:182(vstack)
+   280797    4.244    0.000 2718.187    0.010 C:\Users\emily\Anaconda3\lib\site-packages\scipy\optimize\optimize.py:1781(get_bracket_info)
+1772057421 2303.546    0.000 2303.546    0.000 {built-in method numpy.core.multiarray.concatenate}
+1022022655 2227.693    0.000 2227.693    0.000 {built-in method numpy.core.multiarray.matmul}
+-357825237 1986.907   -0.000 1986.907   -0.000 {built-in method numpy.core.multiarray.zeros}
+599733137  367.787    0.000 1905.028    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\shape_base.py:237(<listcomp>)
+    26601 1688.782    0.063 1753.156    0.066 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:378(CalcCovarianceMatrix)
+355413580  904.085    0.000 1543.360    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:139(_commonType)
+1199466274  884.784    0.000 1537.242    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\shape_base.py:63(atleast_2d)
+-713392434  742.560   -0.000 1517.751   -0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:534(asanyarray)
+    95199   41.897    0.000 1242.828    0.013 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:808(_CalculateRF)
+160747981  246.806    0.000 1040.959    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:2365(identity)
+338211174  452.920    0.000 1034.583    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:180(_fastCopyAndTranspose)
+677210541  433.899    0.000  864.396    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:106(_makearray)
+338211174  838.565    0.000  838.565    0.000 {built-in method numpy.linalg.lapack_lite.dgelsd}
+9329502/1332786  136.998    0.000  771.690    0.001 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:862(_ETMTMSumFFT)
+338972766  199.652    0.000  640.866    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:504(transpose)
+ 18659004   35.247    0.000  634.692    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\fftpack.py:102(fft)
+442748475  303.299    0.000  629.507    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:55(_wrapfunc)
+ 20182188   39.781    0.000  591.713    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\fftpack.py:47(_raw_fft)
+161128777  419.589    0.000  581.163    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\twodim_base.py:139(eye)
+676422348  541.300    0.000  541.300    0.000 {built-in method numpy.core.multiarray._fastCopyAndTranspose}
+362415301  519.626    0.000  519.626    0.000 {method 'astype' of 'numpy.ndarray' objects}
+338211174  372.711    0.000  480.692    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:168(_to_native_byte_order)
+1049419130  284.025    0.000  400.917    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:111(isComplexType)
+1032216724  267.865    0.000  393.599    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:124(_realType)
+-53645889  373.862   -0.000  373.862   -0.000 {method 'append' of 'list' objects}
+   380796    4.289    0.000  370.080    0.001 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\matlab.py:53(BpFilt)
+739415872  193.077    0.000  369.974    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:463(asarray)
+1708353534  366.437    0.000  366.437    0.000 {built-in method builtins.min}
+338211174  205.318    0.000  332.768    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:223(_assertNoEmpty2d)
+ -3322705  329.981   -0.000  329.981   -0.000 {built-in method builtins.len}
+ 16795009  159.215    0.000  309.767    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:1752(det)
+ 18659004  291.439    0.000  291.439    0.000 {built-in method numpy.fft.fftpack_lite.cfftf}
+100610454   58.449    0.000  280.539    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:1035(_m3D)
+    95199    0.444    0.000  254.239    0.003 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\matlab.py:22(slepian)
+    95199  182.667    0.002  253.795    0.003 C:\Users\emily\Anaconda3\lib\site-packages\spectrum\mtm.py:231(dpss)
+341488461  243.691    0.000  243.691    0.000 {method 'copy' of 'numpy.ndarray' objects}
+101752842   55.464    0.000  225.884    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:138(reshape)
+ 35075416   50.840    0.000  224.505    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:1886(any)
+1749517501  216.757    0.000  216.757    0.000 {built-in method builtins.issubclass}
+161130445/161130363  147.054    0.000  216.047    0.000 <frozen importlib._bootstrap>:997(_handle_fromlist)
+735229736  210.590    0.000  210.590    0.000 {built-in method builtins.max}
+1122311887/1122311884  192.505    0.000  192.505    0.000 {built-in method builtins.getattr}
+    95199    2.183    0.000  190.339    0.002 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:764(_PrepWaveform)
+ 20182188   39.346    0.000  180.162    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\helper.py:257(put_twiddle_factors)
+338211174  160.035    0.000  160.035    0.000 {built-in method math.log}
+   380796   22.116    0.000  154.606    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\signaltools.py:2461(detrend)
+ 35075416   27.891    0.000  148.537    0.000 {method 'any' of 'numpy.ndarray' objects}
+ 41805785  139.332    0.000  139.332    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+338211174  135.590    0.000  135.590    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:192(_assertRank2)
+ 20182188   19.808    0.000  133.517    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\helper.py:311(_prune_cache)
+   380796    0.948    0.000  132.921    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\matlab.py:46(ButterBandpass)
+   380796    0.742    0.000  131.973    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\filter_design.py:2226(butter)
+   380796    9.695    0.000  131.230    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\filter_design.py:1727(iirfilter)
+676422348  127.450    0.000  127.450    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:219(_isEmpty2d)
+1034218339  126.253    0.000  126.253    0.000 {method 'get' of 'dict' objects}
+339163164  121.205    0.000  121.205    0.000 {method 'transpose' of 'numpy.ndarray' objects}
+ 35075416   13.822    0.000  120.646    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_methods.py:37(_any)
+ 20182188   33.218    0.000  109.542    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\helper.py:317(_check_size)
+102228837  102.990    0.000  102.990    0.000 {method 'reshape' of 'numpy.ndarray' objects}
+676829745   81.778    0.000   81.778    0.000 {method '__array_prepare__' of 'numpy.ndarray' objects}
+ 19719861   17.651    0.000   81.594    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:150(ones)
+  1427985   10.744    0.000   78.555    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\matlab.py:61(Taper)
+   380796   25.704    0.000   72.601    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\linalg\basic.py:892(lstsq)
+   380796    1.574    0.000   71.579    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\matlab.py:25(filtfilt)
+   380796    6.272    0.000   69.667    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\signaltools.py:2926(filtfilt)
+323880541   69.240    0.000   69.240    0.000 {built-in method builtins.hasattr}
+   380796    3.148    0.000   68.797    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\filter_design.py:907(zpk2tf)
+  1523184   11.642    0.000   68.401    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\fftpack.py:198(ifft)
+    95199    0.307    0.000   64.018    0.001 C:\Users\emily\Anaconda3\lib\site-packages\spectrum\mtm.py:417(_autocov)
+    95199    3.736    0.000   63.648    0.001 C:\Users\emily\Anaconda3\lib\site-packages\spectrum\mtm.py:433(_crosscov)
+   761592   14.688    0.000   61.651    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\polynomial.py:32(poly)
+    95199    6.364    0.000   59.801    0.001 C:\Users\emily\Anaconda3\lib\site-packages\spectrum\mtm.py:514(_fftconvolve)
+ 20182188   22.757    0.000   55.686    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\helper.py:318(<listcomp>)
+766143826   48.128    0.000   48.128    0.000 {built-in method builtins.abs}
+ 19964680   45.534    0.000   45.534    0.000 {built-in method numpy.core.multiarray.copyto}
+338211174   42.889    0.000   42.889    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:130(_linalgRealType)
+ 20182188   26.482    0.000   42.601    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\helper.py:283(pop_twiddle_factors)
+ 60546572   24.573    0.000   37.123    0.000 {built-in method builtins.sum}
+ 16890208   35.254    0.000   35.254    0.000 {method 'astype' of 'numpy.generic' objects}
+  1329766   21.161    0.000   34.047    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\function_base.py:25(linspace)
+ 17202406   20.832    0.000   31.179    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:209(_assertNdSquareness)
+   380796    6.314    0.000   31.039    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\signaltools.py:2543(lfilter_zi)
+   190398   24.588    0.000   29.546    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\fftpack\basic.py:184(fft)
+    95199    3.314    0.000   28.498    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:737(_RotateToPSV)
+  1432985   19.453    0.000   28.476    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:4894(insert)
+  1523184   27.952    0.000   27.952    0.000 {built-in method numpy.fft.fftpack_lite.cfftb}
+   761592    8.866    0.000   27.451    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\index_tricks.py:247(__getitem__)
+  1427985   22.003    0.000   24.800    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:3384(hanning)
+  1237587    6.115    0.000   24.145    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\helper.py:22(fftshift)
+  2855687    7.021    0.000   23.869    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:2174(amax)
+   380796   13.189    0.000   21.470    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\filter_design.py:2081(_zpklp2bp)
+ 21212898   20.264    0.000   20.264    0.000 {built-in method numpy.core.multiarray.empty}
+    95199   18.607    0.000   19.070    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\fftpack\basic.py:292(ifft)
+       13   18.355    1.412   18.355    1.412 C:\Users\emily\Anaconda3\lib\site-packages\zmq\sugar\poll.py:77(poll)
+       12    0.000    0.000   18.294    1.525 C:\Users\emily\Anaconda3\lib\site-packages\zmq\eventloop\ioloop.py:117(poll)
+   121799   11.143    0.000   18.010    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:286(MakeFullModel)
+   380796    0.524    0.000   17.694    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:4020(median)
+  1142388    2.943    0.000   17.301    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:964(find_common_type)
+   380796    6.970    0.000   17.262    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\filter_design.py:1919(_zpkbilinear)
+   380796    0.961    0.000   17.170    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:3966(_ureduce)
+   761592    1.230    0.000   16.994    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\signaltools.py:1193(lfilter)
+  2855687    1.271    0.000   16.848    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_methods.py:25(_amax)
+  3046368    6.740    0.000   16.837    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:978(convolve)
+  1618383    2.113    0.000   15.983    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:70(take)
+   380796    3.066    0.000   15.909    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:4108(_median)
+   856791    1.732    0.000   15.760    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:2806(mean)
+  7163508   15.332    0.000   15.332    0.000 {built-in method numpy.core.multiarray.arange}
+   380796    0.509    0.000   14.595    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\linalg\lapack.py:469(get_lapack_funcs)
+   380796    3.445    0.000   14.086    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\linalg\blas.py:226(_get_funcs)
+   856791    5.240    0.000   14.027    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_methods.py:53(_mean)
+   761592   13.989    0.000   13.989    0.000 {built-in method scipy.signal.sigtools._linear_filter}
+ 33536818   13.791    0.000   13.791    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\type_check.py:148(imag)
+   380796    7.297    0.000   13.762    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\linalg\lapack.py:511(_compute_lwork)
+   125991    2.400    0.000   13.433    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:422(Mutate)
+ 40364376   13.401    0.000   13.401    0.000 {method 'pop' of 'collections.OrderedDict' objects}
+ 16795009    9.984    0.000   13.326    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:2135(isscalar)
+  2284776    9.665    0.000   12.733    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:942(_can_coerce_all)
+ 80728752   12.550    0.000   12.550    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\helper.py:318(<genexpr>)
+   761592    3.386    0.000   12.506    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\_lib\_util.py:192(_asarray_validated)
+   380796    5.480    0.000   11.553    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:300(solve)
+   380796    0.957    0.000    9.640    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\signaltools.py:3122(_validate_pad)
+   380796    8.325    0.000    9.455    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\linalg\special_matrices.py:555(companion)
+    26601    8.817    0.000    9.327    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:449(inv)
+   380796    1.666    0.000    9.148    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\linalg\blas.py:177(find_best_blas_type)
+ 17202406    8.932    0.000    8.932    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:198(_assertRankAtLeast2)
+   380796    5.041    0.000    8.684    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\_arraytools.py:57(odd_ext)
+   121798    0.519    0.000    8.538    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:1129(Mahalanobis)
+ 35646991    7.206    0.000    8.503    0.000 {built-in method builtins.isinstance}
+  1908980    2.134    0.000    8.203    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:709(sort)
+  1618383    8.181    0.000    8.181    0.000 {method 'take' of 'numpy.ndarray' objects}
+   761592    3.822    0.000    8.175    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:1152(asarray_chkfinite)
+  1618383    1.385    0.000    7.807    0.000 {method 'all' of 'numpy.ndarray' objects}
+ 20182292    7.360    0.000    7.360    0.000 {method 'pop' of 'list' objects}
+   380796    5.411    0.000    6.666    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\filter_design.py:3324(buttap)
+  1618383    0.698    0.000    6.422    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_methods.py:40(_all)
+   766592    1.465    0.000    5.996    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:5100(append)
+   380796    0.660    0.000    5.725    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\arraysetops.py:113(unique)
+     1220    0.018    0.000    5.684    0.005 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\npyio.py:435(save)
+   761592    1.194    0.000    4.967    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:1973(all)
+   125992    1.465    0.000    4.954    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:264(CheckPrior)
+   446483    1.265    0.000    4.927    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:42(_wrapit)
+   380796    2.500    0.000    4.819    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\arraysetops.py:250(_unique1d)
+  3046368    4.799    0.000    4.799    0.000 {built-in method numpy.core.multiarray.correlate}
+   761592    2.435    0.000    4.363    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\type_check.py:17(mintypecode)
+   309285    0.248    0.000    4.147    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:2792(round_)
+  3427164    4.030    0.000    4.030    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\_arraytools.py:9(axis_slice)
+   309285    0.325    0.000    3.898    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:2723(around)
+   190398    1.632    0.000    3.839    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\fftpack\basic.py:146(_fix_shape)
+   380796    1.200    0.000    3.822    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:1730(sum)
+   761592    1.453    0.000    3.820    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:2408(prod)
+ 20182188    3.670    0.000    3.670    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\fftpack.py:95(_unitary)
+  1808781    2.900    0.000    3.635    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:1432(rollaxis)
+  2289776    3.579    0.000    3.579    0.000 {method 'sort' of 'numpy.ndarray' objects}
+   749323    2.670    0.000    3.489    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:275(_InBounds)
+   161288    0.998    0.000    3.355    0.000 C:\Users\emily\Anaconda3\lib\random.py:282(sample)
+   380796    0.521    0.000    3.325    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:553(partition)
+   475995    3.276    0.000    3.276    0.000 {built-in method numpy.core.multiarray.dot}
+   380796    2.274    0.000    3.244    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\utils.py:1119(_median_nancheck)
+  3046368    2.240    0.000    3.042    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:904(_mode_from_name)
+ 20182188    2.853    0.000    2.853    0.000 {method 'values' of 'collections.OrderedDict' objects}
+    95199    2.097    0.000    2.689    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:3859(sinc)
+   309285    2.556    0.000    2.556    0.000 {method 'round' of 'numpy.ndarray' objects}
+   380796    0.197    0.000    2.506    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_methods.py:31(_sum)
+   766598    1.029    0.000    2.411    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:1380(ravel)
+   761592    0.300    0.000    2.366    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_methods.py:34(_prod)
+   380796    0.606    0.000    2.345    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:774(__getitem__)
+     1221    2.324    0.002    2.324    0.002 {built-in method io.open}
+   380796    2.217    0.000    2.217    0.000 {method 'partition' of 'numpy.ndarray' objects}
+  9900696    2.215    0.000    2.215    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:951(<listcomp>)
+   951990    1.153    0.000    2.130    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:728(issubdtype)
+   257078    0.719    0.000    2.085    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:2275(amin)
+     1220    0.011    0.000    2.075    0.002 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\format.py:517(write_array)
+     5000    2.025    0.000    2.025    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:465(<listcomp>)
+  1329766    1.902    0.000    1.902    0.000 {built-in method numpy.core.multiarray.result_type}
+   856792    1.675    0.000    1.848    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_methods.py:43(_count_reduce_items)
+   121797    1.681    0.000    1.786    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:1142(AcceptFromLikelihood)
+   380796    1.016    0.000    1.740    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:603(obj2sctype)
+     1220    1.641    0.001    1.641    0.001 {method 'tofile' of 'numpy.ndarray' objects}
+   244819    0.383    0.000    1.612    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:87(zeros_like)
+  1329766    1.231    0.000    1.516    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\function_base.py:13(_index_deprecate)
+   761592    1.495    0.000    1.495    0.000 {method 'conjugate' of 'numpy.ndarray' objects}
+   257078    0.141    0.000    1.366    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_methods.py:28(_amin)
+   322754    0.748    0.000    1.297    0.000 C:\Users\emily\Anaconda3\lib\abc.py:178(__instancecheck__)
+     1220    1.265    0.001    1.265    0.001 {method 'close' of '_io.BufferedWriter' objects}
+   285597    0.692    0.000    1.247    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\fftpack\basic.py:123(_asfarray)
+   380796    1.200    0.000    1.200    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\getlimits.py:507(__init__)
+   761592    0.426    0.000    1.144    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\_arraytools.py:49(axis_reverse)
+   380796    0.328    0.000    1.117    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:860(<lambda>)
+   285597    0.231    0.000    1.109    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_internal.py:253(data_as)
+  1903980    1.099    0.000    1.099    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\type_check.py:107(real)
+    60052    0.775    0.000    1.080    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:4689(delete)
+    95965    0.944    0.000    0.944    0.000 {method 'normal' of 'mtrand.RandomState' objects}
+     6677    0.045    0.000    0.905    0.000 {built-in method builtins.print}
+   285597    0.878    0.000    0.878    0.000 C:\Users\emily\Anaconda3\lib\ctypes\__init__.py:484(cast)
+   901588    0.869    0.000    0.869    0.000 {built-in method __new__ of type object at 0x000000005508B3F0}
+    13354    0.065    0.000    0.860    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\iostream.py:342(write)
+   121494    0.734    0.000    0.850    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:1848(diff)
+   377084    0.819    0.000    0.819    0.000 {built-in method builtins.all}
+   125991    0.345    0.000    0.800    0.000 <string>:24(_replace)
+   761592    0.642    0.000    0.773    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\type_check.py:60(<listcomp>)
+  1868833    0.765    0.000    0.765    0.000 {built-in method numpy.core.multiarray.normalize_axis_index}
+   766598    0.757    0.000    0.757    0.000 {method 'ravel' of 'numpy.ndarray' objects}
+   380796    0.549    0.000    0.756    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\filter_design.py:1815(<listcomp>)
+   761592    0.752    0.000    0.752    0.000 {method 'flatten' of 'numpy.ndarray' objects}
+   251983    0.556    0.000    0.740    0.000 C:\Users\emily\Anaconda3\lib\random.py:222(_randbelow)
+    20101    0.594    0.000    0.738    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\iostream.py:180(schedule)
+   761592    0.536    0.000    0.704    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\filter_design.py:1905(_relative_degree)
+   221998    0.671    0.000    0.671    0.000 {built-in method numpy.core.multiarray.where}
+  1142388    0.473    0.000    0.659    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\ma\core.py:6192(isMaskedArray)
+  1142388    0.634    0.000    0.634    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:1016(<listcomp>)
+  4190590    0.628    0.000    0.628    0.000 {method 'lower' of 'str' objects}
+  1142388    0.616    0.000    0.616    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:1015(<listcomp>)
+   484214    0.550    0.000    0.550    0.000 C:\Users\emily\Anaconda3\lib\_weakrefset.py:70(__contains__)
+   280797    0.549    0.000    0.549    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\optimize\optimize.py:1764(__init__)
+   380796    0.435    0.000    0.543    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\getlimits.py:376(__new__)
+   951990    0.359    0.000    0.541    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:660(issubclass_)
+  1142389    0.536    0.000    0.536    0.000 {method 'index' of 'list' objects}
+    95199    0.099    0.000    0.528    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:910(argmax)
+   761592    0.359    0.000    0.528    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\sparse\base.py:1111(isspmatrix)
+   761592    0.487    0.000    0.487    0.000 {method 'index' of 'str' objects}
+   315877    0.477    0.000    0.477    0.000 {built-in method builtins.round}
+   125991    0.106    0.000    0.455    0.000 <string>:16(_make)
+   244819    0.434    0.000    0.434    0.000 {built-in method numpy.core.multiarray.empty_like}
+     1220    0.027    0.000    0.408    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\format.py:282(_write_array_header)
+   407397    0.386    0.000    0.386    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:101(get_linalg_error_extobj)
+  1493049    0.386    0.000    0.386    0.000 {method 'item' of 'numpy.ndarray' objects}
+    95199    0.358    0.000    0.358    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:937(_CalcRaylPhaseVelInHalfSpace)
+     1220    0.038    0.000    0.355    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\format.py:425(_filter_header)
+   761592    0.337    0.000    0.337    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\type_check.py:62(<listcomp>)
+   285597    0.325    0.000    0.325    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_internal.py:241(__init__)
+    27/12    0.000    0.000    0.321    0.027 C:\Users\emily\Anaconda3\lib\site-packages\tornado\stack_context.py:273(null_wrapper)
+       12    0.000    0.000    0.321    0.027 C:\Users\emily\Anaconda3\lib\site-packages\zmq\eventloop\zmqstream.py:427(_handle_events)
+        7    0.000    0.000    0.320    0.046 C:\Users\emily\Anaconda3\lib\site-packages\zmq\eventloop\zmqstream.py:456(_handle_recv)
+       15    0.000    0.000    0.320    0.021 C:\Users\emily\Anaconda3\lib\site-packages\zmq\eventloop\zmqstream.py:407(_run_callback)
+        7    0.000    0.000    0.320    0.046 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\kernelbase.py:282(dispatcher)
+        7    0.000    0.000    0.320    0.046 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\kernelbase.py:198(dispatch_shell)
+   380796    0.317    0.000    0.317    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\linalg\lapack.py:530(<listcomp>)
+   571194    0.235    0.000    0.313    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\fftpack\basic.py:24(istype)
+    95199    0.309    0.000    0.309    0.000 {method 'argmax' of 'numpy.ndarray' objects}
+    90695    0.172    0.000    0.309    0.000 C:\Users\emily\Anaconda3\lib\random.py:172(randrange)
+        5    0.000    0.000    0.302    0.060 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\kernelbase.py:373(execute_request)
+   380796    0.300    0.000    0.300    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\getlimits.py:532(max)
+   190398    0.292    0.000    0.292    0.000 {method 'mro' of 'type' objects}
+  1329766    0.285    0.000    0.285    0.000 {built-in method _operator.index}
+    95199    0.278    0.000    0.278    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spectrum\mtm.py:541(<listcomp>)
+   380796    0.278    0.000    0.278    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\signaltools.py:440(_prod)
+        5    0.000    0.000    0.270    0.054 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\ipkernel.py:188(do_execute)
+    26247    0.106    0.000    0.249    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:492(_tokenize)
+   761592    0.240    0.000    0.240    0.000 {method 'sort' of 'list' objects}
+   380796    0.214    0.000    0.214    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\linalg\blas.py:206(<listcomp>)
+   125991    0.109    0.000    0.181    0.000 <string>:12(__new__)
+   761592    0.143    0.000    0.143    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\linalg\misc.py:169(_datacopied)
+   280796    0.142    0.000    0.142    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\optimize\optimize.py:1920(get_result)
+     2657    0.141    0.000    0.141    0.000 {built-in method nt.stat}
+        4    0.000    0.000    0.138    0.035 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\interactiveshell.py:2373(user_expressions)
+    30390    0.039    0.000    0.138    0.000 C:\Users\emily\Anaconda3\lib\random.py:216(randint)
+        3    0.000    0.000    0.137    0.046 {built-in method builtins.eval}
+   422147    0.132    0.000    0.132    0.000 {method 'getrandbits' of '_random.Random' objects}
+        5    0.000    0.000    0.132    0.026 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\zmqshell.py:531(run_cell)
+        5    0.000    0.000    0.132    0.026 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\interactiveshell.py:2572(run_cell)
+        4    0.000    0.000    0.129    0.032 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\events.py:65(trigger)
+        1    0.000    0.000    0.129    0.129 C:\Users\emily\Anaconda3\lib\site-packages\IPython\extensions\autoreload.py:501(pre_run_cell)
+        1    0.003    0.003    0.129    0.129 C:\Users\emily\Anaconda3\lib\site-packages\IPython\extensions\autoreload.py:210(check)
+    13354    0.017    0.000    0.128    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\iostream.py:297(_schedule_flush)
+     1818    0.004    0.000    0.125    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\extensions\autoreload.py:184(filename_and_mtime)
+    90/43    0.001    0.000    0.123    0.003 <frozen importlib._bootstrap>:966(_find_and_load)
+    90/43    0.000    0.000    0.122    0.003 <frozen importlib._bootstrap>:936(_find_and_load_unlocked)
+   537580    0.120    0.000    0.120    0.000 {method 'bit_length' of 'int' objects}
+   168/43    0.000    0.000    0.119    0.003 <frozen importlib._bootstrap>:211(_call_with_frames_removed)
+    84/41    0.000    0.000    0.113    0.003 <frozen importlib._bootstrap>:651(_load_unlocked)
+    43/41    0.000    0.000    0.112    0.003 <frozen importlib._bootstrap_external>:672(exec_module)
+    95199    0.112    0.000    0.112    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spectrum\mtm.py:464(<listcomp>)
+    84/43    0.000    0.000    0.110    0.003 {built-in method builtins.__import__}
+   280797    0.106    0.000    0.106    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\optimize\optimize.py:137(_check_unknown_options)
+        1    0.000    0.000    0.105    0.105 C:\Users\emily\Anaconda3\lib\site-packages\spyder\utils\ipython\spyder_kernel.py:102(get_var_properties)
+   121798    0.104    0.000    0.104    0.000 {method 'random' of '_random.Random' objects}
+   280797    0.097    0.000    0.097    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\optimize\optimize.py:1778(set_bracket)
+       39    0.000    0.000    0.093    0.002 C:\Users\emily\Anaconda3\lib\site-packages\spyder\utils\ipython\spyder_kernel.py:404(_is_image)
+    44/42    0.000    0.000    0.092    0.002 {built-in method builtins.exec}
+   125991    0.091    0.000    0.091    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:516(_GetStdForGaussian)
+    20127    0.041    0.000    0.083    0.000 C:\Users\emily\Anaconda3\lib\threading.py:1104(is_alive)
+    35026    0.073    0.000    0.073    0.000 {method 'argmin' of 'numpy.ndarray' objects}
+       84    0.000    0.000    0.071    0.001 <frozen importlib._bootstrap>:564(module_from_spec)
+       41    0.000    0.000    0.070    0.002 <frozen importlib._bootstrap_external>:919(create_module)
+       41    0.070    0.002    0.070    0.002 {built-in method _imp.create_dynamic}
+     1221    0.055    0.000    0.067    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:1192(SaveModel)
+    24095    0.064    0.000    0.064    0.000 {method 'match' of '_sre.SRE_Pattern' objects}
+        1    0.000    0.000    0.064    0.064 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\kernelbase.py:634(_abort_queues)
+        2    0.000    0.000    0.064    0.032 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\kernelbase.py:639(_abort_queue)
+     1220    0.004    0.000    0.059    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:317(untokenize)
+     1220    0.034    0.000    0.053    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:243(untokenize)
+    23767    0.016    0.000    0.044    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:152(_compile)
+    95391    0.041    0.000    0.041    0.000 {method 'pop' of 'dict' objects}
+    20127    0.039    0.000    0.039    0.000 {built-in method nt.urandom}
+    13354    0.029    0.000    0.038    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\iostream.py:284(_is_master_process)
+        5    0.038    0.008    0.038    0.008 {built-in method time.sleep}
+        2    0.000    0.000    0.037    0.019 C:\Users\emily\Anaconda3\lib\site-packages\spyder\widgets\variableexplorer\utils.py:610(get_remote_data)
+    20127    0.018    0.000    0.035    0.000 C:\Users\emily\Anaconda3\lib\threading.py:1062(_wait_for_tstate_lock)
+        1    0.000    0.000    0.032    0.032 C:\Users\emily\Anaconda3\lib\site-packages\spyder\utils\ipython\spyder_kernel.py:75(get_namespace_view)
+        1    0.000    0.000    0.031    0.031 C:\Users\emily\Anaconda3\lib\site-packages\spyder\widgets\variableexplorer\utils.py:632(make_remote_view)
+        2    0.000    0.000    0.028    0.014 C:\Users\emily\Anaconda3\lib\site-packages\spyder\config\base.py:368(get_supported_types)
+    23767    0.010    0.000    0.028    0.000 C:\Users\emily\Anaconda3\lib\re.py:231(compile)
+       43    0.000    0.000    0.023    0.001 <frozen importlib._bootstrap_external>:743(get_code)
+       88    0.001    0.000    0.023    0.000 <frozen importlib._bootstrap>:870(_find_spec)
+    20248    0.022    0.000    0.022    0.000 {method 'acquire' of '_thread.lock' objects}
+    95199    0.022    0.000    0.022    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\fftpack\basic.py:28(_datacopied)
+    20101    0.021    0.000    0.021    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\iostream.py:87(_event_pipe)
+    23988    0.018    0.000    0.018    0.000 C:\Users\emily\Anaconda3\lib\re.py:286(_compile)
+        1    0.000    0.000    0.015    0.015 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\interactiveshell.py:1769(showtraceback)
+        1    0.000    0.000    0.014    0.014 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\ultratb.py:1365(structured_traceback)
+        1    0.000    0.000    0.014    0.014 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\ultratb.py:1273(structured_traceback)
+       88    0.000    0.000    0.014    0.000 <frozen importlib._bootstrap_external>:1149(find_spec)
+       88    0.000    0.000    0.014    0.000 <frozen importlib._bootstrap_external>:1117(_get_spec)
+    23180    0.013    0.000    0.014    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:230(add_whitespace)
+      108    0.001    0.000    0.013    0.000 <frozen importlib._bootstrap_external>:1233(find_spec)
+      235    0.000    0.000    0.013    0.000 <frozen importlib._bootstrap_external>:75(_path_stat)
+     6586    0.013    0.000    0.013    0.000 {method 'format' of 'str' objects}
+       43    0.000    0.000    0.012    0.000 <frozen importlib._bootstrap_external>:485(_compile_bytecode)
+       43    0.012    0.000    0.012    0.000 {built-in method marshal.loads}
+        8    0.000    0.000    0.011    0.001 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\compilerop.py:136(check_linecache_ipython)
+        8    0.001    0.000    0.011    0.001 C:\Users\emily\Anaconda3\lib\linecache.py:53(checkcache)
+     1220    0.004    0.000    0.010    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\format.py:255(header_data_from_array_1_0)
+     3693    0.005    0.000    0.010    0.000 {built-in method builtins.repr}
+    13380    0.009    0.000    0.009    0.000 {built-in method nt.getpid}
+        2    0.007    0.004    0.009    0.004 C:\Users\emily\Anaconda3\lib\site-packages\spyder\widgets\variableexplorer\utils.py:582(globalsfilter)
+        3    0.000    0.000    0.008    0.003 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputsplitter.py:665(push)
+       20    0.000    0.000    0.008    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputsplitter.py:706(push_line)
+       16    0.000    0.000    0.008    0.000 <frozen importlib._bootstrap>:861(_find_spec_legacy)
+       43    0.007    0.000    0.008    0.000 <frozen importlib._bootstrap_external>:830(get_data)
+        4    0.000    0.000    0.008    0.002 C:\Users\emily\Anaconda3\lib\site-packages\pyximport\pyximport.py:249(find_module)
+       26    0.000    0.000    0.008    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\iostream.py:311(flush)
+    20127    0.008    0.000    0.008    0.000 C:\Users\emily\Anaconda3\lib\threading.py:506(is_set)
+        1    0.000    0.000    0.007    0.007 C:\Users\emily\Anaconda3\lib\site-packages\spyder\pil_patch.py:50(<module>)
+     1739    0.001    0.000    0.007    0.000 C:\Users\emily\Anaconda3\lib\ntpath.py:222(splitext)
+       20    0.000    0.000    0.006    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputsplitter.py:383(push)
+       26    0.000    0.000    0.006    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:657(send)
+        2    0.000    0.000    0.006    0.003 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\kernelbase.py:546(is_complete_request)
+      232    0.000    0.000    0.006    0.000 C:\Users\emily\Anaconda3\lib\genericpath.py:27(isfile)
+        4    0.000    0.000    0.006    0.001 C:\Users\emily\Anaconda3\lib\imp.py:255(find_module)
+       26    0.000    0.000    0.006    0.000 C:\Users\emily\Anaconda3\lib\threading.py:533(wait)
+    45/39    0.000    0.000    0.006    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\widgets\variableexplorer\utils.py:339(value_to_display)
+        2    0.000    0.000    0.006    0.003 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\ipkernel.py:306(do_is_complete)
+     1220    0.006    0.000    0.006    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\format.py:223(dtype_to_descr)
+        2    0.000    0.000    0.006    0.003 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputsplitter.py:347(check_complete)
+       26    0.000    0.000    0.005    0.000 C:\Users\emily\Anaconda3\lib\threading.py:263(wait)
+    23914    0.005    0.000    0.005    0.000 {method 'span' of '_sre.SRE_Match' objects}
+       21    0.000    0.000    0.005    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:1832(array_repr)
+    33/21    0.000    0.000    0.005    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:381(wrapper)
+    33/21    0.000    0.000    0.005    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:399(array2string)
+       21    0.000    0.000    0.005    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:343(_array2string)
+     1220    0.005    0.000    0.005    0.000 {built-in method builtins.sorted}
+     1220    0.005    0.000    0.005    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\format.py:176(magic)
+     1739    0.003    0.000    0.005    0.000 C:\Users\emily\Anaconda3\lib\genericpath.py:117(_splitext)
+       84    0.000    0.000    0.005    0.000 <frozen importlib._bootstrap_external>:94(_path_isfile)
+       84    0.000    0.000    0.005    0.000 <frozen importlib._bootstrap_external>:85(_path_is_mode_type)
+     1220    0.002    0.000    0.004    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\compat\py3k.py:32(asbytes)
+       20    0.000    0.000    0.004    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputsplitter.py:494(_update_indent)
+        8    0.000    0.000    0.004    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:874(deserialize)
+       20    0.000    0.000    0.004    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputsplitter.py:138(find_next_indent)
+       16    0.000    0.000    0.004    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\kernelbase.py:321(_publish_status)
+    15242    0.004    0.000    0.004    0.000 {method 'isidentifier' of 'str' objects}
+       26    0.000    0.000    0.003    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:598(serialize)
+      627    0.000    0.000    0.003    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputsplitter.py:113(partial_tokens)
+        1    0.000    0.000    0.003    0.003 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\ultratb.py:1267(_extract_tb)
+        1    0.000    0.000    0.003    0.003 C:\Users\emily\Anaconda3\lib\traceback.py:57(extract_tb)
+        1    0.000    0.000    0.003    0.003 C:\Users\emily\Anaconda3\lib\traceback.py:313(extract)
+    39/21    0.000    0.000    0.003    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:535(_formatArray)
+     1220    0.002    0.000    0.003    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\compat\py3k.py:37(asstr)
+        1    0.000    0.000    0.003    0.003 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputsplitter.py:654(transform_cell)
+       29    0.000    0.000    0.003    0.000 C:\Users\emily\Anaconda3\lib\traceback.py:279(line)
+       15    0.000    0.000    0.003    0.000 C:\Users\emily\Anaconda3\lib\linecache.py:15(getline)
+       15    0.000    0.000    0.003    0.000 C:\Users\emily\Anaconda3\lib\linecache.py:37(getlines)
+        1    0.000    0.000    0.003    0.003 C:\Users\emily\Anaconda3\lib\linecache.py:82(updatecache)
+    64/16    0.000    0.000    0.003    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\jsonutil.py:62(extract_dates)
+        1    0.000    0.000    0.003    0.003 C:\Users\emily\Anaconda3\lib\tokenize.py:448(open)
+     1220    0.003    0.000    0.003    0.000 {built-in method _struct.pack}
+        3    0.000    0.000    0.002    0.001 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:779(recv)
+      177    0.001    0.000    0.002    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:668(__call__)
+       48    0.000    0.000    0.002    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\jsonutil.py:47(parse_date)
+      104    0.000    0.000    0.002    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:102(<lambda>)
+     1220    0.002    0.000    0.002    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\compat\py3k.py:42(isfileobj)
+     3104    0.002    0.000    0.002    0.000 {method 'join' of 'str' objects}
+     1376    0.002    0.000    0.002    0.000 {method 'encode' of 'str' objects}
+        8    0.000    0.000    0.002    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:1084(parse)
+      104    0.000    0.000    0.002    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\utils\jsonapi.py:31(dumps)
+        8    0.000    0.000    0.002    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:489(parse)
+       10    0.000    0.000    0.002    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\sugar\socket.py:370(recv_multipart)
+       43    0.000    0.000    0.002    0.000 <frozen importlib._bootstrap_external>:840(path_stats)
+     1220    0.002    0.000    0.002    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:224(__init__)
+     2664    0.002    0.000    0.002    0.000 {method 'read' of '_io.StringIO' objects}
+      104    0.000    0.000    0.002    0.000 C:\Users\emily\Anaconda3\lib\json\__init__.py:183(dumps)
+        8    0.000    0.000    0.002    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:622(_parse)
+       20    0.000    0.000    0.002    0.000 C:\Users\emily\Anaconda3\lib\codeop.py:149(__call__)
+       20    0.000    0.000    0.002    0.000 C:\Users\emily\Anaconda3\lib\codeop.py:68(_maybe_compile)
+       61    0.000    0.000    0.002    0.000 C:\Users\emily\Anaconda3\lib\codeop.py:132(__call__)
+        1    0.000    0.000    0.002    0.002 C:\Users\emily\Anaconda3\lib\site-packages\PIL\Image.py:27(<module>)
+       63    0.002    0.000    0.002    0.000 {built-in method builtins.compile}
+     2440    0.002    0.000    0.002    0.000 {method 'write' of '_io.BufferedWriter' objects}
+     5081    0.002    0.000    0.002    0.000 {method 'add' of 'set' objects}
+      203    0.000    0.000    0.002    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\widgets\variableexplorer\utils.py:231(get_color_name)
+      104    0.000    0.000    0.002    0.000 C:\Users\emily\Anaconda3\lib\json\encoder.py:182(encode)
+     1240    0.001    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:729(generate_tokens)
+       21    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:299(_get_format_function)
+      164    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\widgets\variableexplorer\utils.py:553(is_supported)
+     88/8    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\jsonutil.py:97(json_clean)
+       82    0.001    0.000    0.001    0.000 {built-in method builtins.__build_class__}
+     1325    0.001    0.000    0.001    0.000 {method 'endswith' of 'str' objects}
+      234    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\ntpath.py:74(join)
+     5217    0.001    0.000    0.001    0.000 {method 'rfind' of 'str' objects}
+       62    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:576(__set__)
+      164    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\widgets\variableexplorer\utils.py:248(is_editable_type)
+      104    0.001    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\json\encoder.py:204(iterencode)
+       15    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:260(<lambda>)
+       15    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:603(__init__)
+       62    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:558(set)
+       15    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:617(fillFormat)
+     1220    0.001    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\format.py:171(_check_version)
+      142    0.000    0.000    0.001    0.000 <frozen importlib._bootstrap_external>:308(source_from_cache)
+       43    0.001    0.000    0.001    0.000 {method 'read' of '_io.FileIO' objects}
+        7    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\ipkernel.py:116(set_parent)
+        8    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\eventloop\zmqstream.py:477(_handle_send)
+       20    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputtransformer.py:130(push)
+       90    0.000    0.000    0.001    0.000 <frozen importlib._bootstrap>:147(__enter__)
+        1    0.000    0.000    0.001    0.001 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\zmqshell.py:535(_showtraceback)
+       34    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:583(sign)
+      370    0.001    0.000    0.001    0.000 <frozen importlib._bootstrap_external>:63(_path_split)
+      384    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:2667(seterr)
+        3    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\interactiveshell.py:2359(_format_user_obj)
+       43    0.000    0.000    0.001    0.000 <frozen importlib._bootstrap>:504(_init_module_attrs)
+       26    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:564(msg)
+        3    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\formatters.py:89(format)
+      203    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\widgets\variableexplorer\utils.py:529(is_known_type)
+      492    0.001    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\ntpath.py:121(splitdrive)
+        8    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:190(split)
+       36    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\formatters.py:211(catch_format_error)
+       18    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\iostream.py:247(send_multipart)
+      221    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\widgets\variableexplorer\utils.py:515(get_type_string)
+      976    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:545(__get__)
+        8    0.001    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\sugar\socket.py:326(send_multipart)
+      174    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\utils\tokenize2.py:418(_tokenize)
+       18    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\iostream.py:194(send_multipart)
+       26    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:561(msg_header)
+       90    0.000    0.000    0.001    0.000 <frozen importlib._bootstrap>:157(_get_module_lock)
+       86    0.000    0.000    0.001    0.000 <frozen importlib._bootstrap_external>:263(cache_from_source)
+      104    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:180(__next__)
+      376    0.000    0.000    0.001    0.000 <frozen importlib._bootstrap_external>:57(_path_join)
+      104    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:68(get_token)
+        7    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\zmqshell.py:570(set_parent)
+      192    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:3064(__enter__)
+       86    0.000    0.000    0.001    0.000 <frozen importlib._bootstrap>:403(cached)
+     1475    0.001    0.000    0.001    0.000 {method 'items' of 'dict' objects}
+      192    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:3069(__exit__)
+       43    0.000    0.000    0.001    0.000 <frozen importlib._bootstrap_external>:361(_get_cached)
+       62    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:587(_validate)
+       57    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\jsonutil.py:87(date_default)
+       80    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputtransformer.py:83(push)
+      232    0.000    0.000    0.000    0.000 {built-in method _thread.allocate_lock}
+       39    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:1133(_notify_trait)
+       84    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1228(_get_spec)
+       32    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:105(<lambda>)
+       37    0.000    0.000    0.000    0.000 {method 'update' of 'dict' objects}
+       32    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\utils\jsonapi.py:47(loads)
+        7    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\kernelbase.py:330(set_parent)
+     1320    0.000    0.000    0.000    0.000 {built-in method builtins.iter}
+       90    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:58(__init__)
+       43    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:430(_validate_bytecode_header)
+       39    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:1142(notify_change)
+       27    0.000    0.000    0.000    0.000 <decorator-gen-9>:1(__call__)
+      976    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:526(get)
+     2801    0.000    0.000    0.000    0.000 {built-in method nt.fspath}
+      384    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:2767(geterr)
+       26    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:509(msg_id)
+      376    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:59(<listcomp>)
+       27    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\formatters.py:322(__call__)
+       26    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:121(new_id)
+      221    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\re.py:214(findall)
+       57    0.000    0.000    0.000    0.000 {method 'isoformat' of 'datetime.datetime' objects}
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\eventloop\zmqstream.py:255(send_multipart)
+       32    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\json\__init__.py:302(loads)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\extensions\autoreload.py:508(post_execute_hook)
+       51    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipython_genutils\py3compat.py:19(encode)
+       26    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\threading.py:498(__init__)
+       33    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\formatters.py:365(lookup)
+        7    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\jsonutil.py:153(<listcomp>)
+      370    0.000    0.000    0.000    0.000 {method 'rsplit' of 'str' objects}
+        2    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\utils\ipython\spyder_kernel.py:340(_get_current_namespace)
+       90    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:151(__exit__)
+       84    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:524(spec_from_file_location)
+       24    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:319(month)
+      360    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:416(parent)
+      236    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:527(_extendLine)
+       32    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\json\decoder.py:334(decode)
+       26    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:236(msg_header)
+        3    0.000    0.000    0.000    0.000 <decorator-gen-10>:1(__call__)
+       33    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\formatters.py:388(lookup_by_type)
+       14    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\signal.py:45(signal)
+     1615    0.000    0.000    0.000    0.000 {method 'rstrip' of 'str' objects}
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\formatters.py:680(__call__)
+     1639    0.000    0.000    0.000    0.000 {method 'startswith' of 'str' objects}
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\eventloop\zmqstream.py:526(_update_handler)
+    33/15    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:220(_leading_trailing)
+      136    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\hmac.py:90(update)
+       41    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\logging\__init__.py:1832(getLogger)
+       17    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\kernelbase.py:628(_topic)
+       20    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputtransformer.py:258(escaped_commands)
+       90    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:103(release)
+       31    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:169(utcnow)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\tornado\ioloop.py:730(update_handler)
+        7    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\displayhook.py:56(set_parent)
+       90    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:78(acquire)
+       12    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\eventloop\zmqstream.py:501(_rebuild_io_state)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\adapter.py:368(adapt)
+        7    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\zmqshell.py:73(set_parent)
+      100    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputtransformer.py:102(push)
+       18    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\splitinput.py:110(__init__)
+       55    0.000    0.000    0.000    0.000 {method 'replace' of 'datetime.datetime' objects}
+       34    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\hmac.py:95(copy)
+      170    0.000    0.000    0.000    0.000 {method 'update' of '_hashlib.HASH' objects}
+       34    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\hmac.py:127(hexdigest)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline.py:246(InitialModel)
+       61    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:596(_cross_validate)
+       41    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\logging\__init__.py:1159(getLogger)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\history.py:691(store_inputs)
+       20    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputtransformer.py:334(help_end)
+       12    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:649(<listcomp>)
+       78    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:132(<genexpr>)
+      135    0.000    0.000    0.000    0.000 {method 'send' of 'generator' objects}
+      221    0.000    0.000    0.000    0.000 {method 'findall' of '_sre.SRE_Pattern' objects}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1281(_fill_cache)
+        6    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputsplitter.py:587(reset)
+       20    0.000    0.000    0.000    0.000 {method 'search' of '_sre.SRE_Pattern' objects}
+       26    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\threading.py:215(__init__)
+      221    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\py3compat.py:129(to_text_string)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\kernelbase.py:313(_publish_execute_input)
+      600    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:320(<genexpr>)
+       21    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:2528(validate)
+       43    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:318(__exit__)
+       90    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:176(cb)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\lib\pretty.py:344(pretty)
+      538    0.000    0.000    0.000    0.000 {method 'replace' of 'str' objects}
+       18    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\splitinput.py:53(split_user_input)
+       17    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipython_genutils\py3compat.py:29(cast_bytes)
+       14    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\signal.py:25(_int_to_enum)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\queue.py:115(put)
+       16    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:311(weekday)
+       27    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputtransformer.py:158(reset)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\ultratb.py:583(structured_traceback)
+        7    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\kernelbase.py:250(post_handler_hook)
+        7    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\kernelbase.py:245(pre_handler_hook)
+      644    0.000    0.000    0.000    0.000 {method 'rpartition' of 'str' objects}
+       39    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\utils\ipython\spyder_kernel.py:412(_is_data_frame)
+        3    0.000    0.000    0.000    0.000 <decorator-gen-11>:1(__call__)
+       39    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\widgets\variableexplorer\utils.py:535(get_human_readable_type)
+      280    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:847(__exit__)
+      104    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\json\encoder.py:104(__init__)
+      376    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:222(_verbose_message)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\eventloop\zmqstream.py:514(_add_io_state)
+       32    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\json\decoder.py:345(raw_decode)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\formatters.py:894(__call__)
+        6    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:259(<lambda>)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\queue.py:147(get)
+       96    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:702(_digits)
+       51    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\encodings\cp1252.py:11(encode)
+        6    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:712(__init__)
+       24    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\ntpath.py:66(isabs)
+       20    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\warnings.py:143(simplefilter)
+      280    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:843(__enter__)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\tornado\ioloop.py:640(split_fd)
+        5    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\ipkernel.py:150(_forward_input)
+      192    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:3060(__init__)
+      248    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:199(isnum)
+      384    0.000    0.000    0.000    0.000 {built-in method numpy.core.umath.seterrobj}
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\ultratb.py:636(_format_list)
+       34    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\hmac.py:108(_current)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:813(feed_identities)
+        1    0.000    0.000    0.000    0.000 {built-in method nt.listdir}
+       33    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\utils\dir2.py:53(get_real_method)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\lib\pretty.py:690(_repr_pprint)
+       14    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\enum.py:265(__call__)
+       18    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputtransformer.py:169(output)
+       66    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\formatters.py:541(_in_deferred_types)
+       21    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:2535(validate_elements)
+        5    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\payload.py:54(clear_payload)
+       17    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\threading.py:334(notify)
+      102    0.000    0.000    0.000    0.000 {method 'copy' of '_hashlib.HASH' objects}
+       39    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipython_genutils\py3compat.py:188(iteritems)
+       29    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:725(__call__)
+       26    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\imp.py:105(get_suffixes)
+      768    0.000    0.000    0.000    0.000 {built-in method numpy.core.umath.geterrobj}
+       86    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:52(_r_long)
+       26    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:732(<listcomp>)
+       88    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:369(__init__)
+       88    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:780(find_spec)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:2912(std)
+        3    0.000    0.000    0.000    0.000 <decorator-gen-12>:1(__call__)
+       20    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\warnings.py:159(_add_filter)
+       27    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputtransformer.py:126(reset_tokenizer)
+       23    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputsplitter.py:499(_store)
+       24    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:401(append)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:212(__init__)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_methods.py:133(_std)
+      240    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:312(<genexpr>)
+      117    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\utils\ipython\spyder_kernel.py:396(_is_array)
+      110    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1080(_path_importer_cache)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\eventloop\ioloop.py:111(modify)
+       86    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\widgets\variableexplorer\utils.py:62(get_numpy_dtype)
+       29    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\logging\__init__.py:1284(debug)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:224(__len__)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\sugar\attrsettr.py:35(__getattr__)
+       20    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\eventloop\zmqstream.py:400(sending)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_methods.py:86(_var)
+       51    0.000    0.000    0.000    0.000 {built-in method _codecs.charmap_encode}
+        2    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputsplitter.py:648(push_accepts_more)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\formatters.py:940(__call__)
+       39    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\utils\ipython\spyder_kernel.py:428(_get_array_shape)
+       39    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\utils\ipython\spyder_kernel.py:420(_is_series)
+        1    0.000    0.000    0.000    0.000 {method 'readlines' of '_io._IOBase' objects}
+      460    0.000    0.000    0.000    0.000 {built-in method _imp.acquire_lock}
+      460    0.000    0.000    0.000    0.000 {built-in method _imp.release_lock}
+        2    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputsplitter.py:439(push_accepts_more)
+       54    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:242(extract_header)
+       14    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\enum.py:515(__new__)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\widgets\variableexplorer\utils.py:294(collections_display)
+       85    0.000    0.000    0.000    0.000 {method 'decode' of 'bytes' objects}
+       45    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:185(get_printoptions)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:850(_add_digest)
+        5    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\ipkernel.py:123(init_metadata)
+       43    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:393(_check_name_wrapper)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:230(<listcomp>)
+       21    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:256(_get_formatdict)
+       32    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\logging\__init__.py:1542(isEnabledFor)
+       12    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:1905(array_str)
+       41    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\logging\__init__.py:219(_acquireLock)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:52(__init__)
+       35    0.000    0.000    0.000    0.000 {method 'hexdigest' of '_hashlib.HASH' objects}
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\widgets\variableexplorer\utils.py:320(<listcomp>)
+        5    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:2323(validate)
+      112    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:194(isword)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\interactiveshell.py:2751(run_ast_nodes)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\eventloop\zmqstream.py:193(on_send)
+       52    0.000    0.000    0.000    0.000 {built-in method binascii.b2a_hex}
+      108    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:37(_relax_case)
+       27    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputtransformer.py:172(assemble_logical_lines)
+       54    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputtransformer.py:390(_strip_prompts)
+       20    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\queue.py:90(empty)
+       21    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:419(__init__)
+       20    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputtransformer.py:518(assign_from_magic)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\ast.py:30(parse)
+       43    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\threading.py:239(__enter__)
+       39    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\widgets\variableexplorer\utils.py:131(get_size)
+       20    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\warnings.py:449(__enter__)
+       28    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\signal.py:35(_enum_to_int)
+       78    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\utils\bunch.py:11(__getattr__)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\compilerop.py:94(ast_parse)
+       43    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:35(_new_module)
+       12    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\eventloop\ioloop.py:123(<listcomp>)
+       90    0.000    0.000    0.000    0.000 {built-in method _imp.is_frozen}
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:355(detect_encoding)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\lib\pretty.py:327(__init__)
+       35    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputtransformer.py:109(reset)
+       90    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:143(__init__)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:232(<listcomp>)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\sugar\poll.py:59(modify)
+       96    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:225(<genexpr>)
+       14    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\iostream.py:287(set_parent)
+       34    0.000    0.000    0.000    0.000 {method 'digest' of '_hashlib.HASH' objects}
+       43    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\threading.py:254(_is_owned)
+       95    0.000    0.000    0.000    0.000 {method 'readline' of '_io.StringIO' objects}
+      213    0.000    0.000    0.000    0.000 {built-in method _thread.get_ident}
+       31    0.000    0.000    0.000    0.000 {built-in method utcnow}
+        2    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\error.py:100(__init__)
+      111    0.000    0.000    0.000    0.000 {built-in method builtins.setattr}
+       43    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:800(__init__)
+       39    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\utils\ipython\spyder_kernel.py:389(_get_len)
+       43    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\threading.py:242(__exit__)
+       26    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\threading.py:251(_acquire_restore)
+       39    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\utils\ipython\spyder_kernel.py:438(_get_array_ndim)
+       10    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\sugar\poll.py:28(register)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\lib\pretty.py:168(__init__)
+       62    0.000    0.000    0.000    0.000 {built-in method builtins.any}
+       26    0.000    0.000    0.000    0.000 {built-in method builtins.locals}
+       20    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputtransformer.py:507(assign_from_system)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:1365(_parsems)
+       16    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:308(jump)
+        5    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:2235(validate)
+       86    0.000    0.000    0.000    0.000 {built-in method from_bytes}
+      276    0.000    0.000    0.000    0.000 {method 'isdigit' of 'str' objects}
+        7    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\kernelbase.py:179(should_handle)
+       15    0.000    0.000    0.000    0.000 {method 'compress' of 'numpy.ndarray' objects}
+        5    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\kernelbase.py:355(init_metadata)
+        2    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\pylab\backend_inline.py:96(flush_figures)
+       43    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:311(__enter__)
+       20    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\warnings.py:468(__exit__)
+      220    0.000    0.000    0.000    0.000 {method 'extend' of 'list' objects}
+       41    0.000    0.000    0.000    0.000 {method 'split' of 'str' objects}
+       90    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:59(set_printoptions)
+       15    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\tornado\stack_context.py:221(__enter__)
+       65    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\jsonutil.py:34(_ensure_tzinfo)
+       16    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:327(hms)
+       41    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\logging\__init__.py:228(_releaseLock)
+       88    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:707(find_spec)
+       12    0.000    0.000    0.000    0.000 {method 'subn' of '_sre.SRE_Pattern' objects}
+        7    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\enum.py:544(_missing_)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\queue.py:210(_get)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\compilerop.py:113(cache)
+       23    0.000    0.000    0.000    0.000 {method 'remove' of 'list' objects}
+       43    0.000    0.000    0.000    0.000 {built-in method _imp._fix_co_filename}
+        8    0.000    0.000    0.000    0.000 {built-in method now}
+        2    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\error.py:26(__init__)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:375(__init__)
+      114    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\tz\tz.py:36(utcoffset)
+       20    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\warnings.py:428(__init__)
+       11    0.000    0.000    0.000    0.000 {method 'splitlines' of 'str' objects}
+       86    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:321(<genexpr>)
+       41    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:908(__init__)
+       12    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\eventloop\ioloop.py:96(_remap_events)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:410(resolve_ymd)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:385(find_cookie)
+       13    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\py\_apipkg.py:169(__getattribute__)
+       43    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:307(__init__)
+       27    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:1673(validate)
+       14    0.000    0.000    0.000    0.000 {built-in method _signal.signal}
+       18    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\utils\encoding.py:21(get_stream_enc)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputsplitter.py:603(flush_transformers)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\interactiveshell.py:2832(run_code)
+       41    0.000    0.000    0.000    0.000 {method 'acquire' of '_thread.RLock' objects}
+       23    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\utils\py3compat.py:25(cast_unicode)
+       10    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:2316(validate_elements)
+       16    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:333(ampm)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\threading.py:512(set)
+       27    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputtransformer.py:467(leading_indent)
+       28    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\queue.py:202(_qsize)
+      178    0.000    0.000    0.000    0.000 {method 'isupper' of 'str' objects}
+       93    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\utils\ipstruct.py:125(__getattr__)
+       32    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:204(isspace)
+       36    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\lib\pretty.py:293(_get_mro)
+       32    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\logging\__init__.py:1528(getEffectiveLevel)
+       26    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\threading.py:248(_release_save)
+       86    0.000    0.000    0.000    0.000 {method 'strip' of 'str' objects}
+        4    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:2045(validate)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\ultratb.py:673(_format_exception_only)
+       43    0.000    0.000    0.000    0.000 {method '__enter__' of '_thread.lock' objects}
+       33    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\inspect.py:73(isclass)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\random.py:96(seed)
+        6    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputsplitter.py:330(reset)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:361(validate)
+       20    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:105(exact_type)
+       26    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\imp.py:107(<listcomp>)
+       23    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputsplitter.py:514(_set_source)
+       33    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\formatters.py:265(_get_type)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\eventloop\ioloop.py:84(_map_events)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\matplotlib\pyplot.py:145(post_execute)
+       47    0.000    0.000    0.000    0.000 {method 'copy' of 'dict' objects}
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:345(tzoffset)
+      115    0.000    0.000    0.000    0.000 {method 'isalpha' of 'str' objects}
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\lib\pretty.py:458(__init__)
+       40    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputtransformer.py:132(<genexpr>)
+       15    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\linecache.py:147(lazycache)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:379(read_or_stop)
+        5    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\ipkernel.py:168(_restore_input)
+       19    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\widgets\variableexplorer\utils.py:377(<listcomp>)
+       14    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\traceback.py:272(__iter__)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\threading.py:357(notify_all)
+       90    0.000    0.000    0.000    0.000 {method 'isspace' of 'str' objects}
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\lib\pretty.py:241(begin_group)
+        6    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\lib\pretty.py:463(enq)
+     10/1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputsplitter.py:604(_flush)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\compilerop.py:53(code_name)
+        6    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputsplitter.py:571(transforms)
+        4    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\pkg_resources\extern\__init__.py:23(find_module)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\lib\pretty.py:276(end_group)
+       27    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\utils\tokenize2.py:569(generate_tokens)
+        2    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\pylab\backend_inline.py:18(show)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\tornado\stack_context.py:255(wrap)
+        5    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\payload.py:51(read_payload)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\queue.py:206(_put)
+       78    0.000    0.000    0.000    0.000 {method '__getitem__' of 'dict' objects}
+        1    0.000    0.000    0.000    0.000 {method 'readline' of '_io.BufferedReader' objects}
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:984(<listcomp>)
+        9    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\py\_apipkg.py:110(__makeattr)
+       16    0.000    0.000    0.000    0.000 {method 'count' of 'str' objects}
+        5    0.000    0.000    0.000    0.000 {built-in method nt.getcwd}
+       20    0.000    0.000    0.000    0.000 {method 'insert' of 'list' objects}
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\builtin_trap.py:46(__exit__)
+       18    0.000    0.000    0.000    0.000 {method 'groups' of '_sre.SRE_Match' objects}
+       69    0.000    0.000    0.000    0.000 {built-in method builtins.id}
+       64    0.000    0.000    0.000    0.000 {method 'end' of '_sre.SRE_Match' objects}
+       26    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\imp.py:108(<listcomp>)
+       34    0.000    0.000    0.000    0.000 {method 'append' of 'collections.deque' objects}
+       21    0.000    0.000    0.000    0.000 {built-in method _functools.reduce}
+       24    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\ntpath.py:33(_get_bothseps)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\builtin_trap.py:39(__enter__)
+       15    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\tornado\stack_context.py:225(__exit__)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\logging\__init__.py:1296(info)
+       27    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputtransformer.py:350(cellmagic)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\matplotlib\__init__.py:1328(is_interactive)
+        2    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\utils\ipython\spyder_kernel.py:382(_mglobals)
+        9    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\widgets\variableexplorer\utils.py:279(default_display)
+       43    0.000    0.000    0.000    0.000 {method '__exit__' of '_thread.lock' objects}
+       60    0.000    0.000    0.000    0.000 {built-in method _warnings._filters_mutated}
+       43    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:424(has_location)
+       43    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:825(get_filename)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\lib\pretty.py:196(text)
+        1    0.000    0.000    0.000    0.000 <string>:1(<module>)
+        1    0.000    0.000    0.000    0.000 {method 'seed' of 'mtrand.RandomState' objects}
+       27    0.000    0.000    0.000    0.000 {method 'release' of '_thread.lock' objects}
+       33    0.000    0.000    0.000    0.000 {method 'discard' of 'set' objects}
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\codecs.py:318(decode)
+       18    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\py3compat.py:106(is_binary_string)
+       18    0.000    0.000    0.000    0.000 {method 'find' of 'str' objects}
+       29    0.000    0.000    0.000    0.000 {method 'partition' of 'str' objects}
+       10    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:2110(validate)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:1069(_skip_token)
+        8    0.000    0.000    0.000    0.000 {built-in method _operator._compare_digest}
+        4    0.000    0.000    0.000    0.000 {built-in method _imp.is_builtin}
+        1    0.000    0.000    0.000    0.000 {function Random.seed at 0x00000177E5863D08}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1310(<setcomp>)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\builtin_trap.py:79(deactivate)
+       15    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\traceback.py:239(__init__)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\builtin_trap.py:72(activate)
+       33    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\formatters.py:350(_check_return)
+       44    0.000    0.000    0.000    0.000 {method 'keys' of 'dict' objects}
+       43    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:669(create_module)
+       16    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\traceback.py:299(walk_tb)
+        4    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\six.py:184(find_module)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\display_trap.py:48(__enter__)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\interactiveshell.py:1296(push)
+        5    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\ipkernel.py:137(finish_metadata)
+        5    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\matplotlib\_pylab_helpers.py:105(get_all_fig_managers)
+       18    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\py3compat.py:96(is_text_string)
+       26    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\imp.py:109(<listcomp>)
+        6    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\interactiveshell.py:1055(user_global_ns)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\eventloop\zmqstream.py:497(_check_closed)
+       41    0.000    0.000    0.000    0.000 {method 'release' of '_thread.RLock' objects}
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\lib\pretty.py:285(flush)
+        6    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\lib\pretty.py:450(__init__)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\lib\pretty.py:480(remove)
+       12    0.000    0.000    0.000    0.000 {method 'popitem' of 'dict' objects}
+        8    0.000    0.000    0.000    0.000 {method 'ljust' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\display_trap.py:54(__exit__)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\formatters.py:931(_check_return)
+       18    0.000    0.000    0.000    0.000 {method 'lstrip' of 'str' objects}
+       41    0.000    0.000    0.000    0.000 {built-in method builtins.callable}
+       10    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:2246(validate_elements)
+        2    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\ipkernel.py:178(execution_count)
+       22    0.000    0.000    0.000    0.000 {built-in method _stat.S_ISREG}
+       27    0.000    0.000    0.000    0.000 {method 'clear' of 'list' objects}
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:344(_get_normal_name)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\display_trap.py:61(set)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\utils\ipython\spyder_kernel.py:317(get_cwd)
+       28    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputtransformer.py:88(reset)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\interactiveshell.py:1721(_get_exc_info)
+       13    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\py\_apipkg.py:153(getmod)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\matplotlib\__init__.py:825(__getitem__)
+        1    0.000    0.000    0.000    0.000 <ipython-input-471-092758f8371e>:1(<module>)
+        1    0.000    0.000    0.000    0.000 {built-in method _hashlib.openssl_md5}
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\codecs.py:308(__init__)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\random.py:366(uniform)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\builtin_trap.py:53(add_builtin)
+        7    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:848(<listcomp>)
+       12    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\eventloop\zmqstream.py:396(receiving)
+        2    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\config\configurable.py:381(instance)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\interactiveshell.py:855(_clear_warning_registry)
+        4    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\pkg_resources\_vendor\six.py:184(find_module)
+        8    0.000    0.000    0.000    0.000 {method 'upper' of 'str' objects}
+        3    0.000    0.000    0.000    0.000 {built-in method _codecs.utf_8_decode}
+        1    0.000    0.000    0.000    0.000 {method 'seek' of '_io.BufferedReader' objects}
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\interactiveshell.py:2719(transform_ast)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\eventloop\zmqstream.py:266(<lambda>)
+        1    0.000    0.000    0.000    0.000 {built-in method _codecs.lookup}
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\ultratb.py:770(_some_str)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\lib\pretty.py:100(_safe_getattr)
+        5    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\interactiveshell.py:176(success)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\history.py:741(store_output)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\hooks.py:142(__call__)
+        2    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\zmq\sugar\poll.py:21(__init__)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\jupyter_client\session.py:929(<listcomp>)
+        4    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\utils\ipython\spyder_kernel.py:56(_pdb_frame)
+        8    0.000    0.000    0.000    0.000 {method 'popleft' of 'collections.deque' objects}
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:1868(validate)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\inputsplitter.py:578(transforms_in_use)
+        3    0.000    0.000    0.000    0.000 {method 'write' of '_io.StringIO' objects}
+        1    0.000    0.000    0.000    0.000 {method 'replace' of 'bytes' objects}
+        4    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\pyximport\pyximport.py:71(_debug)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\interactiveshell.py:935(_get_call_pdb)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\builtin_trap.py:65(remove_builtin)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\logger.py:167(log)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:351(convertyear)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\matplotlib\_pylab_helpers.py:142(draw_all)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\codecs.py:259(__init__)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\compilerop.py:131(<listcomp>)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\dateutil\parser.py:177(__iter__)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\py\_error.py:42(__getattr__)
+        3    0.000    0.000    0.000    0.000 {method 'getvalue' of '_io.StringIO' objects}
+        2    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipython_genutils\py3compat.py:60(safe_unicode)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\display_trap.py:67(unset)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\interactiveshell.py:497(get_ipython)
+        2    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spyder\py3compat.py:86(is_type_text_string)
+        1    0.000    0.000    0.000    0.000 {method 'startswith' of 'bytes' objects}
+        3    0.000    0.000    0.000    0.000 {method 'isalnum' of 'str' objects}
+        2    0.000    0.000    0.000    0.000 {built-in method sys.exc_info}
+        1    0.000    0.000    0.000    0.000 {built-in method time.time}
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\arrayprint.py:45(product)
+        5    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipython_genutils\py3compat.py:12(no_code)
+        3    0.000    0.000    0.000    0.000 {method 'clear' of 'collections.deque' objects}
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\traitlets\traitlets.py:1832(_validate_bounds)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\formatters.py:815(_check_return)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\logger.py:187(log_write)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\ipkernel.py:182(execution_count)
+        1    0.000    0.000    0.000    0.000 {method 'remove' of 'collections.deque' objects}
+        1    0.000    0.000    0.000    0.000 {method 'group' of '_sre.SRE_Match' objects}
+        5    0.000    0.000    0.000    0.000 {method 'values' of 'dict' objects}
+        1    0.000    0.000    0.000    0.000 {method 'update' of 'set' objects}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\IPython\core\hooks.py:207(pre_run_code_hook)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\PIL\Image.py:36(DecompressionBombWarning)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\site-packages\PIL\Image.py:40(_imaging_not_installed)
+        1    0.000    0.000    0.000    0.000 {method 'clear' of 'dict' objects}
+
+

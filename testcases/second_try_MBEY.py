@@ -46,7 +46,7 @@ all_lims = pipeline.Limits(
         vs = (0.5,5.5), dep = (0,200), std_rf = (0,0.05),
         lam_rf = (0.05, 0.5), std_swd = (0,0.15))
 
-#out = pipeline.JointInversion(rf_obs, swd_obs, all_lims, max_it, rnd_sd)
+out = pipeline.JointInversion(rf_obs, swd_obs, all_lims, max_it, rnd_sd)
 
 #actual_model = pipeline.SaveModel(pipeline.MakeFullModel(model),out[1][:,0])
 #%%
@@ -161,17 +161,17 @@ plt.plot(swd_obs.period, swd_obs.c+0.025,  'r--', linewidth=1)
 plt.tight_layout()
 #%%
 
-#plt.figure(); plt.title("Mahalanobis distance (least squares misfit - phi)")
-#plt.plot(np.log10(out[2]))
-#
-#plt.figure(); plt.title("Likelihood of accepting new model - alpha(m|m0)")
-#plt.plot(np.log10(out[3]))
-#
-#print(np.mean(out[4]))
-##%%
-#pr.disable()
-#s=open('thingy4.txt','w')
-#sortby = 'cumulative'
-#ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
-#ps.print_stats()
-#s.close()
+plt.figure(); plt.title("Mahalanobis distance (least squares misfit - phi)")
+plt.plot(np.log10(out[2]))
+
+plt.figure(); plt.title("Likelihood of accepting new model - alpha(m|m0)")
+plt.plot(np.log10(out[3]))
+
+print(np.mean(out[4]))
+#%%
+pr.disable()
+s=open('thingy4.txt','w')
+sortby = 'cumulative'
+ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+ps.print_stats()
+s.close()
