@@ -104,7 +104,8 @@ class Error(Exception): pass
 # =============================================================================
 
 def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
-                   max_iter: int, random_seed: int, rf_phase = 'Ps') -> Model:
+                   max_iter: int, random_seed: int, rf_phase = 'Ps',
+                   save_name:  str) -> Model:
 
     # N.B.  The variable random_seed ensures that the process is repeatable.
     random.seed(a = random_seed)
@@ -122,17 +123,23 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
     ddeps[1::2] = state.model.all_deps[:-1]+np.diff(state.model.all_deps)/2
     conv_models = np.zeros((ddeps.size,num_posterior+1))
     conv_models[:,0] = ddeps
-    all_models = np.zeros((ddeps.size,int(max_iter/100)+1))
+    save_every = 100
+    all_models = np.zeros((ddeps.size,int(max_iter/save_every)+1))
     all_models[:,0] = ddeps
     all_models[:,1] = SaveModel(state.fullmodel, ddeps)
-    all_phi = np.zeros(max_iter) # all misfits
-    all_alpha = np.zeros(max_iter-1) # all likelihoods
-    all_keep = np.zeros(max_iter-1)
+    all_phi = np.zeros(save_every) # all misfits
+    all_alpha = np.zeros(save_every) # all likelihoods
+    all_keep = np.zeros(save_every)
+    mean_phi = np.zeros(int(max_iter/save_every))
+    mean_alpha = np.zeros(int(max_iter/save_every))
+    mean_keep = np.zeros(int(max_iter/save_every))
     # Within one chain, we test for convergence by misfit being and remaining
     # low, and likelihood being and remaining high
 
     all_phi[0] = state.fit_to_obs
     converged = 0  # variable defines # of iterations since convergence
+    n_save = 0
+    n_mwin = 0
 
 
     # =========================================================================
@@ -142,10 +149,10 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
         if not itr % 20:
             print("Iteration {}..".format(itr))
 
-        state, keep_yn, all_alpha[itr-1] = NextState(itr, rf_obs, swd_obs, lims, rf_phase, state)
+        state, keep_yn, mean_alpha[n_mwin] = NextState(itr, rf_obs, swd_obs, lims, rf_phase, state)
 
-        all_phi[itr] = state.fit_to_obs
-        all_keep[itr-1] = keep_yn
+        mean_phi[n_mwin] = state.fit_to_obs
+        mean_keep[n_mwin] = keep_yn
 
         #print([changes_model.which_change, all_keep[itr-1], round(fit_to_obs_m,0)])
         if keep_yn: # should be aiming to keep about 40% of perturbations
@@ -164,9 +171,15 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
                                             itr, nw)
 
         # Save every 500th iteration to see progress
-        if not itr % 100:
-            all_models[:,int(itr/100)] = SaveModel(state.fullmodel, all_models[:,0])
-            np.save('testsave',all_models[:-2])
+        n_mwin += 1
+        if itr / save_every > n_save:
+            n_save += 1
+            n_mwin = 0
+            all_models[:,n_save] = SaveModel(state.fullmodel, all_models[:,0])
+            np.save((save_name+'_AllModels'),all_models[:,:n_save])
+            np.save((save_name+'_Misfit'),np.hstack((all_phi[:itr],
+                    all_alpha[:itr-1], all_keep[:itr-1])))
+            np.save((save_name+'_Hyperparams',)
 
 
         # Save every 500th iteration after convergence (KL14)
