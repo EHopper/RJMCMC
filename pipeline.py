@@ -104,8 +104,8 @@ class Error(Exception): pass
 # =============================================================================
 
 def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
-                   max_iter: int, random_seed: int, rf_phase = 'Ps',
-                   save_name:  str) -> Model:
+                   max_iter: int, random_seed: int,
+                   save_name:  str, rf_phase = 'Ps') -> Model:
 
     # N.B.  The variable random_seed ensures that the process is repeatable.
     random.seed(a = random_seed)
@@ -116,31 +116,23 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
 # =============================================================================
 #           Define parameters for convergence
 # =============================================================================
-    num_posterior = 200
-    burn_in = 2e5 # Number of models to run before bothering to test convergence
     ddeps=np.zeros(state.model.all_deps.size*2-1)
     ddeps[::2] = state.model.all_deps
     ddeps[1::2] = state.model.all_deps[:-1]+np.diff(state.model.all_deps)/2
-    conv_models = np.zeros((ddeps.size,num_posterior+1))
-    conv_models[:,0] = ddeps
     save_every = 100
     all_models = np.zeros((ddeps.size,int(max_iter/save_every)+1))
     all_models[:,0] = ddeps
     all_models[:,1] = SaveModel(state.fullmodel, ddeps)
+    all_hyperparameters = np.zeros(int(max_iter/save_every))
     all_phi = np.zeros(save_every) # all misfits
     all_alpha = np.zeros(save_every) # all likelihoods
     all_keep = np.zeros(save_every)
     mean_phi = np.zeros(int(max_iter/save_every))
     mean_alpha = np.zeros(int(max_iter/save_every))
     mean_keep = np.zeros(int(max_iter/save_every))
-    # Within one chain, we test for convergence by misfit being and remaining
-    # low, and likelihood being and remaining high
 
-    all_phi[0] = state.fit_to_obs
-    converged = 0  # variable defines # of iterations since convergence
     n_save = 0
     n_mwin = 0
-
 
     # =========================================================================
     #       Iterate by Reverse Jump Markov Chain Monte Carlo
@@ -149,54 +141,31 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
         if not itr % 20:
             print("Iteration {}..".format(itr))
 
-        state, keep_yn, mean_alpha[n_mwin] = NextState(itr, rf_obs, swd_obs, lims, rf_phase, state)
+        state, keep_yn, all_alpha[n_mwin] = NextState(
+            itr, rf_obs, swd_obs, lims, rf_phase, state)
 
-        mean_phi[n_mwin] = state.fit_to_obs
-        mean_keep[n_mwin] = keep_yn
-
-        #print([changes_model.which_change, all_keep[itr-1], round(fit_to_obs_m,0)])
-        if keep_yn: # should be aiming to keep about 40% of perturbations
-            # Test if have converged
-            nw = np.min((int(1e5), burn_in))
-            if itr == burn_in:
-                phi_0_std = all_phi[:nw].std()
-                phi_0_mean = all_phi[:nw].mean()
-                alpha_0_std = all_alpha[:nw-1].std()
-                alpha_0_mean = all_alpha[:nw-1].mean()
-            # Test after burn_in iterations every 1000 iterations
-            if itr > burn_in and not converged and not (itr-burn_in) % 1e3:
-                converged = TestConvergence(all_phi[:itr], all_alpha[:itr-1],
-                                            phi_0_std, phi_0_mean,
-                                            alpha_0_std, alpha_0_mean,
-                                            itr, nw)
+        all_phi[n_mwin] = state.fit_to_obs
+        all_keep[n_mwin] = keep_yn
 
         # Save every 500th iteration to see progress
         n_mwin += 1
         if itr / save_every > n_save:
+
+            mean_phi[n_save] = np.mean(all_phi[all_phi>0])
+            mean_alpha[n_save] = np.mean(all_alpha[all_alpha>0])
+            mean_keep[n_save] = np.mean(all_keep)
+            all_phi *= 0; all_alpha *= 0; all_keep *= 0
+            all_hyperparameters[n_save,:] = np.array([state.model.std_rf,
+                               state.model.lam_rf, state.model.std_swd])
+            all_models[:,n_save+1] = SaveModel(state.fullmodel, all_models[:,0])
+            np.save((save_name+'_AllModels'),all_models[:,:n_save+1])
+            np.save((save_name+'_Misfit'),np.hstack((mean_phi[:n_save],
+                    mean_alpha[:n_save], mean_keep[:n_save])))
+            np.save((save_name+'_Hyperparams'),itr)
             n_save += 1
             n_mwin = 0
-            all_models[:,n_save] = SaveModel(state.fullmodel, all_models[:,0])
-            np.save((save_name+'_AllModels'),all_models[:,:n_save])
-            np.save((save_name+'_Misfit'),np.hstack((all_phi[:itr],
-                    all_alpha[:itr-1], all_keep[:itr-1])))
-            np.save((save_name+'_Hyperparams',)
 
-
-        # Save every 500th iteration after convergence (KL14)
-        if converged:
-            converged = converged + 1
-            if not converged % 500:
-                conv_models[:,(converged/500)+1] = SaveModel(
-                        state.fullmodel, conv_models[:,0])
-
-                if converged/500 >= num_posterior:
-                    return (conv_models, all_models, all_phi, all_alpha, all_keep,
-                            state.fullmodel)
-
-
-
-    return (conv_models, all_models, all_phi, all_alpha, all_keep,
-                            state.fullmodel)
+    return (None, all_models, all_phi, all_alpha, all_keep, state.fullmodel)
 
 
 def InitialState(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
@@ -255,10 +224,10 @@ def NextState(itr:int, rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
 
     # Calculate fit
     fit_to_obs_m = Mahalanobis(
-            rf_obs.amp, rf_synth_m.amp, # RecvFunc
-            swd_obs.c, swd_synth_m.c,  # SurfaceWaveDisp
-            cov_m.invCovar,             # CovarianceMatrix
-            )
+        rf_obs.amp, rf_synth_m.amp, # RecvFunc
+        swd_obs.c, swd_synth_m.c,  # SurfaceWaveDisp
+        cov_m.invCovar,             # CovarianceMatrix
+    )
 
     # Calculate probability of keeping mutation
     keep_yn, alpha = AcceptFromLikelihood(
@@ -1236,31 +1205,6 @@ def AcceptFromLikelihood(fit_to_obs_m, fit_to_obs_m0,
 
     keep_yn = random.random() # generate random number between 0-1
     return (keep_yn < alpha_m_m0, alpha_m_m0)
-
-# =============================================================================
-#       Test if model has converged or not
-# =============================================================================
-def TestConvergence(all_phi, all_alpha, phi_0_std, phi_0_mean,
-                    alpha_0_std, alpha_0_mean, itr, nw) -> int:
-    # One test of convergence is that likelihood is and stays high (alpha)
-    # and misfit is and stays low (phi)
-    # Output: = 0 if not converged yet, = 1 if converged
-    converged = 1
-
-    # Not really a unique way to define this, so...
-    # For each of alpha and phi, want to check that values are stable
-    # Check standard deviation of new population vs. original population
-    if 0.1 * phi_0_std < all_phi[itr-nw:itr].std: return 0
-    if 0.1 * alpha_0_std < all_alpha[itr-nw-1:itr-1].std: return 0
-
-    # For each of alpha and phi, want to check values are low/high respectively
-    if 0.1 * phi_0_mean < all_phi[itr-nw:itr].mean: return 0
-    if 0.1 * all_alpha[itr-nw-1:itr-1].mean < alpha_0_mean: return 0
-
-
-    return converged
-
-
 
 
 def SaveModel(fullmodel, deps):
