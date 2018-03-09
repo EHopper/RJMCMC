@@ -5,7 +5,7 @@ Created on Fri Mar  9 07:33:21 2018
 @author: emily
 """
 
-save_name = 'MBEY_Ps'
+save_name = 'MBEY_Ps_10'
 
 
 import pipeline
@@ -13,7 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import shutil
 
-shutil.copyfile('./output/'+save_name+'/input.py', './input_data.py')
+shutil.copyfile('./output/'+save_name+'/input_data.py', './input_data.py')
 
 import input_data
 
