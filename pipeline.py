@@ -25,6 +25,7 @@ import matlab
 class RecvFunc(typing.NamedTuple):
     amp: np.array  # assumed to be processed in same way as synthetics are here
     dt: float      # constant timestep in s
+    ray_param: float  # tested assuming ray_param = 0.0618
 # Receiver function assumed to start at t=0s with a constant timestep, dt
 # required to be stretched to constant RP (equivalent to distance of 60 degrees)
 
@@ -34,8 +35,8 @@ class BodyWaveform(typing.NamedTuple):
     dt: float
     
 class RotBodyWaveform(typing.NamedTuple):
-    amp_P: np.array # P energy
-    amp_SV: np.array # SV energy
+    parent: np.array # P energy for Ps, SV energy for Sp
+    daughter: np.array # SV energy for Ps, P energy for Sp
     dt: float
 
 class SurfaceWaveDisp(typing.NamedTuple):
@@ -85,6 +86,7 @@ class SynthModel(typing.NamedTuple):
     layertops: np.array
     avdep: np.array
     ray_param: float
+    rf_phase: str
 
 
 # =============================================================================
@@ -92,7 +94,7 @@ class SynthModel(typing.NamedTuple):
 # =============================================================================
 
 def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
-                   max_iter: int, random_seed: int) -> Model:
+                   max_iter: int, random_seed: int, rf_phase = 'Ps') -> Model:
     
     # N.B.  The variable random_seed ensures that the process is repeatable.
     #       Set this in the master code so can start multiple unique chains.
@@ -110,7 +112,7 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
     
     # Calculate synthetic data
         # First, need to define the Vp and rho
-    fullmodel_0 = MakeFullModel(model_0)
+    fullmodel_0 = MakeFullModel(model_0, rf_phase, rf_obs.ray_param)
     rf_synth_m0 = SynthesiseRF(fullmodel_0) # forward model the RF data
     swd_synth_m0 = SynthesiseSWD(fullmodel_0, swd_obs.period, 0) # forward model the SWD data
     
@@ -159,7 +161,7 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
             #print('Failed Prior')
             continue  # if not, continue to next iteration
         
-        fullmodel = MakeFullModel(model)
+        fullmodel = MakeFullModel(model, rf_phase, rf_obs.ray_param)
         if changes_model.which_change == 'Noise': 
             # only need to recalculate covariance matrix if changed hyperparameter
             cov_m = CalcCovarianceMatrix(model,rf_obs,swd_obs)
@@ -283,7 +285,14 @@ def _InBounds(value, limit):
 #       Calculate Rest of model required for synthetics
 # =============================================================================
 
-def MakeFullModel(model) -> SynthModel:
+def MakeFullModel(model, rf_phase = 'Ps', ray_param = 0.0618) -> SynthModel:
+    
+    # Assuming waveforms are incident from 60 degrees for default value of p
+    # For P waves, this means horizontal slowness = 0.0618
+    # For incident S waves, this means p = 0.1157 (using AK135)
+    # phase_vel = 1/horizontal_slowness
+    
+    
     # Define Vp, Rho, Thickness
     dep = model.all_deps[model.idep]
     vp = np.zeros_like(model.vs) # in km/s
@@ -350,15 +359,12 @@ def MakeFullModel(model) -> SynthModel:
                 )
         rho[Moho_ind:]=ref_vs_rho[1]+del_rho[Moho_ind:]
     
-    # Assume waveforms are incident from 60 degrees
-    # For P waves, this means horizontal slowness = 0.0618
-    # For incident S waves, this means p = 0.1157 (using AK135)
-    ray_param = 0.0618 # (horizontal slowness at turning point)
-    # phase_vel = 1/horizontal_slowness
+
     vp = np.round(vp, 3)
     rho = np.round(rho, 3)
     
-    return SynthModel(model.vs, vp, rho, thickness, layertops, avdep, ray_param)  
+    return SynthModel(model.vs, vp, rho, thickness, layertops, avdep,
+                      ray_param, rf_phase)  
 
 
 # =============================================================================
@@ -546,12 +552,12 @@ def SynthesiseRF(fullmodel) -> RecvFunc:
     # Make synthetic waveforms
     wv = _SynthesiseWV(fullmodel)
     # Multiply by rotation matrix
-    wv = _RotateToPSV(wv, fullmodel.vp[0], fullmodel.vs[0], fullmodel.ray_param)
+    wv = _RotateToPSV(wv, fullmodel)
     # Prep data (filter, crop, align)
     wv = _PrepWaveform(wv, Ts = [1, 100]) 
     
     # And deconvolve it
-    rf = _CalculateRF(wv)
+    rf = _CalculateRF(wv, fullmodel.ray_param)
     
     return rf
 
@@ -734,7 +740,13 @@ def _CalcPropagatorMatrix(synthmodel,wavenumber,calc_from_layer):
 #       J. Geophys. Res. 103, 21183–21200.
 #   Kennett, B.L.N., 1991. The removal of free surface interactions from 
 #       three-component seismograms. Geophys. J. Int. 104, 153–163.
-def _RotateToPSV(waveform, vp_surface, vs_surface, ray_param) -> RotBodyWaveform:
+def _RotateToPSV(waveform, fullmodel) -> RotBodyWaveform:
+    vp_surface = fullmodel.vp[0]
+    vs_surface = fullmodel.vs[0]
+    ray_param = fullmodel.ray_param
+    rf_phase = fullmodel.rf_phase
+    
+    
     a = np.sqrt(vp_surface**-2 - ray_param**2)
     b = np.sqrt(vs_surface**-2 - ray_param**2)
     rot_mat = np.array([[ray_param * vs_surface**2 / vp_surface, 
@@ -749,7 +761,11 @@ def _RotateToPSV(waveform, vp_surface, vs_surface, ray_param) -> RotBodyWaveform
            np.median(amp_P[-50:]), amp_P.size)
     amp_SV = amp_SV - np.linspace(np.median(amp_SV[:50]), 
            np.median(amp_SV[-50:]), amp_SV.size)
-    return RotBodyWaveform(amp_P = amp_P, amp_SV = amp_SV, dt = waveform.dt)
+    
+    if rf_phase == 'Ps':
+        return RotBodyWaveform(parent = amp_P, daughter = amp_SV, dt = waveform.dt)
+    elif rf_phase == 'Sp':
+        return RotBodyWaveform(parent = amp_SV, daughter = amp_P, dt = waveform.dt)
 
 #  This follows the way that the real data is prepped and deconvolved.
 #   Abt, D.L., Fischer, K.M., French, S.W., Ford, H.A., Yuan, H., Romanowicz, 
@@ -763,13 +779,12 @@ def _RotateToPSV(waveform, vp_surface, vs_surface, ray_param) -> RotBodyWaveform
 #       Letters, 44(20), 2017GL074518. https://doi.org/10.1002/2017GL074518
 def _PrepWaveform(waveform, Ts) -> RotBodyWaveform:
     # N.B. Ts are the filter corners (as PERIOD, in seconds)
-    amp_P = waveform.amp_P
-    amp_SV = waveform.amp_SV
+    parent = waveform.parent.copy()
+    daughter = waveform.daughter.copy()
     dt = waveform.dt    
     
     # Identify the direct arrival (max peak) - INDEX
-    tshift = np.argmax(amp_P) # for Ps
-    # tshift = np.argmax(rot.amp_SV) # for Sp
+    tshift = parent.argmax() 
        
     # Filter, crop, and align
     #   Set the window length to 100 ish sec, centred on incident phase by 
@@ -778,34 +793,38 @@ def _PrepWaveform(waveform, Ts) -> RotBodyWaveform:
     tot_time = 100
     n_fft = 2**(int(tot_time/dt).bit_length()) # next power of 2
     i_arr = int(n_fft/2)
-    amp_P = np.concatenate([ # pad the beginning with zeros so incident phase 
-            np.zeros(i_arr - tshift), amp_P]) # at tot_time/2
-    amp_P = np.concatenate([ # pad the end with zeros
-            amp_P, np.zeros(n_fft - amp_P.size)])
-    amp_SV = np.concatenate([ # pad the beginning with zeros
-            np.zeros(i_arr - tshift), amp_SV])
-    amp_SV = np.concatenate([ # pad the end with zeros
-            amp_SV, np.zeros(n_fft - amp_SV.size)])
+    parent = np.concatenate([ # pad the beginning with zeros so incident phase 
+            np.zeros(i_arr - tshift), parent]) # at tot_time/2
+    parent = np.concatenate([ # pad the end with zeros
+            parent, np.zeros(n_fft - parent.size)])
+    daughter = np.concatenate([ # pad the beginning with zeros
+            np.zeros(i_arr - tshift), daughter])
+    daughter = np.concatenate([ # pad the end with zeros
+            daughter, np.zeros(n_fft - daughter.size)])
             
     # Bandpass filter
-    amp_P = matlab.BpFilt(amp_P, Ts[0], Ts[1], dt)
-    amp_SV = matlab.BpFilt(amp_SV, Ts[0], Ts[1], dt)
+    parent = matlab.BpFilt(parent, Ts[0], Ts[1], dt)
+    daughter = matlab.BpFilt(daughter, Ts[0], Ts[1], dt)
     
     # Taper the data
     #    This is written so all positions are INDICES not actual time
+    # Want to taper the parent much more severely than the daughter
+    
+    # First, taper the parent
     taper_width = 5  # Arbitrary (ish), but works for real data processing
     taper_length = 30 # Arbitrary (ish), but works for real data processing
-    # Note: this taper cuts off deep multiples - but these are likely to be
-    #       really weak in the real data anyway!
-    amp_P = matlab.Taper(amp_P, int(taper_width/dt), i_arr - int(taper_length/2/dt), 
+    parent = matlab.Taper(parent, int(taper_width/dt), i_arr - int(taper_length/2/dt), 
                   i_arr + int(taper_length/2/dt))
-    #amp_SV = matlab.Taper(amp_SV, int(taper_width/dt), i_arr - int(taper_length/2/dt), 
-    #              i_arr + int(taper_length/2/dt))
-    return RotBodyWaveform(amp_P, amp_SV, dt)
+    # And the daughter
+    taper_width = 20
+    daughter = matlab.Taper(daughter, int(taper_width/dt), int(taper_width/dt),
+                            daughter.size - int(taper_width/dt))
+       
+    return RotBodyWaveform(parent, daughter, dt)
    
 
 
-def _CalculateRF(waveform) -> RecvFunc:
+def _CalculateRF(waveform, ray_param) -> RecvFunc:
     # For output file, we want a relatively sparsely sampled RF (for inversion)
     #   say 30 s long with a dt of 0.25 s?
     rf_tmax = 30
@@ -819,17 +838,22 @@ def _CalculateRF(waveform) -> RecvFunc:
     n_samp = 2**(int(win_length / waveform.dt).bit_length()) # for FFT - 1024 samples
     tapers = matlab.slepian(n_samp, num_tapers)
     
+    
     # We have already required (in PrepWaveform) that tot_time = 100
         
     # Pad with zeros to give wiggle room on large ETMTM windows
     pad = np.zeros(int(np.ceil(n_samp*i_shift)))
-    Daughter = np.concatenate([pad, waveform.amp_SV, pad])
+    Daughter = np.concatenate([pad, waveform.daughter, pad])
     i_starts = np.arange(0,Daughter.size - (n_samp - 1), int(i_shift*n_samp))
     
-    i_t0 = int(waveform.amp_P.size/2)
+    i_t0 = int(waveform.parent.size/2)
     incident_win = i_t0+int(n_samp/2)*np.array([-1, 1])
-    Parent = waveform.amp_P[incident_win[0]:incident_win[1]]
+    Parent = waveform.parent[incident_win[0]:incident_win[1]]
     
+    # Normalise to amplitude of 5 (this should be normalised by S2N)
+    norm_by = 5/np.abs(np.max(Parent))
+    Parent = Parent*norm_by
+    Daughter = Daughter*norm_by  
     
     P_fft = _ETMTMSumFFT(tapers, Parent, Parent, num_tapers)
     norm_by = np.max(np.abs(np.real(np.fft.ifft(P_fft/(P_fft + 10)))))
@@ -853,7 +877,7 @@ def _CalculateRF(waveform) -> RecvFunc:
     RF = np.mean(w_RFs, 0)[i_t0 : i_t0 + int(rf_tmax/waveform.dt) : n_jump]
     RF = RF/np.max(np.abs(RF)) * max_RF
 
-    return RecvFunc(amp = RF, dt = rf_dt)
+    return RecvFunc(amp = RF, dt = rf_dt, ray_param = ray_param)
 
 #  Extended time multi-taper method of deconvolution:
 #   Helffrich, G., 2006. Extended-time multitaper frequency domain 
