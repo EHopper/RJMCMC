@@ -133,7 +133,7 @@ class PipelineTest(unittest.TestCase):
             )
     rf_obs = pipeline.RecvFunc(amp = np.arange(2),
                                dt = 0.25,  # length and dt matter
-                               ray_param = 0.0618)
+                               ray_param = 0.0618, std_sc = 1)
     swd_obs = pipeline.SurfaceWaveDisp(period = np.arange(1), # only length matters
                                        c = np.arange(0)) # irrelevant
     # Note that all determinants have undergone the fix (as in pipeline)
@@ -199,7 +199,26 @@ class PipelineTest(unittest.TestCase):
                                     [0,0,5]]),
                         detCovar = 1.7504133111, #0.0017504133111,
                              ),
-                         )
+                         ),
+             ("Change std_sc", model, rf_obs._replace(amp = np.arange(3), std_sc = 2),
+                 swd_obs._replace(period = np.arange(4)),
+                 pipeline.CovarianceMatrix(
+                        R = np.array([[1, 0.928302, 0.818653],
+                             [0.928302, 1, 0.928302],
+                             [0.818653, 0.928302, 1]]),
+                        Covar = np.array([[0.2, 0.18566, 0.1637306,0,0,0,0],
+                             [0.18566, 0.2, 0.18566,0,0,0,0],
+                             [0.1637306, 0.18566, 0.2,0,0,0,0],
+                             [0,0,0,0.2,0,0,0],[0,0,0,0,0.2,0,0],
+                             [0,0,0,0,0,0.2,0],[0,0,0,0,0,0,0.2]]),
+                        invCovar = np.array([[80.1131353,-97.549094,24.970184,0,0,0,0],
+                                    [-97.549094,191.11011086,-97.549094,0,0,0,0],
+                                    [24.970184,-97.549094,80.1131353,0,0,0,0],
+                                    [0,0,0,5,0,0,0],[0,0,0,0,5,0,0],
+                                    [0,0,0,0,0,5,0],[0,0,0,0,0,0,5]]),
+                        detCovar = 2.761189, #0.00000002761189,
+                               ),
+                         ),
             ])
     def test_CalcCovarianceMatrix(self, name, model, rf_obs, swd_obs, expected):
         cov = pipeline.CalcCovarianceMatrix(model, rf_obs, swd_obs)
@@ -2424,10 +2443,11 @@ class PipelineTest(unittest.TestCase):
                 expected, decimal = 2)
 
 
-
+    rf_in = pipeline.RecvFunc(amp = np.array([0]), dt = 0.25,
+                              ray_param = 0.0618, std_sc = 1)
     # And finally, check the RF calculation
     @parameterized.expand([
-            ("Moho only", model,
+            ("Moho only", model, rf_in,
              pipeline.RecvFunc(amp = np.array([-0.00477, -0.00483, -0.00283,
                        -0.00104, -0.00067, -0.00126, -0.00126, 0.00018, 0.00094,
                        -0.00272, -0.00830, -0.00256, 0.02441, 0.05777, 0.06658,
@@ -2448,9 +2468,10 @@ class PipelineTest(unittest.TestCase):
                        0.00024, 0.00031, 0.00218, 0.00538, 0.00851, 0.00709,
                        0.00360, 0.00136, 0.00132, 0.00193, 0.00197, 0.00170,
                        0.00140, 0.00071, 0.00012, 0.00161, 0.00606, 0.01038,
-                       0.01032, 0.00610, 0.00220]), dt = 0.25, ray_param = 0.0618)),
+                       0.01032, 0.00610, 0.00220]), dt = 0.25, ray_param = 0.0618,
+                        std_sc = 1)),
             ("Moho and LAB", model._replace(vs = np.array([4, 4.7, 4.6]),
-                                         idep = np.array([60, 80, 110])),
+                                         idep = np.array([60, 80, 110])), rf_in,
             pipeline.RecvFunc(amp = np.array([-0.00524, -0.00487, -0.00294,
                        -0.00113, -0.00075, -0.00136, -0.00125, 0.00061, 0.00155,
                        -0.00319, -0.01041, -0.00307, 0.03162, 0.07456, 0.08589,
@@ -2471,13 +2492,14 @@ class PipelineTest(unittest.TestCase):
                        -0.00337, -0.00657, -0.00501, 0.00101, 0.00605, 0.00614,
                        0.00301, 0.00077, 0.00074, 0.00137, 0.00138, 0.00098,
                        0.00080, 0.00090, 0.00134, 0.00285, 0.00573, 0.00825,
-                       0.00785, 0.00471, 0.00186]), dt = 0.25, ray_param = 0.0618)),
+                       0.00785, 0.00471, 0.00186]), dt = 0.25,
+                        ray_param = 0.0618, std_sc = 1)),
 
 
         ])
-    def test_CalcSynthRF(self, name, model, expected):
+    def test_CalcSynthRF(self, name, model, rf_in, expected):
         model = pipeline.MakeFullModel(model)
-        self.assertSynthRFalmostEqual(pipeline.SynthesiseRF(model), expected)
+        self.assertSynthRFalmostEqual(pipeline.SynthesiseRF(model, rf_in), expected)
 
     del deps, model
 
@@ -2559,18 +2581,20 @@ class PipelineTest(unittest.TestCase):
                            idep = np.array([60, 80]),
                            std_rf = 0.1, lam_rf = 0.2, std_swd = 0.2)
     swd_obs = pipeline.SurfaceWaveDisp(c = 0, period = 1/np.arange(0.02,0.11,0.01))
+    rf_obs = pipeline.RecvFunc(amp = np.array([0]), dt = 0.25,
+                               std_sc = 1, ray_param = 0.0618)
 
     @parameterized.expand([
-            ("Moho only", model, swd_obs, 2, 1.360169),
+            ("Moho only", model, swd_obs, rf_obs, 2, 1.360169),
             ("More complicated", model._replace(vs = np.array([1.8, 2.5, 3.7, 4.7, 4.6]),
                                                 idep = np.array([12, 30, 42, 68, 120])),
-                        swd_obs, 2, 1.394063),
-            ("Worse misfit", model, swd_obs, 0, 48.272636)
+                        swd_obs, rf_obs, 2, 1.394063),
+            ("Worse misfit", model, swd_obs, rf_obs, 0, 48.272636)
             ])
 
-    def test_Mahalanobis(self, name, model, swd_obs, round_to, expected):
+    def test_Mahalanobis(self, name, model, swd_obs, rf_obs, round_to, expected):
         fullmodel = pipeline.MakeFullModel(model)
-        rf_obs = pipeline.SynthesiseRF(fullmodel)
+        rf_obs = pipeline.SynthesiseRF(fullmodel, rf_obs)
         swd_obs = pipeline.SynthesiseSWD(fullmodel, swd_obs.period, 1e6)
         cov = pipeline.CalcCovarianceMatrix(model, rf_obs, swd_obs)
         rf_obs = rf_obs.amp; swd_obs = swd_obs.c
