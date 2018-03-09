@@ -46,13 +46,13 @@ class PipelineTest(unittest.TestCase):
         self.assertAlmostEqual(actual.dt, expected.dt, places = 2)
         
     def assertRotBodyWavesEqual(self, actual, expected):
-        np.testing.assert_array_almost_equal(actual.amp_P, expected.amp_P, decimal = 2)
-        np.testing.assert_array_almost_equal(actual.amp_SV, expected.amp_SV, decimal = 2)
+        np.testing.assert_array_almost_equal(actual.parent, expected.parent, decimal = 2)
+        np.testing.assert_array_almost_equal(actual.daughter, expected.daughter, decimal = 2)
         self.assertAlmostEqual(actual.dt, expected.dt, places = 2)
         
     def assertSynthRFalmostEqual(self, actual, expected):
         np.testing.assert_array_almost_equal(actual.amp, expected.amp,
-                                             decimal = 1)
+                                             decimal = 2)
         # Note: I can't get this to work to 2 d.p. - maybe fft/ifft are
         #       being implemented slightly differently?
         self.assertAlmostEqual(actual.dt, expected.dt, places = 2)
@@ -128,7 +128,8 @@ class PipelineTest(unittest.TestCase):
             std_rf = np.sqrt(0.1), lam_rf = 0.2, std_swd = np.sqrt(0.2),
             )
     rf_obs = pipeline.RecvFunc(amp = np.arange(2), 
-                               dt = 0.25)  # length and dt matter
+                               dt = 0.25,  # length and dt matter
+                               ray_param = 0.0618)
     swd_obs = pipeline.SurfaceWaveDisp(period = np.arange(1), # only length matters
                                        c = np.arange(0)) # irrelevant 
     # Note that all determinants have undergone the fix (as in pipeline)
@@ -218,7 +219,7 @@ class PipelineTest(unittest.TestCase):
                     layertops = np.array([0, 30, 70, 130]),
                     avdep = np.array([15, 50, 100, 160]),
                     rho = np.array([2.9496, 3.4268, 3.4390, 3.4367]),
-                    ray_param = 0.0618,
+                    ray_param = 0.0618, rf_phase = 'Ps',
                     )
                 ),
             ("vary vels", model._replace(vs = np.array([3,4.2,4.6,5.2])),
@@ -229,7 +230,7 @@ class PipelineTest(unittest.TestCase):
                     layertops = np.array([0, 30, 70, 130]),
                     avdep = np.array([15, 50, 100, 160]),
                     rho = np.array([2.5426, 3.0674, 3.4329, 3.4406]),
-                    ray_param = 0.0618,
+                    ray_param = 0.0618, rf_phase = 'Ps',
                     )
              ),
              ("vary deps", model._replace(idep = np.array([10,50,85,125])),
@@ -240,7 +241,7 @@ class PipelineTest(unittest.TestCase):
                     layertops = np.array([0, 6, 27.5, 115]),
                     avdep = np.array([3., 16.75, 71.25, 158.75]),
                     rho = np.array([2.9496, 3.4268, 3.4379, 3.4367]),
-                    ray_param = 0.0618,
+                    ray_param = 0.0618, rf_phase = 'Ps',
                     )
              ),
              ("vary both", model._replace(idep = np.array([10,50,110,125]),
@@ -252,7 +253,7 @@ class PipelineTest(unittest.TestCase):
                     layertops = np.array([0, 6, 60, 147.5]),
                     avdep = np.array([3., 33., 103.75, 191.25]),
                     rho = np.array([2.9496, 3.2579, 3.4391, 3.4381]),
-                    ray_param = 0.0618,
+                    ray_param = 0.0618, rf_phase = 'Ps',
                     )
               ),
             ("Crustal vels only", model._replace(vs = np.array([1.7, 2.6, 3.6, 4.4])),
@@ -263,7 +264,7 @@ class PipelineTest(unittest.TestCase):
                      layertops = np.array([0, 30, 70, 130]),
                      avdep = np.array([15., 50., 100., 160.]),
                      rho = np.array([2.2723679, 2.4495676, 2.7493737, 3.193219]),
-                     ray_param = 0.0618,
+                     ray_param = 0.0618, rf_phase = 'Ps',
                      )
              ),
              ("Mantle vels only", model._replace(vs = np.array([4.5, 4.6, 4.7, 5.])),
@@ -274,7 +275,7 @@ class PipelineTest(unittest.TestCase):
                      layertops = np.array([0, 30, 70, 130]),
                      avdep = np.array([15., 50., 100., 160.]),
                      rho = np.array([3.4268, 3.431978, 3.438984, 3.43669]),
-                     ray_param = 0.0618,
+                     ray_param = 0.0618, rf_phase = 'Ps',
                       )
               ),
               ("Last layer only", model._replace(vs = np.array([4.7]),
@@ -283,7 +284,8 @@ class PipelineTest(unittest.TestCase):
                                     thickness = np.array(deps[128]),
                                     layertops = np.array([0]), 
                                     avdep = np.array(deps[128]/2),
-                                    rho = np.array([3.439]), ray_param = 0.0618)
+                                    rho = np.array([3.439]), ray_param = 0.0618,
+                                    rf_phase = 'Ps',)
                 
                 ),
             
@@ -1210,7 +1212,7 @@ class PipelineTest(unittest.TestCase):
     @parameterized.expand([
             ("Moho only", model,
              pipeline.RotBodyWaveform(
-                     amp_P = np.array([-0.01, -0.01, -0.01, -0.01, 
+                     parent = np.array([-0.01, -0.01, -0.01, -0.01, 
                        -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, 
                        -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, 
                        -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, 
@@ -1336,7 +1338,7 @@ class PipelineTest(unittest.TestCase):
                        -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, 
                        -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, 
                        -0.00, -0.00, -0.00, -0.00]),
-                     amp_SV = np.array([-0.00, -0.00, -0.00, -0.00, 
+                     daughter = np.array([-0.00, -0.00, -0.00, -0.00, 
                        -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, 
                        -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, 
                        -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, 
@@ -1468,13 +1470,12 @@ class PipelineTest(unittest.TestCase):
     def test_RotatetoPSV(self, name, model, expected):
         model = pipeline.MakeFullModel(model)
         wv = pipeline._SynthesiseWV(model)
-        self.assertRotBodyWavesEqual(
-                pipeline._RotateToPSV(wv, model.vp[0], model.vs[0], model.ray_param),
+        self.assertRotBodyWavesEqual(pipeline._RotateToPSV(wv, model),
                 expected)
         
     @parameterized.expand([
             ("Moho only", model, pipeline.RotBodyWaveform(
-                     amp_P = np.array([0.00, 0.00, 0.00, 0.00, 0.00, 
+                     parent = np.array([0.00, 0.00, 0.00, 0.00, 0.00, 
                        0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 
                        0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 
                        0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 
@@ -1731,7 +1732,7 @@ class PipelineTest(unittest.TestCase):
                        0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 
                        0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 
                        0.00, 0.00, 0.00]),
-                    amp_SV = np.array([0.00, 0.00, 0.00, 0.00, 0.00, 
+                    daughter = np.array([0.00, 0.00, 0.00, 0.00, 0.00, 
                        0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 
                        0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 
                        0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 
@@ -1995,7 +1996,7 @@ class PipelineTest(unittest.TestCase):
     def test_PrepWaveform(self, name, model, expected):
         model = pipeline.MakeFullModel(model)
         wv = pipeline._SynthesiseWV(model)
-        wv = pipeline._RotateToPSV(wv, model.vp[0], model.vs[0], model.ray_param)
+        wv = pipeline._RotateToPSV(wv, model)
         self.assertRotBodyWavesEqual(pipeline._PrepWaveform(wv, Ts = [1, 50]),
                                      expected)
 
@@ -2392,19 +2393,19 @@ class PipelineTest(unittest.TestCase):
     def test_ETMTMSumFFT(self, name, model, which_daughter, expected):
         model = pipeline.MakeFullModel(model)
         wv = pipeline._SynthesiseWV(model)
-        wv = pipeline._RotateToPSV(wv, model.vp[0], model.vs[0], model.ray_param)
+        wv = pipeline._RotateToPSV(wv, model)
         wv = pipeline._PrepWaveform(wv, Ts = [1, 50])
         win_length = 50
         num_windows = 7
         n_samp = 2**(int(win_length / wv.dt).bit_length())
         tapers = matlab.slepian(n_samp, num_windows)
-        i_t0 = int(wv.amp_P.size/2)
+        i_t0 = int(wv.parent.size/2)
         incident_win = i_t0+int(n_samp/2)*np.array([-1, 1])
-        Parent = wv.amp_P[incident_win[0]:incident_win[1]]
+        Parent = wv.parent[incident_win[0]:incident_win[1]]
         
         i_shift = 0.1
         pad = np.zeros(int(np.ceil(n_samp*i_shift)))
-        Daughter_all = np.concatenate([pad, wv.amp_SV, pad])
+        Daughter_all = np.concatenate([pad, wv.daughter, pad])
         i_starts = np.arange(0,Daughter_all.size-(n_samp - 1), int(i_shift*n_samp))
         
         if which_daughter < 0:
@@ -2423,40 +2424,50 @@ class PipelineTest(unittest.TestCase):
     # And finally, check the RF calculation 
     @parameterized.expand([
             ("Moho only", model, 
-             pipeline.RecvFunc(amp = np.array([-0.00, -0.00, -0.00, -0.00, 
-                       -0.00, -0.00, -0.00, 0.00, 0.00, -0.00, -0.01, 0.00, 
-                       0.03, 0.06, 0.06, 0.03, 0.00, -0.01, -0.00, 0.00, 
-                       0.00, 0.00, -0.00, -0.00, -0.00, 0.00, 0.01, 0.01, 
-                       0.00, 0.00, -0.00, -0.00, 0.00, 0.00, 0.00, -0.00, 
-                       -0.00, -0.00, 0.00, 0.00, -0.00, -0.01, -0.00, 0.03, 
-                       0.06, 0.08, 0.05, 0.01, -0.01, -0.01, -0.00, 0.00, 
-                       -0.00, -0.00, 0.00, 0.01, -0.01, -0.06, -0.09, -0.07, 
-                       -0.03, 0.00, 0.01, 0.00, -0.00, -0.00, -0.00, -0.00, 
-                       -0.00, -0.00, -0.01, -0.01, -0.01, -0.01, -0.00, -0.01, 
-                       -0.01, -0.01, -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, 
-                       -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, 
-                       0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 
-                       0.00, 0.00, 0.01, 0.01, 0.01, 0.00, 0.00, 0.00, 
-                       0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.01, 
-                       0.01, 0.01, 0.01, 0.00]), dt = 0.25)),
-            ("Moho, LAB", model._replace(vs = np.array([4, 4.7, 4.6]),
+             pipeline.RecvFunc(amp = np.array([-0.00477, -0.00483, -0.00283, 
+                       -0.00104, -0.00067, -0.00126, -0.00126, 0.00018, 0.00094, 
+                       -0.00272, -0.00830, -0.00256, 0.02441, 0.05777, 0.06658, 
+                       0.04176, 0.00834, -0.00745, -0.00527, 0.00042, 0.00155, 
+                       0.00043, -0.00053, -0.00082, -0.00050, 0.00132, 0.00443, 
+                       0.00642, 0.00523, 0.00209, -0.00017, -0.00049, 0.00001, 
+                       0.00023, 0.00010, -0.00018, -0.00062, -0.00071, 0.00045, 
+                       0.00174, -0.00067, -0.00776, -0.00660, 0.01810, 0.05798, 
+                       0.07836, 0.05802, 0.01768, -0.00761, -0.00878, -0.00141, 
+                       0.00063, -0.00270, -0.00344, 0.00315, 0.00836, -0.00707, 
+                       -0.04769, -0.08416, -0.08077, -0.04126, -0.00365, 0.00871, 
+                       0.00194, -0.00443, -0.00443, -0.00243, -0.00154, -0.00144, 
+                       -0.00212, -0.00444, -0.00730, -0.00780, -0.00553, -0.00409, 
+                       -0.00602, -0.00880, -0.00837, -0.00478, -0.00144, -0.00039, 
+                       -0.00077, -0.00134, -0.00138, -0.00135, -0.00118, -0.00078, 
+                       -0.00070, -0.00159, -0.00284, -0.00294, -0.00154, 0.00010, 
+                       0.00077, 0.00060, 0.00042, 0.00060, 0.00086, 0.00074, 
+                       0.00024, 0.00031, 0.00218, 0.00538, 0.00851, 0.00709, 
+                       0.00360, 0.00136, 0.00132, 0.00193, 0.00197, 0.00170, 
+                       0.00140, 0.00071, 0.00012, 0.00161, 0.00606, 0.01038, 
+                       0.01032, 0.00610, 0.00220]), dt = 0.25, ray_param = 0.0618)),
+            ("Moho and LAB", model._replace(vs = np.array([4, 4.7, 4.6]),
                                          idep = np.array([60, 80, 110])),
-            pipeline.RecvFunc(amp = np.array([-0.01, -0.00, -0.00, -0.00, 
-                       -0.00, -0.00, -0.00, 0.00, 0.00, -0.00, -0.01, 0.00, 
-                       0.04, 0.07, 0.07, 0.04, 0.00, -0.01, -0.00, 0.00, 
-                       -0.00, -0.01, -0.01, -0.01, -0.00, 0.00, 0.01, 0.01, 
-                       0.01, 0.00, -0.00, -0.00, 0.00, 0.00, 0.00, -0.00, 
-                       -0.00, -0.00, 0.00, 0.00, -0.00, -0.01, -0.00, 0.03, 
-                       0.07, 0.08, 0.05, 0.01, -0.01, -0.01, -0.00, 0.00, 
-                       -0.00, -0.00, 0.01, 0.01, -0.01, -0.06, -0.09, -0.08, 
-                       -0.03, 0.00, 0.01, 0.00, -0.00, -0.00, -0.00, -0.00, 
-                       -0.00, -0.01, -0.01, -0.01, -0.01, -0.01, -0.00, -0.01, 
-                       -0.01, -0.01, -0.00, -0.00, 0.00, 0.00, -0.00, 0.00, 
-                       -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, 0.00, 0.00, 
-                       0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 
-                       0.00, 0.00, 0.01, 0.01, 0.01, 0.00, 0.00, 0.00, 
-                       0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.01, 0.01, 
-                       0.01, 0.01, 0.01, 0.00]), dt = 0.25)),
+            pipeline.RecvFunc(amp = np.array([-0.00524, -0.00487, -0.00294, 
+                       -0.00113, -0.00075, -0.00136, -0.00125, 0.00061, 0.00155, 
+                       -0.00319, -0.01041, -0.00307, 0.03162, 0.07456, 0.08589, 
+                       0.05391, 0.01088, -0.00941, -0.00659, 0.00068, 0.00225, 
+                       0.00055, -0.00062, -0.00087, -0.00050, 0.00157, 0.00558, 
+                       0.00896, 0.00824, 0.00242, -0.00592, -0.01180, -0.01139, 
+                       -0.00587, -0.00043, 0.00125, 0.00000, -0.00098, 0.00035, 
+                       0.00219, -0.00055, -0.00812, -0.00698, 0.01942, 0.06212, 
+                       0.08395, 0.06218, 0.01903, -0.00797, -0.00916, -0.00122, 
+                       0.00095, -0.00267, -0.00344, 0.00377, 0.00957, -0.00691, 
+                       -0.05065, -0.09003, -0.08649, -0.04402, -0.00354, 0.00875, 
+                       0.00229, -0.00382, -0.00385, -0.00200, -0.00122, -0.00123, 
+                       -0.00205, -0.00453, -0.00754, -0.00807, -0.00560, -0.00374, 
+                       -0.00523, -0.00781, -0.00752, -0.00425, -0.00117, -0.00015, 
+                       -0.00035, -0.00057, -0.00060, -0.00077, -0.00080, -0.00044, 
+                       -0.00017, -0.00066, -0.00154, -0.00169, -0.00078, 0.00032, 
+                       0.00067, 0.00034, 0.00019, 0.00081, 0.00149, 0.00032, 
+                       -0.00337, -0.00657, -0.00501, 0.00101, 0.00605, 0.00614, 
+                       0.00301, 0.00077, 0.00074, 0.00137, 0.00138, 0.00098, 
+                       0.00080, 0.00090, 0.00134, 0.00285, 0.00573, 0.00825, 
+                       0.00785, 0.00471, 0.00186]), dt = 0.25, ray_param = 0.0618)),
     
     
         ])
