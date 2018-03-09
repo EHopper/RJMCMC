@@ -15,6 +15,7 @@ Created on Mon Feb  5 14:27:30 2018
 import typing
 import numpy as np
 import random
+from scipy.interpolate import interp1d
 import matlab
 
 
@@ -870,11 +871,18 @@ def _CalculateRF(waveform, ray_param) -> RecvFunc:
         w_RFs[i, i_starts[i]:i_starts[i]+n_samp] = w_RF
         max_RF = np.max([max_RF, np.max(np.abs(w_RF))])
 
+    i_t0 = i_t0 + pad.size - 1
+    RF = np.mean(w_RFs, 0)[i_t0 : i_t0 + int(rf_tmax/waveform.dt)]
+
     # Want time window from incident phase to + 30s
     # and resample with larger dt
     n_jump = int(rf_dt / waveform.dt)
-    i_t0 = i_t0 + pad.size - 1
-    RF = np.mean(w_RFs, 0)[i_t0 : i_t0 + int(rf_tmax/waveform.dt) : n_jump]
+    if n_jump == rf_dt / waveform.dt:
+        RF = RF[::n_jump]
+    else:
+        RF = interp1d(np.arange(0, rf_tmax, waveform.dt),
+                      RF)(np.arange(0, rf_tmax, rf_dt))
+
     RF = RF/np.max(np.abs(RF)) * max_RF
 
     return RecvFunc(amp = RF, dt = rf_dt, ray_param = ray_param)
