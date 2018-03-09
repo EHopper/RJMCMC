@@ -5,6 +5,7 @@ Created on Mon Feb 12 18:13:08 2018
 @author: emily
 """
 
+import random
 import unittest
 from parameterized import parameterized
 import pipeline
@@ -81,7 +82,10 @@ class PipelineTest(unittest.TestCase):
     ])
 
     def test_InitialModel(self, name, normdist, random_seed, expected):
-        model= pipeline.InitialModel(normdist,random_seed)
+        random.seed(a = random_seed)
+        np.random.seed(seed = random_seed+1)
+
+        model= pipeline.InitialModel(normdist)
         self.assertModelEqual(model, expected)
 
     del deps, normdist

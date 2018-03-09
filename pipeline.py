@@ -89,6 +89,15 @@ class SynthModel(typing.NamedTuple):
     ray_param: float
     rf_phase: str
 
+class GlobalState(typing.NamedTuple):
+    model: Model
+    fullmodel: SynthModel
+    cov: CovarianceMatrix
+    rf_synth: RecvFunc
+    swd_synth: SurfaceWaveDisp
+    fit_to_obs: float
+
+class Error(Exception): pass
 
 # =============================================================================
 # Overall process for the joint inversion
@@ -98,53 +107,31 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
                    max_iter: int, random_seed: int, rf_phase = 'Ps') -> Model:
 
     # N.B.  The variable random_seed ensures that the process is repeatable.
-    #       Set this in the master code so can start multiple unique chains.
-    #       random_seed must be passed to any subfunction that uses random no.
+    random.seed(a = random_seed)
+    np.random.seed(seed = random_seed+1)
 
-    # =========================================================================
-    #      Start by calculating for some (arbitrary) initial model
-    # =========================================================================
-    model_0 = InitialModel(rf_obs.amp,random_seed)
-    if not CheckPrior(model_0, lims):
-        return "Starting model does not fit prior distribution"
-
-    # Calculate covariance matrix (and inverse, and determinant)
-    cov_m0 = CalcCovarianceMatrix(model_0,rf_obs,swd_obs)
-
-    # Calculate synthetic data
-        # First, need to define the Vp and rho
-    fullmodel_0 = MakeFullModel(model_0, rf_phase, rf_obs.ray_param)
-    rf_synth_m0 = SynthesiseRF(fullmodel_0) # forward model the RF data
-    swd_synth_m0 = SynthesiseSWD(fullmodel_0, swd_obs.period, 0) # forward model the SWD data
-
-    # Calculate fit
-    fit_to_obs_m0 = Mahalanobis(
-            rf_obs.amp, rf_synth_m0.amp, # RecvFunc
-            swd_obs.c, swd_synth_m0.c,  # SurfaceWaveDisp
-            cov_m0.invCovar,             # CovarianceMatrix
-            )
-
+    state = InitialState(rf_obs, swd_obs, lims, rf_phase)
 
 # =============================================================================
 #           Define parameters for convergence
 # =============================================================================
     num_posterior = 200
     burn_in = 2e5 # Number of models to run before bothering to test convergence
-    ddeps=np.zeros(model_0.all_deps.size*2-1)
-    ddeps[::2] = model_0.all_deps
-    ddeps[1::2] = model_0.all_deps[:-1]+np.diff(model_0.all_deps)/2
+    ddeps=np.zeros(state.model.all_deps.size*2-1)
+    ddeps[::2] = state.model.all_deps
+    ddeps[1::2] = state.model.all_deps[:-1]+np.diff(state.model.all_deps)/2
     conv_models = np.zeros((ddeps.size,num_posterior+1))
     conv_models[:,0] = ddeps
     all_models = np.zeros((ddeps.size,int(max_iter/100)+1))
     all_models[:,0] = ddeps
-    all_models[:,1] = SaveModel(fullmodel_0, ddeps)
+    all_models[:,1] = SaveModel(state.fullmodel, ddeps)
     all_phi = np.zeros(max_iter) # all misfits
     all_alpha = np.zeros(max_iter-1) # all likelihoods
     all_keep = np.zeros(max_iter-1)
     # Within one chain, we test for convergence by misfit being and remaining
     # low, and likelihood being and remaining high
 
-    all_phi[0] = fit_to_obs_m0
+    all_phi[0] = state.fit_to_obs
     converged = 0  # variable defines # of iterations since convergence
 
 
@@ -155,48 +142,13 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
         if not itr % 20:
             print("Iteration {}..".format(itr))
 
-        # Generate new model by perturbing the old model
-        model, changes_model = Mutate(model_0,itr)
+        state, keep_yn, all_alpha[itr-1] = NextState(itr, rf_obs, swd_obs, lims, rf_phase, state)
 
-        if not CheckPrior(model, lims): # check if mutated model compatible with prior distr.
-            #print('Failed Prior')
-            continue  # if not, continue to next iteration
-
-        fullmodel = MakeFullModel(model, rf_phase, rf_obs.ray_param)
-        if changes_model.which_change == 'Noise':
-            # only need to recalculate covariance matrix if changed hyperparameter
-            cov_m = CalcCovarianceMatrix(model,rf_obs,swd_obs)
-            rf_synth_m = rf_synth_m0
-            swd_synth_m = swd_synth_m0
-        else:
-            cov_m = cov_m0
-            rf_synth_m = SynthesiseRF(fullmodel) # forward model the RF data
-            swd_synth_m = SynthesiseSWD(fullmodel, swd_obs.period, itr) # forward model the SWD data
-
-        # Calculate fit
-        fit_to_obs_m = Mahalanobis(
-                rf_obs.amp, rf_synth_m.amp, # RecvFunc
-                swd_obs.c, swd_synth_m.c,  # SurfaceWaveDisp
-                cov_m.invCovar,             # CovarianceMatrix
-                )
-        all_phi[itr] = fit_to_obs_m
-
-        # Calculate probability of keeping mutation
-        (keep_yn, all_alpha[itr-1]) = AcceptFromLikelihood(
-                fit_to_obs_m, fit_to_obs_m0, # float
-                cov_m, cov_m0, # CovarianceMatrix
-                changes_model, # form depends on which change
-                )
+        all_phi[itr] = state.fit_to_obs
         all_keep[itr-1] = keep_yn
+
         #print([changes_model.which_change, all_keep[itr-1], round(fit_to_obs_m,0)])
         if keep_yn: # should be aiming to keep about 40% of perturbations
-            model_0 = model
-            fullmodel_0 = fullmodel
-            cov_m0 = cov_m
-            rf_synth_m0 = rf_synth_m
-            swd_synth_m0 = swd_synth_m
-            fit_to_obs_m0 = fit_to_obs_m
-
             # Test if have converged
             nw = np.min((int(1e5), burn_in))
             if itr == burn_in:
@@ -213,7 +165,7 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
 
         # Save every 500th iteration to see progress
         if not itr % 100:
-            all_models[:,int(itr/100)+1] = SaveModel(fullmodel, all_models[:,0])
+            all_models[:,int(itr/100)] = SaveModel(state.fullmodel, all_models[:,0])
             np.save('testsave',all_models[:-2])
 
 
@@ -222,18 +174,97 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
             converged = converged + 1
             if not converged % 500:
                 conv_models[:,(converged/500)+1] = SaveModel(
-                        fullmodel, conv_models[:,0])
+                        state.fullmodel, conv_models[:,0])
 
                 if converged/500 >= num_posterior:
                     return (conv_models, all_models, all_phi, all_alpha, all_keep,
-                            fullmodel)
+                            state.fullmodel)
 
 
 
     return (conv_models, all_models, all_phi, all_alpha, all_keep,
-                            fullmodel)
+                            state.fullmodel)
 
 
+def InitialState(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
+                 rf_phase) -> GlobalState:
+    # =========================================================================
+    #      Start by calculating for some (arbitrary) initial model
+    # =========================================================================
+    model_0 = InitialModel(rf_obs.amp)
+    if not CheckPrior(model_0, lims):
+        raise Error("Starting model does not fit prior distribution")
+
+    # Calculate covariance matrix (and inverse, and determinant)
+    cov_m0 = CalcCovarianceMatrix(model_0,rf_obs,swd_obs)
+
+    # Calculate synthetic data
+        # First, need to define the Vp and rho
+    fullmodel_0 = MakeFullModel(model_0, rf_phase, rf_obs.ray_param)
+    rf_synth_m0 = SynthesiseRF(fullmodel_0) # forward model the RF data
+    swd_synth_m0 = SynthesiseSWD(fullmodel_0, swd_obs.period, 0) # forward model the SWD data
+
+    # Calculate fit
+    fit_to_obs_m0 = Mahalanobis(
+            rf_obs.amp, rf_synth_m0.amp, # RecvFunc
+            swd_obs.c, swd_synth_m0.c,  # SurfaceWaveDisp
+            cov_m0.invCovar,             # CovarianceMatrix
+            )
+    return GlobalState(
+        model=model_0,
+        cov=cov_m0,
+        fullmodel=fullmodel_0,
+        rf_synth=rf_synth_m0,
+        swd_synth=swd_synth_m0,
+        fit_to_obs=fit_to_obs_m0,
+    )
+
+
+def NextState(itr:int, rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
+              rf_phase, prev_state: GlobalState) -> (GlobalState, bool, float):
+    # Generate new model by perturbing the old model
+    model, changes_model = Mutate(prev_state.model, itr)
+
+    if not CheckPrior(model, lims): # check if mutated model compatible with prior distr.
+        #print('Failed Prior')
+        return prev_state, False, 0  # if not, continue to next iteration
+
+    fullmodel = MakeFullModel(model, rf_phase, rf_obs.ray_param)
+    if changes_model.which_change == 'Noise':
+        # only need to recalculate covariance matrix if changed hyperparameter
+        cov_m = CalcCovarianceMatrix(model,rf_obs,swd_obs)
+        rf_synth_m = prev_state.rf_synth
+        swd_synth_m = prev_state.swd_synth
+    else:
+        cov_m = prev_state.cov
+        rf_synth_m = SynthesiseRF(fullmodel) # forward model the RF data
+        swd_synth_m = SynthesiseSWD(fullmodel, swd_obs.period, itr) # forward model the SWD data
+
+    # Calculate fit
+    fit_to_obs_m = Mahalanobis(
+            rf_obs.amp, rf_synth_m.amp, # RecvFunc
+            swd_obs.c, swd_synth_m.c,  # SurfaceWaveDisp
+            cov_m.invCovar,             # CovarianceMatrix
+            )
+
+    # Calculate probability of keeping mutation
+    keep_yn, alpha = AcceptFromLikelihood(
+        fit_to_obs_m, prev_state.fit_to_obs, # float
+        cov_m, prev_state.cov, # CovarianceMatrix
+        changes_model, # form depends on which change
+    )
+
+    if not keep_yn:
+        return prev_state, False, alpha
+
+    return GlobalState(
+        model=model,
+        cov=cov_m,
+        fullmodel=fullmodel,
+        rf_synth=rf_synth_m,
+        swd_synth=swd_synth_m,
+        fit_to_obs=fit_to_obs_m,
+    ), True, alpha
 
 
 # =============================================================================
@@ -246,9 +277,7 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
 # lag time between two samples (according to an expression involving lambda)
 # but SWD noise is assume to be uncorrelated, so only one hyperparameter is
 # inverted for the dispersion data.
-def InitialModel(rf_obs,random_seed) -> Model:
-    random.seed(a = random_seed)
-    np.random.seed(seed = random_seed+1)
+def InitialModel(rf_obs) -> Model:
     vs = np.array([round(random.uniform(0.5,5.5),2)])   # arbitrary
     all_deps = np.concatenate((np.arange(0,10,0.2),
                                 np.arange(10,60,1), np.arange(60,201,5)))
@@ -1225,8 +1254,4 @@ def SaveModel(fullmodel, deps):
     vs = np.zeros_like(deps)
     for k in range(fullmodel.layertops.size):
         vs[deps>=fullmodel.layertops[k]] = fullmodel.vs[k]
-
     return vs
-
-
-
