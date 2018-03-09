@@ -8,7 +8,7 @@ Created on Mon Mar  5 14:23:28 2018
 import pipeline
 import numpy as np
 import matplotlib.pyplot as plt
-import os
+#import os
 import pstats
 import cProfile
 
@@ -18,7 +18,7 @@ pr.enable()
 
 #def try_running():
 max_it=200000
-rnd_sd = 1
+rnd_sd = 10
 
 save_name = 'MBEY_Ps'
 rf_obs = pipeline.RecvFunc(amp = np.array([0.073, 0.125, 0.102, 0.022,
@@ -36,7 +36,8 @@ rf_obs = pipeline.RecvFunc(amp = np.array([0.073, 0.125, 0.102, 0.022,
                        0.014, 0.016, 0.008, -0.002, -0.011, -0.019, -0.017, -0.006,
                        0.006, 0.012, 0.013, 0.013, 0.006, -0.014, -0.033, -0.024,
                        0.009, 0.030, 0.018, -0.005, -0.011, -0.000, 0.003, -0.008,
-                       -0.013, -0.002, 0.016, 0.022]), dt = 0.25, ray_param = 0.06147)
+                       -0.013, -0.002, 0.016, 0.022]), dt = 0.25, ray_param = 0.06147,
+                        std_sc = 2)
 
 swd_obs = pipeline.SurfaceWaveDisp(period = np.array([9.0, 10.1, 11.6, 13.5,
                         16.2, 20.3, 25.0, 32.0, 40.0, 50.0, 60.0, 80.0]),
@@ -47,14 +48,14 @@ all_lims = pipeline.Limits(
         vs = (0.5,5.5), dep = (0,200), std_rf = (0,0.05),
         lam_rf = (0.05, 0.5), std_swd = (0,0.15))
 
-os.mkdir('output/'+save_name)
+#os.mkdir('output/'+save_name)
 save_name = 'output/'+save_name+'/'+save_name
-out = pipeline.JointInversion(rf_obs, swd_obs, all_lims, max_it, rnd_sd,
-                              save_name, 'Ps')
+#out = pipeline.JointInversion(rf_obs, swd_obs, all_lims, max_it, rnd_sd,
+#                              save_name, 'Ps')
 
 #actual_model = pipeline.SaveModel(pipeline.MakeFullModel(model),out[1][:,0])
 #%%
-all_models = np.load('testsave.npy')
+all_models = np.load(save_name+'_AllModels.npy')
 
 good_mods = all_models[:,np.where(all_models[0,]>0)[0]]
 nit = good_mods.shape[1]
@@ -145,7 +146,7 @@ ax2.xaxis.tick_top()
 ax2.set_xlim((1.5,5))
 
 synth_swd = pipeline.SynthesiseSWD(fullmodel, swd_obs.period, 1e6)
-synth_rf = pipeline.SynthesiseRF(fullmodel)
+synth_rf = pipeline.SynthesiseRF(fullmodel, rf_obs)
 
 
 plt.figure(figsize = (10,8));
@@ -164,14 +165,20 @@ plt.plot(swd_obs.period, swd_obs.c-0.025,  'r--', linewidth=1)
 plt.plot(swd_obs.period, swd_obs.c+0.025,  'r--', linewidth=1)
 plt.tight_layout()
 #%%
-
+misfits = np.load(save_name+'_Misfit.npy')
+nm = int(misfits.size/3)
 plt.figure(); plt.title("Mahalanobis distance (least squares misfit - phi)")
-plt.plot(np.log10(out[2]))
+plt.plot(np.log10(misfits[:nm])); 
+plt.ylim(0.9*np.log10(np.min(misfits[:nm])),
+         1.1*np.log10(np.max(misfits[10:nm])))
 
 plt.figure(); plt.title("Likelihood of accepting new model - alpha(m|m0)")
-plt.plot(np.log10(out[3]))
+plt.plot(np.log10(misfits[nm+1:2*nm])); 
+plt.ylim(0.9*np.log10(np.min(misfits[nm+1:2*nm])), 
+         1.1*np.log10(np.max(misfits[nm+10:2*nm])))
 
-print(np.mean(out[4]))
+plt.figure(); plt.title('Acceptance Rate')
+plt.plot(misfits[-nm:]*100)
 #%%
 pr.disable()
 s=open('thingy4.txt','w')

@@ -27,6 +27,9 @@ class RecvFunc(typing.NamedTuple):
     amp: np.array  # assumed to be processed in same way as synthetics are here
     dt: float      # constant timestep in s
     ray_param: float  # tested assuming ray_param = 0.0618
+    std_sc: float # This is trying to account for near-surface misrotation
+                    # scale std_rf by std_sc for the first 0.5s of the signal
+                    # i.e. set to 1 to not bodge things!
 # Receiver function assumed to start at t=0s with a constant timestep, dt
 # required to be stretched to constant RP (equivalent to distance of 60 degrees)
 
@@ -123,7 +126,7 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
     all_models = np.zeros((ddeps.size,int(max_iter/save_every)+1))
     all_models[:,0] = ddeps
     all_models[:,1] = SaveModel(state.fullmodel, ddeps)
-    all_hyperparameters = np.zeros(int(max_iter/save_every))
+    all_hyperparameters = np.zeros((int(max_iter/save_every),3))
     all_phi = np.zeros(save_every) # all misfits
     all_alpha = np.zeros(save_every) # all likelihoods
     all_keep = np.zeros(save_every)
@@ -177,14 +180,14 @@ def InitialState(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
     if not CheckPrior(model_0, lims):
         raise Error("Starting model does not fit prior distribution")
 
-    # Calculate covariance matrix (and inverse, and determinant)
-    cov_m0 = CalcCovarianceMatrix(model_0,rf_obs,swd_obs)
-
     # Calculate synthetic data
         # First, need to define the Vp and rho
     fullmodel_0 = MakeFullModel(model_0, rf_phase, rf_obs.ray_param)
-    rf_synth_m0 = SynthesiseRF(fullmodel_0) # forward model the RF data
+    rf_synth_m0 = SynthesiseRF(fullmodel_0, rf_obs) # forward model the RF data
     swd_synth_m0 = SynthesiseSWD(fullmodel_0, swd_obs.period, 0) # forward model the SWD data
+
+    # Calculate covariance matrix (and inverse, and determinant)
+    cov_m0 = CalcCovarianceMatrix(model_0,rf_synth_m0,swd_synth_m0)
 
     # Calculate fit
     fit_to_obs_m0 = Mahalanobis(
@@ -214,12 +217,13 @@ def NextState(itr:int, rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
     fullmodel = MakeFullModel(model, rf_phase, rf_obs.ray_param)
     if changes_model.which_change == 'Noise':
         # only need to recalculate covariance matrix if changed hyperparameter
-        cov_m = CalcCovarianceMatrix(model,rf_obs,swd_obs)
         rf_synth_m = prev_state.rf_synth
         swd_synth_m = prev_state.swd_synth
+        cov_m = CalcCovarianceMatrix(model,prev_state.rf_synth,prev_state.swd_synth)
+
     else:
         cov_m = prev_state.cov
-        rf_synth_m = SynthesiseRF(fullmodel) # forward model the RF data
+        rf_synth_m = SynthesiseRF(fullmodel, prev_state.rf_synth) # forward model the RF data
         swd_synth_m = SynthesiseSWD(fullmodel, swd_obs.period, itr) # forward model the SWD data
 
     # Calculate fit
@@ -410,6 +414,11 @@ def CalcCovarianceMatrix(model,rf_obs,swd_obs) -> CovarianceMatrix:
     covar[-swd_obs.period.size:,-swd_obs.period.size:]=(
             np.identity(swd_obs.period.size)*model.std_swd**2)
 
+    # Try to workaround potential mis-rotation near surface by increasing the
+    # std_rf near the surface, e.g. first 0.5 s
+    ind = int(0.5/rf_obs.dt) + 1  # <= 0.5 s
+    covar[:ind,:ind] *= rf_obs.std_sc
+
     invc=np.linalg.inv(covar)
     #  Note: Need to take the determinant for use in calculating the acceptance
     #        probability if changing a hyperparameter.  However, given that
@@ -560,7 +569,7 @@ def _GetStdForGaussian(perturb, itr) -> float:
 # from the Vs structure.  There are various (empirical) ways of doing this.
 # We also assume that the synthetic ray is incident from 60 degrees, so input
 # receiver function (observed) should also be stretched accordingly
-def SynthesiseRF(fullmodel) -> RecvFunc:
+def SynthesiseRF(fullmodel, rf_in) -> RecvFunc:
     # Make synthetic waveforms
     wv = _SynthesiseWV(fullmodel)
     # Multiply by rotation matrix
@@ -569,7 +578,7 @@ def SynthesiseRF(fullmodel) -> RecvFunc:
     wv = _PrepWaveform(wv, Ts = [1, 100])
 
     # And deconvolve it
-    rf = _CalculateRF(wv, fullmodel.ray_param)
+    rf = _CalculateRF(wv, rf_in)
 
     return rf
 
@@ -836,7 +845,7 @@ def _PrepWaveform(waveform, Ts) -> RotBodyWaveform:
 
 
 
-def _CalculateRF(waveform, ray_param) -> RecvFunc:
+def _CalculateRF(waveform, rf_in) -> RecvFunc:
     # For output file, we want a relatively sparsely sampled RF (for inversion)
     #   say 30 s long with a dt of 0.25 s?
     rf_tmax = 30
@@ -896,7 +905,8 @@ def _CalculateRF(waveform, ray_param) -> RecvFunc:
 
     RF = RF/np.max(np.abs(RF)) * max_RF
 
-    return RecvFunc(amp = RF, dt = rf_dt, ray_param = ray_param)
+    return RecvFunc(amp = RF, dt = rf_dt, ray_param = rf_in.ray_param,
+                    std_sc = rf_in.std_sc)
 
 #  Extended time multi-taper method of deconvolution:
 #   Helffrich, G., 2006. Extended-time multitaper frequency domain
