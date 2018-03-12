@@ -28,6 +28,8 @@ class RecvFunc(typing.NamedTuple):
     dt: float      # constant timestep in s
     rf_phase: str
     ray_param: float  # tested assuming ray_param = 0.0618
+    filter_corners: list # Should be the short and long PERIOD corners of the
+                         # appropriate filter band (s)  
     std_sc: float # This is trying to account for near-surface misrotation
                     # scale std_rf by std_sc for the first 0.5s of the signal
                     # i.e. set to 1 to not bodge things!
@@ -909,13 +911,13 @@ def _CalculateRF(waveform, rf_in) -> RecvFunc:
 
     i_t0 = i_t0 + pad.size - 1
     RF = np.mean(w_RFs, 0)
+    
+    # Filter as the original RF (corners specified in input file)
+    RF =  matlab.BpFilt(RF, rf_in.filter_corners[0], 
+                        rf_in.filter_corners[1], waveform.dt)
 
     # Want time window from incident phase to + 30s
-    # and resample with larger dt
-    
-#    if rf_in.rf_phase == 'Sp':
-#        RF =  matlab.BpFilt(RF, 4, 100, waveform.dt)
-    
+    # and resample with larger dt    
     RF = RF[i_t0 : i_t0 + int(rf_tmax/waveform.dt)]
     
     n_jump = int(rf_dt / waveform.dt)
@@ -928,7 +930,8 @@ def _CalculateRF(waveform, rf_in) -> RecvFunc:
     RF = RF/np.max(np.abs(RF)) * max_RF
 
     return RecvFunc(amp = RF, dt = rf_dt, ray_param = rf_in.ray_param,
-                    std_sc = rf_in.std_sc, rf_phase = rf_in.rf_phase)
+                    std_sc = rf_in.std_sc, rf_phase = rf_in.rf_phase,
+                    filter_corners = rf_in.filter_corners)
 
 #  Extended time multi-taper method of deconvolution:
 #   Helffrich, G., 2006. Extended-time multitaper frequency domain
