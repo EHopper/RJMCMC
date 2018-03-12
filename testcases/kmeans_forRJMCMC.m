@@ -13,7 +13,7 @@ load([stadir 'Migration_Models.mat']);
 % First, copy in the good_models output 
 close all
 % the standard depths array for the inversion with each interval halved
-deps = [0:0.1:10, 10.5:0.5:60, 62.5:2.5:195]; 
+deps = [0:0.1:10, 10.5:0.5:60, 62.5:2.5:200]; 
 
 cmap=[83 94 173; 165 186 232; 193 226 247;213 227 148; ...
     233 229 48; 229 150 37; 200 30 33]./255;

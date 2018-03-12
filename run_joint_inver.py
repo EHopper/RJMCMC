@@ -17,10 +17,10 @@ pr.enable()
 
 
 #def try_running():
-max_it=200000
-rnd_sd = 10
+max_it=250000
+rnd_sd = 100
 
-save_name = 'MBEY_Ps'
+save_name = 'MBEY_Ps_scale5'
 rf_obs, swd_obs, all_lims = input_data.LoadObservations()
 
 while os.path.exists('output/'+save_name):
@@ -32,7 +32,7 @@ out = pipeline.JointInversion(rf_obs, swd_obs, all_lims, max_it, rnd_sd,
                               save_name, 'Ps')
 
 pr.disable()
-s=open(save_name+'/profiletimes.txt','w')
+s=open(save_name+'profiletimes.txt','w')
 sortby = 'cumulative'
 ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
 ps.print_stats()
