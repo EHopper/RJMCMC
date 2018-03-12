@@ -134,7 +134,8 @@ class PipelineTest(unittest.TestCase):
             )
     rf_obs = pipeline.RecvFunc(amp = np.arange(2),
                                dt = 0.25,  # length and dt matter
-                               ray_param = 0.0618, std_sc = 1, rf_phase ='Ps')
+                               ray_param = 0.0618, std_sc = 1,
+                               rf_phase ='Ps', filter_corners = [1,100])
     swd_obs = pipeline.SurfaceWaveDisp(period = np.arange(1), # only length matters
                                        c = np.arange(0)) # irrelevant
     # Note that all determinants have undergone the fix (as in pipeline)
@@ -444,7 +445,8 @@ class PipelineTest(unittest.TestCase):
 
     # Test whole synthetics process
     rf_in = pipeline.RecvFunc(amp = np.array([0]), dt = 0.25, rf_phase = 'Ps',
-                              ray_param = 0.0618, std_sc = 1)
+                              ray_param = 0.0618, std_sc = 1, 
+                              filter_corners = [1,100])
 
 
     @parameterized.expand([
@@ -2807,7 +2809,7 @@ class PipelineTest(unittest.TestCase):
                        0.00360, 0.00136, 0.00132, 0.00193, 0.00197, 0.00170,
                        0.00140, 0.00071, 0.00012, 0.00161, 0.00606, 0.01038,
                        0.01032, 0.00610, 0.00220]), dt = 0.25, ray_param = 0.0618,
-                        rf_phase = 'Ps', std_sc = 1)),
+                        rf_phase = 'Ps', std_sc = 1, filter_corners = [1,100])),
             ("Moho and LAB", model._replace(vs = np.array([4, 4.7, 4.6]),
                                          idep = np.array([60, 80, 110])), rf_in,
             pipeline.RecvFunc(amp = np.array([-0.00524, -0.00487, -0.00294,
@@ -2831,8 +2833,9 @@ class PipelineTest(unittest.TestCase):
                        0.00301, 0.00077, 0.00074, 0.00137, 0.00138, 0.00098,
                        0.00080, 0.00090, 0.00134, 0.00285, 0.00573, 0.00825,
                        0.00785, 0.00471, 0.00186]), dt = 0.25,
-                        rf_phase = 'Ps', ray_param = 0.0618, std_sc = 1)),
-            ("Moho, Sp", model, rf_in._replace(ray_param = 0.11, rf_phase = 'Sp'),
+                        rf_phase = 'Ps', ray_param = 0.0618, std_sc = 1,
+                        filter_corners = [1,100])),
+            ("Moho, Sp", model, rf_in._replace(ray_param = 0.1157, rf_phase = 'Sp'),
              pipeline.RecvFunc(amp = np.array([-0.00107, -0.00113, -0.00143,
                        -0.00179, -0.00210, -0.00246, -0.00275, -0.00252, -0.00204,
                        -0.00297, -0.00585, -0.00598, 0.00254, 0.01135, -0.00614,
@@ -2854,7 +2857,8 @@ class PipelineTest(unittest.TestCase):
                        0.00009, 0.00010, 0.00010, 0.00010, 0.00010, 0.00010,
                        0.00010, 0.00010, 0.00010, 0.00010, 0.00009, 0.00009,
                        0.00009, 0.00008, 0.00008]), dt = 0.25,
-                        rf_phase = 'Sp', ray_param = 0.11, std_sc = 1))
+                        rf_phase = 'Sp', ray_param = 0.11, 
+                        std_sc = 1, filter_corners = [1,100]))
 
 
         ])
@@ -2943,14 +2947,15 @@ class PipelineTest(unittest.TestCase):
                            std_rf = 0.1, lam_rf = 0.2, std_swd = 0.2)
     swd_obs = pipeline.SurfaceWaveDisp(c = 0, period = 1/np.arange(0.02,0.11,0.01))
     rf_obs = pipeline.RecvFunc(amp = np.array([0]), dt = 0.25,
-                               std_sc = 1, ray_param = 0.0618, rf_phase = 'Ps')
+                               std_sc = 1, ray_param = 0.0618, 
+                               rf_phase = 'Ps', filter_corners = [1,100])
 
     @parameterized.expand([
-            ("Moho only", model, swd_obs, rf_obs, 2, 1.360169),
+            ("Moho only", model, swd_obs, rf_obs, 2, 1.062466),
             ("More complicated", model._replace(vs = np.array([1.8, 2.5, 3.7, 4.7, 4.6]),
                                                 idep = np.array([12, 30, 42, 68, 120])),
-                        swd_obs, rf_obs, 2, 1.394063),
-            ("Worse misfit", model, swd_obs, rf_obs, 0, 48.272636)
+                        swd_obs, rf_obs, 2, 1.534923),
+            ("Worse misfit", model, swd_obs, rf_obs, 0, 44.734613)
             ])
 
     def test_Mahalanobis(self, name, model, swd_obs, rf_obs, round_to, expected):
