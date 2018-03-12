@@ -26,6 +26,7 @@ import matlab
 class RecvFunc(typing.NamedTuple):
     amp: np.array  # assumed to be processed in same way as synthetics are here
     dt: float      # constant timestep in s
+    rf_phase: str
     ray_param: float  # tested assuming ray_param = 0.0618
     std_sc: float # This is trying to account for near-surface misrotation
                     # scale std_rf by std_sc for the first 0.5s of the signal
@@ -89,8 +90,6 @@ class SynthModel(typing.NamedTuple):
     thickness: np.array
     layertops: np.array
     avdep: np.array
-    ray_param: float
-    rf_phase: str
 
 class GlobalState(typing.NamedTuple):
     model: Model
@@ -108,13 +107,13 @@ class Error(Exception): pass
 
 def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
                    max_iter: int, random_seed: int,
-                   save_name:  str, rf_phase = 'Ps') -> Model:
+                   save_name:  str) -> Model:
 
     # N.B.  The variable random_seed ensures that the process is repeatable.
     random.seed(a = random_seed)
     np.random.seed(seed = random_seed+1)
 
-    state = InitialState(rf_obs, swd_obs, lims, rf_phase)
+    state = InitialState(rf_obs, swd_obs, lims, rf_obs.rf_phase)
 
 # =============================================================================
 #           Define parameters for convergence
@@ -145,7 +144,7 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
             print("Iteration {}..".format(itr))
 
         state, keep_yn, all_alpha[n_mwin] = NextState(
-            itr, rf_obs, swd_obs, lims, rf_phase, state)
+            itr, rf_obs, swd_obs, lims, state)
 
         all_phi[n_mwin] = state.fit_to_obs
         all_keep[n_mwin] = keep_yn
@@ -206,7 +205,7 @@ def InitialState(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
 
 
 def NextState(itr:int, rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
-              rf_phase, prev_state: GlobalState) -> (GlobalState, bool, float):
+              prev_state: GlobalState) -> (GlobalState, bool, float):
     # Generate new model by perturbing the old model
     model, changes_model = Mutate(prev_state.model, itr)
 
@@ -214,7 +213,7 @@ def NextState(itr:int, rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
         #print('Failed Prior')
         return prev_state, False, 0  # if not, continue to next iteration
 
-    fullmodel = MakeFullModel(model, rf_phase, rf_obs.ray_param)
+    fullmodel = MakeFullModel(model)
     if changes_model.which_change == 'Noise':
         # only need to recalculate covariance matrix if changed hyperparameter
         rf_synth_m = prev_state.rf_synth
@@ -301,7 +300,7 @@ def _InBounds(value, limit):
 #       Calculate Rest of model required for synthetics
 # =============================================================================
 
-def MakeFullModel(model, rf_phase = 'Ps', ray_param = 0.0618) -> SynthModel:
+def MakeFullModel(model) -> SynthModel:
 
     # Assuming waveforms are incident from 60 degrees for default value of p
     # For P waves, this means horizontal slowness = 0.0618
@@ -379,8 +378,7 @@ def MakeFullModel(model, rf_phase = 'Ps', ray_param = 0.0618) -> SynthModel:
     vp = np.round(vp, 3)
     rho = np.round(rho, 3)
 
-    return SynthModel(model.vs, vp, rho, thickness, layertops, avdep,
-                      ray_param, rf_phase)
+    return SynthModel(model.vs, vp, rho, thickness, layertops, avdep)
 
 
 # =============================================================================
@@ -572,9 +570,9 @@ def _GetStdForGaussian(perturb, itr) -> float:
 def SynthesiseRF(fullmodel, rf_in) -> RecvFunc:
 
     # Make synthetic waveforms for Sp or Ps or both
-    wv = _SynthesiseWV(fullmodel)
+    wv = _SynthesiseWV(fullmodel, rf_in)
     # Multiply by rotation matrix
-    wv = _RotateToPSV(wv, fullmodel)
+    wv = _RotateToPSV(wv, fullmodel, rf_in)
     # Prep data (filter, crop, align)
     wv = _PrepWaveform(wv, Ts = [1, 100])
 
@@ -584,7 +582,7 @@ def SynthesiseRF(fullmodel, rf_in) -> RecvFunc:
     return rf
 
 
-def _SynthesiseWV(synthmodel) -> BodyWaveform:
+def _SynthesiseWV(synthmodel, rf_in) -> BodyWaveform:
     # And the filter band
     T=[1,100] # corner periods of filter, sec
 
@@ -603,14 +601,14 @@ def _SynthesiseWV(synthmodel) -> BodyWaveform:
     transfer_P_vert = np.zeros(n_fft, dtype = np.complex_)
     transfer_S_horz = np.zeros(n_fft, dtype = np.complex_)
     transfer_S_vert = np.zeros(n_fft, dtype = np.complex_)
-    c=1/synthmodel.ray_param
+    c=1/rf_in.ray_param
     vp = synthmodel.vp[-1] # Vp in halfspace
     vs = synthmodel.vs[-1] # Vs in halfspace
 
     for i in range(1,max_loop):
         freq = i/tot_time
         wavenumber = 2*np.pi*(freq/c) # 2*pi/wavelength
-        J = _CalcPropagatorMatrix(synthmodel,wavenumber,calc_from_layer = 0)
+        J = _CalcPropagatorMatrix(synthmodel,c,wavenumber,calc_from_layer = 0)
         D = (J[0][0]-J[1][0])*(J[2][1]-J[3][1])-(J[0][1]-J[1][1])*(J[2][0]-J[3][0])
         # remember when indexing J that Python is zero-indexed!
         # Also that Z component polarity is reversed from BM&S because Z increases down!
@@ -620,19 +618,19 @@ def _SynthesiseWV(synthmodel) -> BodyWaveform:
         transfer_S_vert[i]=-c/(D*vs)*(J[0][0]-J[1][0])
 
 
-    if synthmodel.rf_phase == 'Ps':
+    if rf_in.rf_phase == 'Ps':
         P_horz = _IFFTSynth(transfer_P_horz, max_loop, dom_freq, T, dt, tmax)
         P_vert = _IFFTSynth(transfer_P_vert, max_loop, dom_freq, T, dt, tmax)
-        P_horz, P_vert = _NormaliseSynth(P_horz, P_vert, synthmodel.rf_phase)
+        P_horz, P_vert = _NormaliseSynth(P_horz, P_vert, rf_in.rf_phase)
         return BodyWaveform(P_horz,P_vert,dt)
 
-    elif synthmodel.rf_phase == 'Sp':
+    elif rf_in.rf_phase == 'Sp':
         S_horz = _IFFTSynth(transfer_S_horz, max_loop, dom_freq, T, dt, tmax)
         S_vert = _IFFTSynth(transfer_S_vert, max_loop, dom_freq, T, dt, tmax)
-        S_horz, S_vert = _NormaliseSynth(S_horz, S_vert, synthmodel.rf_phase)
+        S_horz, S_vert = _NormaliseSynth(S_horz, S_vert, rf_in.rf_phase)
         return BodyWaveform(S_horz,S_vert,dt)
     
-    elif synthmodel.rf_phase == 'Both':
+    elif rf_in.rf_phase == 'Both':
         P_horz = _IFFTSynth(transfer_P_horz, max_loop, dom_freq, T, dt, tmax)
         P_vert = _IFFTSynth(transfer_P_vert, max_loop, dom_freq, T, dt, tmax)
         P_horz, P_vert = _NormaliseSynth(P_horz, P_vert, 'Ps')
@@ -670,13 +668,12 @@ def _IFFTSynth(transfer_comp, max_loop, dom_freq, T, dt, tmax):
     return comp
 
 
-def _CalcPropagatorMatrix(synthmodel,wavenumber,calc_from_layer):
+def _CalcPropagatorMatrix(synthmodel, c, wavenumber, calc_from_layer):
     # We can speed this up (fractionally!) by making sure we only do each
     # calculation once - hence this looks a bit confusing!
     vp = synthmodel.vp[calc_from_layer]
     vs = synthmodel.vs[calc_from_layer]
     rho = synthmodel.rho[calc_from_layer]
-    c = 1/synthmodel.ray_param # phase velocity
 
     rhoc2 = rho*c*c
     one_rhoc2 = 1/rhoc2
@@ -768,7 +765,7 @@ def _CalcPropagatorMatrix(synthmodel,wavenumber,calc_from_layer):
 #                    ],
 #                ])
         out= np.matmul(
-                _CalcPropagatorMatrix(synthmodel,wavenumber,calc_from_layer+1),
+                _CalcPropagatorMatrix(synthmodel,c,wavenumber,calc_from_layer+1),
                 a_n)
         return out
 
@@ -778,11 +775,11 @@ def _CalcPropagatorMatrix(synthmodel,wavenumber,calc_from_layer):
 #       J. Geophys. Res. 103, 21183–21200.
 #   Kennett, B.L.N., 1991. The removal of free surface interactions from
 #       three-component seismograms. Geophys. J. Int. 104, 153–163.
-def _RotateToPSV(waveform, fullmodel) -> RotBodyWaveform:
+def _RotateToPSV(waveform, fullmodel, rf_in) -> RotBodyWaveform:
     vp_surface = fullmodel.vp[0]
     vs_surface = fullmodel.vs[0]
-    ray_param = fullmodel.ray_param
-    rf_phase = fullmodel.rf_phase
+    ray_param = rf_in.ray_param
+    rf_phase = rf_in.rf_phase
 
 
     a = np.sqrt(vp_surface**-2 - ray_param**2)
@@ -911,10 +908,15 @@ def _CalculateRF(waveform, rf_in) -> RecvFunc:
         max_RF = np.max([max_RF, np.max(np.abs(w_RF))])
 
     i_t0 = i_t0 + pad.size - 1
-    RF = np.mean(w_RFs, 0)[i_t0 : i_t0 + int(rf_tmax/waveform.dt)]
+    RF = np.mean(w_RFs, 0)
 
     # Want time window from incident phase to + 30s
     # and resample with larger dt
+    
+#    if rf_in.rf_phase == 'Sp':
+#        RF =  matlab.BpFilt(RF, 4, 100, waveform.dt)
+    
+    RF = RF[i_t0 : i_t0 + int(rf_tmax/waveform.dt)]
     
     n_jump = int(rf_dt / waveform.dt)
     if n_jump == rf_dt / waveform.dt:
@@ -926,7 +928,7 @@ def _CalculateRF(waveform, rf_in) -> RecvFunc:
     RF = RF/np.max(np.abs(RF)) * max_RF
 
     return RecvFunc(amp = RF, dt = rf_dt, ray_param = rf_in.ray_param,
-                    std_sc = rf_in.std_sc)
+                    std_sc = rf_in.std_sc, rf_phase = rf_in.rf_phase)
 
 #  Extended time multi-taper method of deconvolution:
 #   Helffrich, G., 2006. Extended-time multitaper frequency domain
