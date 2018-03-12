@@ -39,7 +39,6 @@ class PipelineTest(unittest.TestCase):
                                              expected.thickness, decimal = 3)
         np.testing.assert_array_almost_equal(actual.avdep,
                                              expected.avdep, decimal = 3)
-        self.assertAlmostEqual(actual.ray_param, expected.ray_param, places = 4)
 
     def assertBodyWavesEqual(self, actual, expected):
         np.testing.assert_array_almost_equal(actual.amp_R, expected.amp_R, decimal = 2)
@@ -57,6 +56,8 @@ class PipelineTest(unittest.TestCase):
         # Note: I can't get this to work to 2 d.p. - maybe fft/ifft are
         #       being implemented slightly differently?
         self.assertAlmostEqual(actual.dt, expected.dt, places = 2)
+        self.assertAlmostEqual(actual.ray_param, expected.ray_param, places = 4)
+        self.assertEqual(actual.rf_phase, expected.rf_phase)
 
     def assertSurfaceWaveDispEqual(self, actual, expected):
         np.testing.assert_array_almost_equal(actual.c, expected.c,
@@ -133,7 +134,7 @@ class PipelineTest(unittest.TestCase):
             )
     rf_obs = pipeline.RecvFunc(amp = np.arange(2),
                                dt = 0.25,  # length and dt matter
-                               ray_param = 0.0618, std_sc = 1)
+                               ray_param = 0.0618, std_sc = 1, rf_phase ='Ps')
     swd_obs = pipeline.SurfaceWaveDisp(period = np.arange(1), # only length matters
                                        c = np.arange(0)) # irrelevant
     # Note that all determinants have undergone the fix (as in pipeline)
@@ -242,7 +243,6 @@ class PipelineTest(unittest.TestCase):
                     layertops = np.array([0, 30, 70, 130]),
                     avdep = np.array([15, 50, 100, 160]),
                     rho = np.array([2.9496, 3.4268, 3.4390, 3.4367]),
-                    ray_param = 0.0618, rf_phase = 'Ps',
                     )
                 ),
             ("vary vels", model._replace(vs = np.array([3,4.2,4.6,5.2])),
@@ -253,7 +253,6 @@ class PipelineTest(unittest.TestCase):
                     layertops = np.array([0, 30, 70, 130]),
                     avdep = np.array([15, 50, 100, 160]),
                     rho = np.array([2.5426, 3.0674, 3.4329, 3.4406]),
-                    ray_param = 0.0618, rf_phase = 'Ps',
                     )
              ),
              ("vary deps", model._replace(idep = np.array([10,50,85,125])),
@@ -264,7 +263,6 @@ class PipelineTest(unittest.TestCase):
                     layertops = np.array([0, 6, 27.5, 115]),
                     avdep = np.array([3., 16.75, 71.25, 158.75]),
                     rho = np.array([2.9496, 3.4268, 3.4379, 3.4367]),
-                    ray_param = 0.0618, rf_phase = 'Ps',
                     )
              ),
              ("vary both", model._replace(idep = np.array([10,50,110,125]),
@@ -276,7 +274,6 @@ class PipelineTest(unittest.TestCase):
                     layertops = np.array([0, 6, 60, 147.5]),
                     avdep = np.array([3., 33., 103.75, 191.25]),
                     rho = np.array([2.9496, 3.2579, 3.4391, 3.4381]),
-                    ray_param = 0.0618, rf_phase = 'Ps',
                     )
               ),
             ("Crustal vels only", model._replace(vs = np.array([1.7, 2.6, 3.6, 4.4])),
@@ -287,7 +284,6 @@ class PipelineTest(unittest.TestCase):
                      layertops = np.array([0, 30, 70, 130]),
                      avdep = np.array([15., 50., 100., 160.]),
                      rho = np.array([2.2723679, 2.4495676, 2.7493737, 3.193219]),
-                     ray_param = 0.0618, rf_phase = 'Ps',
                      )
              ),
              ("Mantle vels only", model._replace(vs = np.array([4.5, 4.6, 4.7, 5.])),
@@ -298,7 +294,6 @@ class PipelineTest(unittest.TestCase):
                      layertops = np.array([0, 30, 70, 130]),
                      avdep = np.array([15., 50., 100., 160.]),
                      rho = np.array([3.4268, 3.431978, 3.438984, 3.43669]),
-                     ray_param = 0.0618, rf_phase = 'Ps',
                       )
               ),
               ("Last layer only", model._replace(vs = np.array([4.7]),
@@ -307,8 +302,8 @@ class PipelineTest(unittest.TestCase):
                                     thickness = np.array(deps[128]),
                                     layertops = np.array([0]),
                                     avdep = np.array(deps[128]/2),
-                                    rho = np.array([3.439]), ray_param = 0.0618,
-                                    rf_phase = 'Ps',)
+                                    rho = np.array([3.439]),
+                                    )
 
                 ),
 
@@ -365,7 +360,8 @@ class PipelineTest(unittest.TestCase):
     def test_PropagatorMat(self, name, model, i_loop, expected):
         wavenumber = i_loop/102.4*0.0618*2*np.pi
         fullmodel = pipeline.MakeFullModel(model)
-        Jacobian = pipeline._CalcPropagatorMatrix(fullmodel,wavenumber,0)
+        c = 1/0.0618
+        Jacobian = pipeline._CalcPropagatorMatrix(fullmodel,c,wavenumber,0)
         np.testing.assert_array_almost_equal(Jacobian, expected, decimal = 3)
 
     del i_loop
@@ -447,9 +443,12 @@ class PipelineTest(unittest.TestCase):
 
 
     # Test whole synthetics process
+    rf_in = pipeline.RecvFunc(amp = np.array([0]), dt = 0.25, rf_phase = 'Ps',
+                              ray_param = 0.0618, std_sc = 1)
+
 
     @parameterized.expand([
-            ("Moho only", model,'Ps',
+            ("Moho only", model, rf_in,
              pipeline.BodyWaveform(
                      amp_R = np.array([-0.01, -0.01, -0.01, -0.01,
                        -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01,
@@ -708,8 +707,8 @@ class PipelineTest(unittest.TestCase):
                     ),
                     ("More complex model",
                      model._replace(vs = np.array([1.8, 3.5, 4, 4.6, 4.8]),
-                                    idep = np.array([12, 38, 60, 80,121])), 'Ps',
-                        pipeline.BodyWaveform(
+                                    idep = np.array([12, 38, 60, 80,121])),
+                    rf_in, pipeline.BodyWaveform(
                         amp_R = np.array([-0.00, -0.00, -0.00, -0.00,
                        -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, -0.00,
                        -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, -0.00, -0.00,
@@ -967,7 +966,7 @@ class PipelineTest(unittest.TestCase):
                         ),
             ("Moho and LAB",
                      model._replace(vs = np.array([4, 4.7, 4.5]),
-                                    idep = np.array([60, 80,100])), 'Ps',
+                                    idep = np.array([60, 80,100])), rf_in,
                         pipeline.BodyWaveform(
                         amp_R = np.array([-0.01, -0.01, -0.01, -0.01,
                        -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01,
@@ -1224,7 +1223,9 @@ class PipelineTest(unittest.TestCase):
                         dt = 0.05,
                             ),
                         ),
-                    ('Sp Moho', model, 'Sp', pipeline.BodyWaveform(
+                    ('Sp Moho', model,
+                     rf_in._replace(rf_phase = 'Sp', ray_param = 0.1157),
+                     pipeline.BodyWaveform(
                             amp_R = np.array([0.00, 0.00,
                        0.00, 0.00, 0.00, 0.00, 0.00, 0.00,
                        0.00, 0.00, 0.00, 0.00, 0.00, 0.00,
@@ -1566,16 +1567,13 @@ class PipelineTest(unittest.TestCase):
                         ),
             ])
 
-    def test_CalcSynthWV(self, name, model, rf_phase, expected):
-        if rf_phase == 'Sp': rp = 0.1157
-        if rf_phase == 'Ps': rp = 0.0618
-        out = pipeline._SynthesiseWV(pipeline.MakeFullModel(model, rf_phase, rp))
+    def test_CalcSynthWV(self, name, model, rf_in, expected):
+        out = pipeline._SynthesiseWV(pipeline.MakeFullModel(model), rf_in)
         self.assertBodyWavesEqual(out, expected)
 
 
-
     @parameterized.expand([
-            ("Moho only", model,
+            ("Moho only", model, rf_in,
              pipeline.RotBodyWaveform(
                      parent = np.array([-0.01, -0.01, -0.01, -0.01,
                        -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01,
@@ -1832,14 +1830,14 @@ class PipelineTest(unittest.TestCase):
                         dt = 0.05),
                 )
             ])
-    def test_RotatetoPSV(self, name, model, expected):
+    def test_RotatetoPSV(self, name, model, rf_in, expected):
         model = pipeline.MakeFullModel(model)
-        wv = pipeline._SynthesiseWV(model)
-        self.assertRotBodyWavesEqual(pipeline._RotateToPSV(wv, model),
+        wv = pipeline._SynthesiseWV(model, rf_in)
+        self.assertRotBodyWavesEqual(pipeline._RotateToPSV(wv, model, rf_in),
                 expected)
 
     @parameterized.expand([
-            ("Moho only", model, pipeline.RotBodyWaveform(
+            ("Moho only", model, rf_in, pipeline.RotBodyWaveform(
                      parent = np.array([0.00, 0.00, 0.00, 0.00, 0.00,
                        0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00,
                        0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00,
@@ -2358,16 +2356,16 @@ class PipelineTest(unittest.TestCase):
                      )
             ),
             ])
-    def test_PrepWaveform(self, name, model, expected):
+    def test_PrepWaveform(self, name, model, rf_in, expected):
         model = pipeline.MakeFullModel(model)
-        wv = pipeline._SynthesiseWV(model)
-        wv = pipeline._RotateToPSV(wv, model)
+        wv = pipeline._SynthesiseWV(model, rf_in)
+        wv = pipeline._RotateToPSV(wv, model, rf_in)
         self.assertRotBodyWavesEqual(pipeline._PrepWaveform(wv, Ts = [1, 50]),
                                      expected)
 
 
     @parameterized.expand([
-            ("Moho only parent", model, -1,
+            ("Moho only parent", model, rf_in, -1,
              np.array([0.27, 0.26, 0.24, 0.25,
                        0.29, 0.34, 0.35, 0.34, 0.34, 0.34, 0.33, 0.33,
                        0.33, 0.34, 0.34, 0.32, 0.30, 0.30, 0.31, 0.30,
@@ -2497,7 +2495,7 @@ class PipelineTest(unittest.TestCase):
                        0.29, 0.30, 0.31, 0.30, 0.30, 0.32, 0.34, 0.34,
                        0.33, 0.33, 0.33, 0.34, 0.34, 0.34, 0.35, 0.34,
                        0.29, 0.25, 0.24, 0.26])),
-            ("Moho only D5", model, 5,
+            ("Moho only D5", model, rf_in, 5,
              np.array([-0.01 + 0.00j, -0.01 + 0.00j, -0.01 + 0.01j, 0.00 + 0.00j,
                        -0.00 -0.00j, -0.01 -0.00j, -0.00 + 0.00j, -0.00 + 0.00j,
                        -0.00 + 0.01j, 0.01 + 0.00j, 0.00 -0.01j, -0.01 -0.00j,
@@ -2755,10 +2753,10 @@ class PipelineTest(unittest.TestCase):
                        -0.00 -0.01j, -0.00 -0.00j, -0.00 -0.00j, -0.01 + 0.00j,
                        -0.00 + 0.00j, 0.00 -0.00j, -0.01 -0.01j, -0.01 + -0.00j])),
             ])
-    def test_ETMTMSumFFT(self, name, model, which_daughter, expected):
+    def test_ETMTMSumFFT(self, name, model, rf_in, which_daughter, expected):
         model = pipeline.MakeFullModel(model)
-        wv = pipeline._SynthesiseWV(model)
-        wv = pipeline._RotateToPSV(wv, model)
+        wv = pipeline._SynthesiseWV(model, rf_in)
+        wv = pipeline._RotateToPSV(wv, model, rf_in)
         wv = pipeline._PrepWaveform(wv, Ts = [1, 50])
         win_length = 50
         num_windows = 7
@@ -2785,8 +2783,6 @@ class PipelineTest(unittest.TestCase):
                 expected, decimal = 2)
 
 
-    rf_in = pipeline.RecvFunc(amp = np.array([0]), dt = 0.25,
-                              ray_param = 0.0618, std_sc = 1)
     # And finally, check the RF calculation
     @parameterized.expand([
             ("Moho only", model, rf_in,
@@ -2811,7 +2807,7 @@ class PipelineTest(unittest.TestCase):
                        0.00360, 0.00136, 0.00132, 0.00193, 0.00197, 0.00170,
                        0.00140, 0.00071, 0.00012, 0.00161, 0.00606, 0.01038,
                        0.01032, 0.00610, 0.00220]), dt = 0.25, ray_param = 0.0618,
-                        std_sc = 1)),
+                        rf_phase = 'Ps', std_sc = 1)),
             ("Moho and LAB", model._replace(vs = np.array([4, 4.7, 4.6]),
                                          idep = np.array([60, 80, 110])), rf_in,
             pipeline.RecvFunc(amp = np.array([-0.00524, -0.00487, -0.00294,
@@ -2835,8 +2831,8 @@ class PipelineTest(unittest.TestCase):
                        0.00301, 0.00077, 0.00074, 0.00137, 0.00138, 0.00098,
                        0.00080, 0.00090, 0.00134, 0.00285, 0.00573, 0.00825,
                        0.00785, 0.00471, 0.00186]), dt = 0.25,
-                        ray_param = 0.0618, std_sc = 1)),
-            ("Moho, Sp", model, rf_in._replace(ray_param = 0.11),
+                        rf_phase = 'Ps', ray_param = 0.0618, std_sc = 1)),
+            ("Moho, Sp", model, rf_in._replace(ray_param = 0.11, rf_phase = 'Sp'),
              pipeline.RecvFunc(amp = np.array([-0.00107, -0.00113, -0.00143,
                        -0.00179, -0.00210, -0.00246, -0.00275, -0.00252, -0.00204,
                        -0.00297, -0.00585, -0.00598, 0.00254, 0.01135, -0.00614,
@@ -2858,7 +2854,7 @@ class PipelineTest(unittest.TestCase):
                        0.00009, 0.00010, 0.00010, 0.00010, 0.00010, 0.00010,
                        0.00010, 0.00010, 0.00010, 0.00010, 0.00009, 0.00009,
                        0.00009, 0.00008, 0.00008]), dt = 0.25,
-                        ray_param = 0.11, std_sc = 1))
+                        rf_phase = 'Sp', ray_param = 0.11, std_sc = 1))
 
 
         ])
@@ -2947,7 +2943,7 @@ class PipelineTest(unittest.TestCase):
                            std_rf = 0.1, lam_rf = 0.2, std_swd = 0.2)
     swd_obs = pipeline.SurfaceWaveDisp(c = 0, period = 1/np.arange(0.02,0.11,0.01))
     rf_obs = pipeline.RecvFunc(amp = np.array([0]), dt = 0.25,
-                               std_sc = 1, ray_param = 0.0618)
+                               std_sc = 1, ray_param = 0.0618, rf_phase = 'Ps')
 
     @parameterized.expand([
             ("Moho only", model, swd_obs, rf_obs, 2, 1.360169),
