@@ -162,9 +162,9 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
                                state.model.lam_rf, state.model.std_swd])
             all_models[:,n_save+1] = SaveModel(state.fullmodel, all_models[:,0])
             np.save((save_name+'_AllModels'),all_models[:,:n_save+1])
-            np.save((save_name+'_Misfit'),np.hstack((mean_phi[:n_save],
+            np.save((save_name+'_Misfit'),np.vstack((mean_phi[:n_save],
                     mean_alpha[:n_save], mean_keep[:n_save])))
-            np.save((save_name+'_Hyperparams'),itr)
+            np.save((save_name+'_Hyperparams'),all_hyperparameters)
             n_save += 1
             n_mwin = 0
 
@@ -457,7 +457,7 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
     # (where k Gaussians == k+1 nuclei here)
     if model.idep.size==1: # and don't kill your only layer...
         perturbs=('Vs','Dep','Birth','Hyperparameter')
-    elif itr <= 500*(model.idep.size-1)*(model.idep.size) or model.idep.size >=20: # as KL14
+    elif itr <= 750*(model.idep.size-1)*(model.idep.size) or model.idep.size >=15: # as KL14
         perturbs=('Vs','Dep','Death','Hyperparameter')
     else:
         perturbs=('Vs','Dep','Birth','Death','Hyperparameter')
@@ -570,7 +570,8 @@ def _GetStdForGaussian(perturb, itr) -> float:
 # We also assume that the synthetic ray is incident from 60 degrees, so input
 # receiver function (observed) should also be stretched accordingly
 def SynthesiseRF(fullmodel, rf_in) -> RecvFunc:
-    # Make synthetic waveforms
+
+    # Make synthetic waveforms for Sp or Ps or both
     wv = _SynthesiseWV(fullmodel)
     # Multiply by rotation matrix
     wv = _RotateToPSV(wv, fullmodel)
@@ -579,7 +580,7 @@ def SynthesiseRF(fullmodel, rf_in) -> RecvFunc:
 
     # And deconvolve it
     rf = _CalculateRF(wv, rf_in)
-
+    
     return rf
 
 
@@ -600,11 +601,11 @@ def _SynthesiseWV(synthmodel) -> BodyWaveform:
     dom_freq = (1/tot_time)*(np.arange(1,max_loop))
     transfer_P_horz = np.zeros(n_fft, dtype = np.complex_)
     transfer_P_vert = np.zeros(n_fft, dtype = np.complex_)
-    # transfer_S_horz = np.zeros(n_fft)
-    # transfer_S_vert = np.zeros(n_fft)
+    transfer_S_horz = np.zeros(n_fft, dtype = np.complex_)
+    transfer_S_vert = np.zeros(n_fft, dtype = np.complex_)
     c=1/synthmodel.ray_param
     vp = synthmodel.vp[-1] # Vp in halfspace
-    # vs = synthmodel.vs[-1] # Vs in halfspace
+    vs = synthmodel.vs[-1] # Vs in halfspace
 
     for i in range(1,max_loop):
         freq = i/tot_time
@@ -612,45 +613,61 @@ def _SynthesiseWV(synthmodel) -> BodyWaveform:
         J = _CalcPropagatorMatrix(synthmodel,wavenumber,calc_from_layer = 0)
         D = (J[0][0]-J[1][0])*(J[2][1]-J[3][1])-(J[0][1]-J[1][1])*(J[2][0]-J[3][0])
         # remember when indexing J that Python is zero-indexed!
+        # Also that Z component polarity is reversed from BM&S because Z increases down!
         transfer_P_horz[i]=2*c/(D*vp)*(J[3][1]-J[2][1])
         transfer_P_vert[i]=2*c/(D*vp)*(J[3][0]-J[2][0])
-        # transfer_S_horz[i]=-c/(D*vs)*(J[0][1]-J[1][1])
-        # transfer_S_vert[i]=-c/(D*vs)*(J[0][0]-J[1][0])
+        transfer_S_horz[i]=-c/(D*vs)*(J[0][1]-J[1][1])
+        transfer_S_vert[i]=-c/(D*vs)*(J[0][0]-J[1][0])
 
+
+    if synthmodel.rf_phase == 'Ps':
+        P_horz = _IFFTSynth(transfer_P_horz, max_loop, dom_freq, T, dt, tmax)
+        P_vert = _IFFTSynth(transfer_P_vert, max_loop, dom_freq, T, dt, tmax)
+        P_horz, P_vert = _NormaliseSynth(P_horz, P_vert, synthmodel.rf_phase)
+        return BodyWaveform(P_horz,P_vert,dt)
+
+    elif synthmodel.rf_phase == 'Sp':
+        S_horz = _IFFTSynth(transfer_S_horz, max_loop, dom_freq, T, dt, tmax)
+        S_vert = _IFFTSynth(transfer_S_vert, max_loop, dom_freq, T, dt, tmax)
+        S_horz, S_vert = _NormaliseSynth(S_horz, S_vert, synthmodel.rf_phase)
+        return BodyWaveform(S_horz,S_vert,dt)
+    
+    elif synthmodel.rf_phase == 'Both':
+        P_horz = _IFFTSynth(transfer_P_horz, max_loop, dom_freq, T, dt, tmax)
+        P_vert = _IFFTSynth(transfer_P_vert, max_loop, dom_freq, T, dt, tmax)
+        P_horz, P_vert = _NormaliseSynth(P_horz, P_vert, 'Ps')
+
+        S_horz = _IFFTSynth(transfer_S_horz, max_loop, dom_freq, T, dt, tmax)
+        S_vert = _IFFTSynth(transfer_S_vert, max_loop, dom_freq, T, dt, tmax)
+        S_horz, S_vert = _NormaliseSynth(S_horz, S_vert, 'Sp')
+
+        return BodyWaveform(P_horz,P_vert,dt), BodyWaveform(S_horz,S_vert,dt)
+
+
+def _NormaliseSynth(horz, vert, rf_phase):
+    max_val = np.max(np.abs(np.concatenate([horz,vert])))
+    horz = horz/max_val
+    vert = vert/max_val
+        
+    if rf_phase == 'Sp':  # flip the time axis
+        horz = horz[-1::-1]
+        vert = vert[-1::-1]
+    
+    return horz, vert
+
+def _IFFTSynth(transfer_comp, max_loop, dom_freq, T, dt, tmax):
     # apply a Gaussian filter
-    transfer_P_horz[1:max_loop] *= np.exp(-dom_freq**2*T[0]/2)
-    transfer_P_vert[1:max_loop] *= np.exp(-dom_freq**2*T[0]/2)
-    # transfer_S_horz[1:max_loop] *= np.exp(-dom_freq**2*T[0]/2)
-    # transfer_S_vert[1:max_loop] *= np.exp(-dom_freq**2*T[0]/2)
+    transfer_comp[1:max_loop] *= np.exp(-dom_freq**2*T[0]/2)
 
     # Make symmetric for IFFT
-    transfer_P_horz[-2:-max_loop:-1] = transfer_P_horz[1:max_loop-1]
-    transfer_P_vert[-2:-max_loop:-1] = transfer_P_vert[1:max_loop-1]
-    # transfer_S_horz[-2:-max_loop:-1] = transfer_S_horz[1:max_loop]
-    # transfer_S_vert[-2:-max_loop:-1] = transfer_S_vert[1:max_loop]
+    transfer_comp[-2:-max_loop:-1] = transfer_comp[1:max_loop-1]
 
-    P_horz = np.real(np.fft.ifft(transfer_P_horz))/dt
-    P_vert = np.real(np.fft.ifft(transfer_P_vert))/dt
-    # S_horz = np.real(np.fft.ifft(transfer_S_horz))/dt
-    # S_vert = np.real(np.fft.ifft(transfer_S_vert))/dt
+    comp = np.real(np.fft.ifft(transfer_comp))/dt
 
     # Filter and cut to size
-    P_horz = matlab.BpFilt(P_horz,T[0],T[1],dt)[:round(tmax/dt)]
-    P_vert = matlab.BpFilt(P_vert,T[0],T[1],dt)[:round(tmax/dt)]
-    # S_horz = matlab.BpFilt(S_horz,T[0],T[1],dt)[:round(tmax/dt)]
-    # S_vert = matlab.BpFilt(S_vert,T[0],T[1],dt)[:round(tmax/dt)]
+    comp = matlab.BpFilt(comp,T[0],T[1],dt)[:round(tmax/dt)]
 
-    # Normalise
-    P_max = np.max(np.concatenate([P_horz, P_vert]))
-    P_horz = P_horz/P_max
-    P_vert = P_vert/P_max
-    # S_max = np.max(np.concatenate([S_horz, S_vert]))
-    # S_horz = S_horz/S_max
-    # S_vert = S_vert/S_max
-
-
-    #return synth waveforms
-    return BodyWaveform(P_horz,P_vert,dt)
+    return comp
 
 
 def _CalcPropagatorMatrix(synthmodel,wavenumber,calc_from_layer):
@@ -805,17 +822,19 @@ def _PrepWaveform(waveform, Ts) -> RotBodyWaveform:
     dt = waveform.dt
 
     # Identify the direct arrival (max peak) - INDEX
-    tshift = parent.argmax()
+    tshift = np.argmax(np.abs(parent))
 
     # Filter, crop, and align
     #   Set the window length to 100 ish sec, centred on incident phase by
     #   padding with zeros (actually 2048, so a power of 2 close to 100s
     #   ASSUMING dt == 0.05 s !!)
+    # N.B.  Synthesised signal length has to be <= half the padded signal length
+    #       here (n_fft) for the padding to work under all circumstances
     tot_time = 100
-    n_fft = 2**(int(tot_time/dt).bit_length()) # next power of 2
-    i_arr = int(n_fft/2)
+    n_fft = 2**(int(tot_time/dt).bit_length()) # next power of 2 (2048)
+    i_arr = int(n_fft/2)       
     parent = np.concatenate([ # pad the beginning with zeros so incident phase
-            np.zeros(i_arr - tshift), parent]) # at tot_time/2
+                np.zeros(i_arr - tshift), parent]) # at tot_time/2
     parent = np.concatenate([ # pad the end with zeros
             parent, np.zeros(n_fft - parent.size)])
     daughter = np.concatenate([ # pad the beginning with zeros
@@ -872,7 +891,7 @@ def _CalculateRF(waveform, rf_in) -> RecvFunc:
     Parent = waveform.parent[incident_win[0]:incident_win[1]]
 
     # Normalise to amplitude of 5 (this should be normalised by S2N)
-    norm_by = 5/np.abs(np.max(Parent))
+    norm_by = 5/np.max(np.abs(Parent))
     Parent = Parent*norm_by
     Daughter = Daughter*norm_by
 
@@ -896,6 +915,7 @@ def _CalculateRF(waveform, rf_in) -> RecvFunc:
 
     # Want time window from incident phase to + 30s
     # and resample with larger dt
+    
     n_jump = int(rf_dt / waveform.dt)
     if n_jump == rf_dt / waveform.dt:
         RF = RF[::n_jump]
