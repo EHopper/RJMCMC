@@ -5,7 +5,7 @@ Created on Fri Mar  9 07:33:21 2018
 @author: emily
 """
 
-save_name = 'MBEY_Ps_scale5'
+save_name = 'MBEY_Sp_scale5'
 save_every = 100
 
 import pipeline
@@ -24,7 +24,8 @@ all_models = np.load(save_name+'_AllModels.npy')
 
 good_mods = all_models[:,np.where(all_models[0,]>0)[0]]
 nit = good_mods.shape[1]
-good_mods = good_mods[:,-int(nit/5):]
+nit_cutoff = int(nit/5)
+good_mods = good_mods[:,-nit_cutoff:]
 mean_mod = np.mean(good_mods, axis = 1)
 std_mod = np.std(good_mods, axis = 1)
 
@@ -148,6 +149,7 @@ misfits = np.load(save_name+'_Misfit.npy')
 nm = misfits.shape[1]#int(misfits.size/3)
 # plot vertical lines where increase number of permissable layers
 inc_ints = 750*np.arange(1,15)*np.arange(2,16)
+good_it = nit - nit_cutoff
 
 
 plt.figure(figsize = (12,5))
@@ -157,6 +159,7 @@ plt.ylim(0.9*(np.min(misfits[0,10:])),
          1.1*(np.max(misfits[0,10:])))
 for k in range(inc_ints.size):
     plt.plot(inc_ints[[k,k]]/save_every,[0,100],'--',color = '0.6')
+plt.plot(good_it*np.ones(2),[0,100], 'r--')
 plt.ylabel('Least Squares Misfit (phi)')
 plt.xlabel('Iteration # /100')
 plt.xlim(0,nm)
@@ -168,6 +171,7 @@ plt.title("Likelihood of accepting new model")
 plt.plot(np.log10(misfits[1,inds]));
 plt.ylim(0.9*np.log10(np.min(misfits[1,inds])),
          1.1*np.log10(np.max(misfits[1,inds])))
+plt.plot(good_it*np.ones(2),[0,100], 'r--')
 plt.plot([0, nm],np.log10([1,1]),'--',color = '0.6')
 plt.ylabel('log10(alpha(m|m0))')
 plt.xlabel('Iteration # /100')
@@ -176,6 +180,7 @@ plt.xlim(0,nm)
 plt.subplot(122); plt.title('Acceptance Rate')
 plt.plot(misfits[2,]*100)
 plt.plot([0,nm],[40,40],'--',color = '0.6')
+plt.plot(good_it*np.ones(2),[20,70], 'r--')
 plt.ylabel('Acceptance Rate (%)')
 plt.xlabel('Iteration # /100')
 plt.xlim(0,nm)
@@ -193,6 +198,7 @@ plt.xlim(0,nm)
 plt.ylim(0.04,0.0525)
 for k in range(inc_ints.size):
     plt.plot(inc_ints[[k,k]]/save_every,[0.04,0.06],'--',color = '0.6')
+plt.plot(good_it*np.ones(2),[0.04, 0.06], 'r--')
 
 plt.subplot(312)
 plt.title('RF Noise Correlation')
@@ -203,6 +209,7 @@ plt.xlim(0,nm)
 plt.ylim(0.4, 0.525)
 for k in range(inc_ints.size):
     plt.plot(inc_ints[[k,k]]/save_every,[0.4,0.6],'--',color = '0.6')
+plt.plot(good_it*np.ones(2),[0.4, 0.6], 'r--')
 
 plt.subplot(313)
 plt.title('SWD Noise standard deviation')
@@ -213,5 +220,6 @@ plt.xlim(0,nm)
 plt.ylim(0.05,0.16)
 for k in range(inc_ints.size):
     plt.plot(inc_ints[[k,k]]/save_every,[0.05, 0.175],'--',color = '0.6')
+plt.plot(good_it*np.ones(2),[0.05,0.175], 'r--')
 plt.tight_layout()
 

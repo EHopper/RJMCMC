@@ -20,7 +20,7 @@ pr.enable()
 max_it=250000
 rnd_sd = 100
 
-save_name = 'MBEY_Ps_scale5'
+save_name = 'MBEY_Sp_scale5'
 rf_obs, swd_obs, all_lims = input_data.LoadObservations()
 
 while os.path.exists('output/'+save_name):
@@ -29,7 +29,7 @@ os.mkdir('output/'+save_name)
 shutil.copyfile('input_data.py','output/'+save_name+'/input_data.py')
 save_name = 'output/'+save_name+'/'+save_name
 out = pipeline.JointInversion(rf_obs, swd_obs, all_lims, max_it, rnd_sd,
-                              save_name, 'Ps')
+                              save_name)
 
 pr.disable()
 s=open(save_name+'profiletimes.txt','w')
