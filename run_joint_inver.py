@@ -18,10 +18,10 @@ pr.enable()
 
 
 max_it=250000
-rnd_sd = 100
+rnd_sd = 10
 
 
-save_name = 'MBEY_Sp_scale5'
+save_name = 'NKAL_Ps_scale5'
 
 
 
