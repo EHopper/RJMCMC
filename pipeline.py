@@ -29,7 +29,7 @@ class RecvFunc(typing.NamedTuple):
     rf_phase: str
     ray_param: float  # tested assuming ray_param = 0.0618
     filter_corners: list # Should be the short and long PERIOD corners of the
-                         # appropriate filter band (s)  
+                         # appropriate filter band (s)
     std_sc: float # This is trying to account for near-surface misrotation
                     # scale std_rf by std_sc for the first 0.5s of the signal
                     # i.e. set to 1 to not bodge things!
@@ -183,7 +183,7 @@ def InitialState(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
 
     # Calculate synthetic data
         # First, need to define the Vp and rho
-    fullmodel_0 = MakeFullModel(model_0, rf_phase, rf_obs.ray_param)
+    fullmodel_0 = MakeFullModel(model_0)
     rf_synth_m0 = SynthesiseRF(fullmodel_0, rf_obs) # forward model the RF data
     swd_synth_m0 = SynthesiseSWD(fullmodel_0, swd_obs.period, 0) # forward model the SWD data
 
@@ -416,7 +416,8 @@ def CalcCovarianceMatrix(model,rf_obs,swd_obs) -> CovarianceMatrix:
 
     # Try to workaround potential mis-rotation near surface by increasing the
     # std_rf near the surface, e.g. first 0.5 s
-    ind = int(0.5/rf_obs.dt) + 1  # <= 0.5 s
+    if rf_obs.rf_phase == 'Ps': ind = int(0.5/rf_obs.dt) + 1  # <= 0.5 s
+    if rf_obs.rf_phase == 'Sp': ind = int(5/rf_obs.dt) + 1 # <= 5s for Sp
     covar[:ind,:ind] *= rf_obs.std_sc
 
     invc=np.linalg.inv(covar)
@@ -580,7 +581,7 @@ def SynthesiseRF(fullmodel, rf_in) -> RecvFunc:
 
     # And deconvolve it
     rf = _CalculateRF(wv, rf_in)
-    
+
     return rf
 
 
@@ -631,7 +632,7 @@ def _SynthesiseWV(synthmodel, rf_in) -> BodyWaveform:
         S_vert = _IFFTSynth(transfer_S_vert, max_loop, dom_freq, T, dt, tmax)
         S_horz, S_vert = _NormaliseSynth(S_horz, S_vert, rf_in.rf_phase)
         return BodyWaveform(S_horz,S_vert,dt)
-    
+
     elif rf_in.rf_phase == 'Both':
         P_horz = _IFFTSynth(transfer_P_horz, max_loop, dom_freq, T, dt, tmax)
         P_vert = _IFFTSynth(transfer_P_vert, max_loop, dom_freq, T, dt, tmax)
@@ -648,11 +649,11 @@ def _NormaliseSynth(horz, vert, rf_phase):
     max_val = np.max(np.abs(np.concatenate([horz,vert])))
     horz = horz/max_val
     vert = vert/max_val
-        
+
     if rf_phase == 'Sp':  # flip the time axis
         horz = horz[-1::-1]
         vert = vert[-1::-1]
-    
+
     return horz, vert
 
 def _IFFTSynth(transfer_comp, max_loop, dom_freq, T, dt, tmax):
@@ -831,7 +832,7 @@ def _PrepWaveform(waveform, Ts) -> RotBodyWaveform:
     #       here (n_fft) for the padding to work under all circumstances
     tot_time = 100
     n_fft = 2**(int(tot_time/dt).bit_length()) # next power of 2 (2048)
-    i_arr = int(n_fft/2)       
+    i_arr = int(n_fft/2)
     parent = np.concatenate([ # pad the beginning with zeros so incident phase
                 np.zeros(i_arr - tshift), parent]) # at tot_time/2
     parent = np.concatenate([ # pad the end with zeros
@@ -911,15 +912,19 @@ def _CalculateRF(waveform, rf_in) -> RecvFunc:
 
     i_t0 = i_t0 + pad.size - 1
     RF = np.mean(w_RFs, 0)
-    
+
     # Filter as the original RF (corners specified in input file)
-    RF =  matlab.BpFilt(RF, rf_in.filter_corners[0], 
+    RF =  matlab.BpFilt(RF, rf_in.filter_corners[0],
                         rf_in.filter_corners[1], waveform.dt)
 
+    # Normalise to max amp of an individual window
+    RF = RF/np.max(np.abs(RF)) * max_RF
+
+
     # Want time window from incident phase to + 30s
-    # and resample with larger dt    
+    # and resample with larger dt
     RF = RF[i_t0 : i_t0 + int(rf_tmax/waveform.dt)]
-    
+
     n_jump = int(rf_dt / waveform.dt)
     if n_jump == rf_dt / waveform.dt:
         RF = RF[::n_jump]
@@ -927,7 +932,6 @@ def _CalculateRF(waveform, rf_in) -> RecvFunc:
         RF = interp1d(np.arange(0, rf_tmax, waveform.dt),
                       RF)(np.arange(0, rf_tmax, rf_dt))
 
-    RF = RF/np.max(np.abs(RF)) * max_RF
 
     return RecvFunc(amp = RF, dt = rf_dt, ray_param = rf_in.ray_param,
                     std_sc = rf_in.std_sc, rf_phase = rf_in.rf_phase,
