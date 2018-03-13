@@ -20,19 +20,32 @@ pr.enable()
 max_it=200000
 rnd_sd = 10
 
-save_name = 'MBEY_Ps'
+save_name = 'MBEY_Psz'
 rf_obs, swd_obs, all_lims = input_data.LoadObservations()
 
-while os.path.exists('output/'+save_name):
-    save_name += '_'+str(rnd_sd)
-os.mkdir('output/'+save_name)
-shutil.copyfile('input_data.py','output/'+save_name+'/input_data.py')
-save_name = 'output/'+save_name+'/'+save_name
+save_name += '_%d' % rnd_sd
+suffix = None
+def outdir_fn():
+    if suffix is None:
+        return os.path.join('output', save_name)
+    else:
+        return os.path.join('output', '%s_%05d' % (save_name, suffix))
+
+while os.path.exists(outdir_fn()):
+    if suffix is None:
+        suffix = 0
+    else:
+        suffix += 1
+
+outdir = outdir_fn()
+
+os.mkdir(outdir)
+shutil.copyfile('input_data.py', os.path.join(outdir, 'input_data.py'))
 out = pipeline.JointInversion(rf_obs, swd_obs, all_lims, max_it, rnd_sd,
-                              save_name, 'Ps')
+                              os.path.join(outdir, save_name), 'Ps')
 
 pr.disable()
-s=open(save_name+'/profiletimes.txt','w')
+s=open(os.path.join(outdir, 'profiletimes.txt'), 'w')
 sortby = 'cumulative'
 ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
 ps.print_stats()
