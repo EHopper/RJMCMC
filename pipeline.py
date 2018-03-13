@@ -70,6 +70,7 @@ class Limits(typing.NamedTuple):
     std_rf: tuple
     lam_rf: tuple
     std_swd: tuple
+    crustal_thick: tuple
 # Reasonable min and max values for all model parameters define the prior
 # distribution - i.e. uniform probability within some reasonable range of values
 
@@ -265,7 +266,7 @@ def NextState(itr:int, rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
 # but SWD noise is assume to be uncorrelated, so only one hyperparameter is
 # inverted for the dispersion data.
 def InitialModel(rf_obs) -> Model:
-    vs = np.array([round(random.uniform(0.5,5.5),2)])   # arbitrary
+    vs = np.array([round(random.uniform(0.5,4.5),2)])   # arbitrary
     all_deps = np.concatenate((np.arange(0,10,0.2),
                                 np.arange(10,60,1), np.arange(60,201,5)))
     idep = np.array([random.randrange(0,len(all_deps))])  # arbitrary
@@ -288,7 +289,9 @@ def CheckPrior(model: Model, limits: Limits) -> bool:
         _InBounds(model.std_rf, limits.std_rf) and
         _InBounds(model.lam_rf, limits.lam_rf) and
         _InBounds(model.std_swd, limits.std_swd) and
-        model.vs.size == model.idep.size
+        model.vs.size == model.idep.size and
+        (np.hstack([0,model.vs[
+                model.all_deps[model.idep]<= limits.crustal_thick[0]]]) <= 4.5).all()
     )
 
 def _InBounds(value, limit):

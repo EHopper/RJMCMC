@@ -75,10 +75,10 @@ class PipelineTest(unittest.TestCase):
 
     @parameterized.expand([
         ("Seed == 1", normdist, 1,
-             pipeline.Model(vs = np.array(1.17), all_deps = deps, idep = np.array(16),
+             pipeline.Model(vs = np.array(1.04), all_deps = deps, idep = np.array(16),
                             std_rf = 0.5, lam_rf = 0.2, std_swd = 0.15)),
         ("Seed == 10", normdist, 10,
-             pipeline.Model(vs = 3.36, all_deps = deps, idep = 109,
+             pipeline.Model(vs = 2.79, all_deps = deps, idep = 109,
                             std_rf = 0.5, lam_rf = 0.2, std_swd = 0.15)),
     ])
 
@@ -98,6 +98,7 @@ class PipelineTest(unittest.TestCase):
     lims = pipeline.Limits(
             vs = (0.5,5), dep = (0,200), std_rf = (0.005,0.5),
             lam_rf = (0.05,0.5), std_swd = (0.01,0.2),
+            crustal_thick = (-1,)
             )
     model = pipeline.Model(
             vs = np.array([1.4,4,5]), all_deps = deps, idep = np.array([0,42,64]),
@@ -118,6 +119,7 @@ class PipelineTest(unittest.TestCase):
 #                 model._replace(vs = np.array(1), idep = np.array(16)), True),
             ("One layer", lims,
                  model._replace(vs = np.array([1]), idep = np.array([16])), True)
+            #("Shouldn't work", lims._replace(crustal_thick = (200,)), model, False),
             ])
 
     def test_CheckPrior(self,name,lims,model,expected):
@@ -445,7 +447,7 @@ class PipelineTest(unittest.TestCase):
 
     # Test whole synthetics process
     rf_in = pipeline.RecvFunc(amp = np.array([0]), dt = 0.25, rf_phase = 'Ps',
-                              ray_param = 0.0618, std_sc = 1, 
+                              ray_param = 0.0618, std_sc = 1,
                               filter_corners = [1,100])
 
 
@@ -2857,7 +2859,7 @@ class PipelineTest(unittest.TestCase):
                        0.00009, 0.00010, 0.00010, 0.00010, 0.00010, 0.00010,
                        0.00010, 0.00010, 0.00010, 0.00010, 0.00009, 0.00009,
                        0.00009, 0.00008, 0.00008]), dt = 0.25,
-                        rf_phase = 'Sp', ray_param = 0.1157, 
+                        rf_phase = 'Sp', ray_param = 0.1157,
                         std_sc = 1, filter_corners = [1,100])),
             ("Moho Sp, broader filter", model, rf_in._replace(ray_param = 0.1157,
                                                              rf_phase = 'Sp',
@@ -2882,25 +2884,25 @@ class PipelineTest(unittest.TestCase):
 #                       0.00014, 0.00013, 0.00012, 0.00015, 0.00016, 0.00017,
 #                       0.00018, 0.00019, 0.00020, 0.00021, 0.00023, 0.00024,
 #                       0.00025, 0.00025, 0.00025, 0.00025, 0.00024, 0.00022,
-#                       0.00020, 0.00019, 0.]), 
+#                       0.00020, 0.00019, 0.]),
     # Note, due to filtering done on different length signals, these end up
     # being slightly off from the MATLAB output (above) - I think it's fine though..
                 pipeline.RecvFunc(amp = np.array([-0.001, -0.001, -0.,  0.,  0,
-                        -0.   , -0.001, -0.004, -0.008, -0.016, -0.027, -0.041, 
+                        -0.   , -0.001, -0.004, -0.008, -0.016, -0.027, -0.041,
                         -0.06 , -0.082, -0.104, -0.124, -0.136, -0.135, -0.123,
                         -0.103, -0.08 , -0.058, -0.04 , -0.026, -0.015, -0.008,
-                        -0.003, -0.001,  0,  0.001,  0, -0, -0.001, -0.001, 
+                        -0.003, -0.001,  0,  0.001,  0, -0, -0.001, -0.001,
                         -0.001, -0.001, -0.001, -0.001, -0.001, -0, 0,  0.001,
-                        0.001,  0.002,  0.003,  0.004,  0.005,  0.006, 0.007, 
+                        0.001,  0.002,  0.003,  0.004,  0.005,  0.006, 0.007,
                         0.009,  0.011,  0.013,  0.015,  0.016,  0.016,  0.015,
-                        0.014,  0.012,  0.011,  0.01 ,  0.009,  0.008,  0.007, 
-                        0.007, 0.007,  0.006,  0.006,  0.006,  0.006,  0.005,  
-                        0.005,  0.005, 0.005,  0.005,  0.005,  0.005,  0.004,  
-                        0.004,  0.004,  0.004, 0.004,  0.003,  0.003,  0.003,  
-                        0.003,  0.002,  0.002,  0.002, 0.001,  0.001,  0.001,  
+                        0.014,  0.012,  0.011,  0.01 ,  0.009,  0.008,  0.007,
+                        0.007, 0.007,  0.006,  0.006,  0.006,  0.006,  0.005,
+                        0.005,  0.005, 0.005,  0.005,  0.005,  0.005,  0.004,
+                        0.004,  0.004,  0.004, 0.004,  0.003,  0.003,  0.003,
+                        0.003,  0.002,  0.002,  0.002, 0.001,  0.001,  0.001,
                         0.001,  0.001,  0.001,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-                        dt = 0.25, rf_phase = 'Sp', 
+                        dt = 0.25, rf_phase = 'Sp',
                         ray_param = 0.1157, std_sc = 1, filter_corners = [4,100])),
         ])
     def test_CalcSynthRF(self, name, model, rf_in, expected):
@@ -2988,7 +2990,7 @@ class PipelineTest(unittest.TestCase):
                            std_rf = 0.1, lam_rf = 0.2, std_swd = 0.2)
     swd_obs = pipeline.SurfaceWaveDisp(c = 0, period = 1/np.arange(0.02,0.11,0.01))
     rf_obs = pipeline.RecvFunc(amp = np.array([0]), dt = 0.25,
-                               std_sc = 1, ray_param = 0.0618, 
+                               std_sc = 1, ray_param = 0.0618,
                                rf_phase = 'Ps', filter_corners = [1,100])
 
     @parameterized.expand([

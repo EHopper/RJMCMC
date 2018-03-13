@@ -5,8 +5,16 @@ Created on Fri Mar  9 07:31:01 2018
 @author: emily
 """
 
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Mar  9 07:31:01 2018
+
+@author: emily
+"""
+
 import pipeline
 import numpy as np
+
 
 
 def LoadObservations():
@@ -52,6 +60,6 @@ def LoadObservations():
 
 	all_lims = pipeline.Limits(
 				vs = (0.5, 5.0),dep = (0,200), std_rf = (0, 0.05),
-				lam_rf = (0.05, 0.5), std_swd = (0, 0.15))
+				lam_rf = (0.05, 0.5), std_swd = (0, 0.15), crustal_thick = (25,))
 
 	return (rf_obs, swd_obs, all_lims)

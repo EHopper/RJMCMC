@@ -5,7 +5,7 @@ Created on Fri Mar  9 07:33:21 2018
 @author: emily
 """
 
-save_name = 'MBEY_Sp_scale5'
+save_name = 'NKAL_Ps_scale5_10'#'MBEY_Sp_scale5_10'#'MBEY_Ps_scale5'
 save_every = 100
 
 import pipeline
@@ -206,10 +206,10 @@ plt.plot(hyperparams[0:nm,1])
 plt.xlabel('Iteration # /100')
 plt.ylabel('Lambda of RF')
 plt.xlim(0,nm)
-plt.ylim(0.4, 0.525)
+plt.ylim(0.1, 0.525)
 for k in range(inc_ints.size):
-    plt.plot(inc_ints[[k,k]]/save_every,[0.4,0.6],'--',color = '0.6')
-plt.plot(good_it*np.ones(2),[0.4, 0.6], 'r--')
+    plt.plot(inc_ints[[k,k]]/save_every,[0.,0.6],'--',color = '0.6')
+plt.plot(good_it*np.ones(2),[0., 0.6], 'r--')
 
 plt.subplot(313)
 plt.title('SWD Noise standard deviation')
