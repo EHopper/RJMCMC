@@ -493,9 +493,16 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
         # choose unoccupied position, unused_d (index i_d), with uniform probability
         idep = model.idep.copy()
         vs = model.vs.copy()
-        unused_idep = [idx for idx,val in enumerate(model.all_deps)
-                if idx not in idep]
-        i_d = random.sample(unused_idep, 1)[0]
+        # We'll try and do this with uniform probability across the depth range
+        i_d = -1
+        while i_d < 0:
+            target_depth = random.random()*np.max(model.all_deps)
+            test_i = np.argmin(np.abs(model.all_deps-target_depth))
+            if test_i not in model.idep: i_d = test_i
+                
+        #unused_idep = [idx for idx,val in enumerate(model.all_deps)
+        #        if idx not in idep]
+        #i_d = random.sample(unused_idep, 1)[0]
         unused_d = model.all_deps[i_d]
         theta = _GetStdForGaussian(perturb, itr)
         # identify index of closest nucleus for old Vs value
