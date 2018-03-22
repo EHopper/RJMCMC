@@ -6,10 +6,10 @@ Created on Fri Mar  9 07:33:21 2018
 """
 
 save_name = 'MBEY_Both_scale5_10'#'MBEY_Sp_scale5_10'#'MBEY_Ps_scale5'
-fol_append = ''#'_00000' #''
+fol_append = '_00004' #''
 save_every = 100
 
-import pipeline
+import pipeline_three
 import numpy as np
 import matplotlib.pyplot as plt
 import shutil
@@ -18,7 +18,7 @@ shutil.copyfile('./output/'+save_name+fol_append+'/input_data.py', './input_data
 
 import input_data
 
-rf_obs, swd_obs, all_lims = input_data.LoadObservations()
+rf_obs_Ps, rf_obs_Sp, swd_obs, all_lims = input_data.LoadObservations()
 
 save_name = 'output/'+save_name+fol_append+'/'+save_name
 all_models = np.load(save_name+'_AllModels.npy')
@@ -30,10 +30,11 @@ good_mods = good_mods[:,-nit_cutoff:]
 mean_mod = np.mean(good_mods, axis = 1)
 std_mod = np.std(good_mods, axis = 1)
 
-good_mod = pipeline.Model(vs = mean_mod, all_deps = all_models[:,0],
+good_mod = pipeline_three.Model3(vs = mean_mod, all_deps = all_models[:,0],
                           idep = np.arange(0,mean_mod.size),
-                          lam_rf = 0, std_rf = 0, std_swd = 0)
-fullmodel = pipeline.MakeFullModel(good_mod)
+                          lam_rf_Ps = 0, std_rf_Ps = 0,
+                          lam_rf_Sp = 0, std_rf_Sp = 0, std_swd = 0)
+fullmodel = pipeline_three.MakeFullModel(good_mod)
 
 
 
@@ -103,15 +104,16 @@ for k in range(1,good_mods.shape[1]):
 
 
 
-synth_swd = pipeline.SynthesiseSWD(fullmodel, swd_obs.period, 1e6)
+synth_swd = pipeline_three.SynthesiseSWD(fullmodel, swd_obs.period, 1e6)
 if nit*save_every<1e5:
-    synth_swd_coarse = pipeline.SynthesiseSWD(fullmodel, swd_obs.period, 1)
-synth_rf = pipeline.SynthesiseRF(fullmodel, rf_obs)
+    synth_swd_coarse = pipeline_three.SynthesiseSWD(fullmodel, swd_obs.period, 1)
+synth_rf_Ps = pipeline_three.SynthesiseRF(fullmodel, rf_obs_Ps)
+synth_rf_Sp = pipeline_three.SynthesiseRF(fullmodel, rf_obs_Sp)
 
-
+#%%
 plt.figure(figsize = (14,8));
 
-ax2=plt.subplot(131)
+ax2=plt.subplot(141)
 ax2.imshow(np.log10(mod_space[-1::-1]+1e-1), cmap = 'viridis', aspect = allvels[-1]/evendeps[-1],
            extent = [allvels[0], allvels[-1], evendeps[0], evendeps[-1]])
 ax2.invert_yaxis()
@@ -122,18 +124,30 @@ ax2.xaxis.tick_top()
 ax2.set_xlim((1.5,5))
 
 
-plt.subplot(132); plt.title('Receiver Function\n real: red; synth: grey')
-rft = np.arange(0,rf_obs.dt*rf_obs.amp.size,rf_obs.dt)
-plt.plot(rf_obs.amp, rft, 'r-', linewidth=2)
-plt.plot(synth_rf.amp,rft, '-',color = '0.25', linewidth=2)
-plt.plot(rf_obs.amp-0.02,rft, 'r--', linewidth=1)
-plt.plot(rf_obs.amp+0.02,rft, 'r--', linewidth=1)
+plt.subplot(142); plt.title('Receiver Function\n real: red; synth: grey')
+rft = np.arange(0,rf_obs_Ps.dt*rf_obs_Ps.amp.size,rf_obs_Ps.dt)
+plt.plot(rf_obs_Ps.amp, rft, 'r-', linewidth=2)
+plt.plot(synth_rf_Ps.amp,rft, '-',color = '0.25', linewidth=2)
+plt.plot(rf_obs_Ps.amp-0.02,rft, 'r--', linewidth=1)
+plt.plot(rf_obs_Ps.amp+0.02,rft, 'r--', linewidth=1)
 plt.plot([0,0],[0,30],'--',color='0.6')
 plt.ylim(30,0)
 plt.xlabel('RF Amplitude')
 plt.ylabel('Time (s)')
 
-plt.subplot(133); plt.title('Surface Wave Dispersion\n real: red; synth: grey')
+plt.subplot(143); plt.title('Receiver Function\n real: red; synth: grey')
+rft = np.arange(0,rf_obs_Sp.dt*rf_obs_Sp.amp.size,rf_obs_Sp.dt)
+plt.plot(rf_obs_Sp.amp, rft, 'r-', linewidth=2)
+plt.plot(synth_rf_Sp.amp,rft, '-',color = '0.25', linewidth=2)
+plt.plot(rf_obs_Sp.amp-0.02,rft, 'r--', linewidth=1)
+plt.plot(rf_obs_Sp.amp+0.02,rft, 'r--', linewidth=1)
+plt.plot([0,0],[0,30],'--',color='0.6')
+plt.ylim(30,0)
+plt.xlabel('RF Amplitude')
+plt.ylabel('Time (s)')
+
+
+plt.subplot(144); plt.title('Surface Wave Dispersion\n real: red; synth: grey')
 plt.plot(swd_obs.period, swd_obs.c,  'r-', linewidth=2)
 plt.plot(synth_swd.period, synth_swd.c, '-',color = '0.25', linewidth=2)
 if nit*save_every<1e5:

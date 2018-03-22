@@ -58,6 +58,16 @@ class Model(typing.NamedTuple):
     std_rf: float
     lam_rf: float
     std_swd: float
+
+class Model3(typing.NamedTuple):
+    vs: np.array
+    all_deps: np.array    # all possible depth nodes
+    idep: np.array        # indices of used depth nodes
+    std_rf_Ps: float
+    lam_rf_Ps: float
+    std_rf_Sp: float
+    lam_rf_Sp: float
+    std_swd: float
 # Inputs: dep=[list of depths, km]; vs=[list of Vs, km/s];
 # std_rf=RF standard deviation; lam_rf=RF lambda; std_swd=SWD dispersion std
 # Note that std_rf, lam_rf, std_swd are all inputs to the covariance matrix,
@@ -69,6 +79,16 @@ class Limits(typing.NamedTuple):
     dep: tuple
     std_rf: tuple
     lam_rf: tuple
+    std_swd: tuple
+    crustal_thick: tuple
+
+class Limits3(typing.NamedTuple):
+    vs: tuple
+    dep: tuple
+    std_rf_Ps: tuple
+    lam_rf_Ps: tuple
+    std_rf_Sp: tuple
+    lam_rf_Sp: tuple
     std_swd: tuple
     crustal_thick: tuple
 # Reasonable min and max values for all model parameters define the prior
@@ -102,6 +122,16 @@ class GlobalState(typing.NamedTuple):
     swd_synth: SurfaceWaveDisp
     fit_to_obs: float
 
+class GlobalState3(typing.NamedTuple):
+    model: Model3
+    fullmodel: SynthModel
+    cov: CovarianceMatrix
+    rf_synth_Ps: RecvFunc
+    rf_synth_Sp: RecvFunc
+    swd_synth: SurfaceWaveDisp
+    fit_to_obs: float
+
+
 class Error(Exception): pass
 
 # =============================================================================
@@ -116,7 +146,7 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
     random.seed(a = random_seed)
     np.random.seed(seed = random_seed+1)
 
-    state = InitialState(rf_obs, swd_obs, lims, rf_obs.rf_phase)
+    state = InitialState(rf_obs, swd_obs, lims)
 
 # =============================================================================
 #           Define parameters for convergence
@@ -173,8 +203,83 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
     return (None, all_models, all_phi, all_alpha, all_keep, state.fullmodel)
 
 
+
+# =============================================================================
+# Overall process for the joint inversion
+# =============================================================================
+
+def TripleInversion(rf_obs_Ps: RecvFunc, rf_obs_Sp: RecvFunc,
+                   swd_obs: SurfaceWaveDisp, lims: Limits3,
+                   max_iter: int, random_seed: int,
+                   save_name:  str) -> Model3:
+
+    # N.B.  The variable random_seed ensures that the process is repeatable.
+    random.seed(a = random_seed)
+    np.random.seed(seed = random_seed+1)
+
+    state = InitialState3(rf_obs_Ps, rf_obs_Sp, swd_obs, lims)
+
+# =============================================================================
+#           Define parameters for convergence
+# =============================================================================
+    ddeps=np.zeros(state.model.all_deps.size*2-1)
+    ddeps[::2] = state.model.all_deps
+    ddeps[1::2] = state.model.all_deps[:-1]+np.diff(state.model.all_deps)/2
+    save_every = 100
+    all_models = np.zeros((ddeps.size,int(max_iter/save_every)+1))
+    all_models[:,0] = ddeps
+    all_models[:,1] = SaveModel(state.fullmodel, ddeps)
+    all_hyperparameters = np.zeros((int(max_iter/save_every),5))
+    all_phi = np.zeros(save_every) # all misfits
+    all_alpha = np.zeros(save_every) # all likelihoods
+    all_keep = np.zeros(save_every)
+    mean_phi = np.zeros(int(max_iter/save_every))
+    mean_alpha = np.zeros(int(max_iter/save_every))
+    mean_keep = np.zeros(int(max_iter/save_every))
+
+    n_save = 0
+    n_mwin = 0
+
+    # =========================================================================
+    #       Iterate by Reverse Jump Markov Chain Monte Carlo
+    # =========================================================================
+    for itr in range(1,max_iter):
+        if not itr % 20:
+            print("Iteration {}..".format(itr))
+
+        state, keep_yn, all_alpha[n_mwin] = NextState3(
+            itr, rf_obs_Ps, rf_obs_Sp, swd_obs, lims, state)
+
+        all_phi[n_mwin] = state.fit_to_obs
+        all_keep[n_mwin] = keep_yn
+
+        # Save every 500th iteration to see progress
+        n_mwin += 1
+        if itr / save_every > n_save:
+
+            mean_phi[n_save] = np.mean(all_phi[all_phi>0])
+            mean_alpha[n_save] = np.mean(all_alpha[all_alpha>0])
+            mean_keep[n_save] = np.mean(all_keep)
+            all_phi *= 0; all_alpha *= 0; all_keep *= 0
+            all_hyperparameters[n_save,:] = np.array([state.model.std_rf_Ps,
+                               state.model.lam_rf_Ps, state.model.lam_rf_Sp,
+                               state.model.lam_rf_Sp, state.model.std_swd])
+            all_models[:,n_save+1] = SaveModel(state.fullmodel, all_models[:,0])
+            np.save((save_name+'_AllModels'),all_models[:,:n_save+1])
+            np.save((save_name+'_Misfit'),np.vstack((mean_phi[:n_save],
+                    mean_alpha[:n_save], mean_keep[:n_save])))
+            np.save((save_name+'_Hyperparams'),all_hyperparameters)
+            n_save += 1
+            n_mwin = 0
+
+    return (None, all_models, all_phi, all_alpha, all_keep, state.fullmodel)
+
+
+
+
+
 def InitialState(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
-                 rf_phase) -> GlobalState:
+                 ) -> GlobalState:
     # =========================================================================
     #      Start by calculating for some (arbitrary) initial model
     # =========================================================================
@@ -205,6 +310,45 @@ def InitialState(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
         swd_synth=swd_synth_m0,
         fit_to_obs=fit_to_obs_m0,
     )
+
+
+def InitialState3(rf_obs_Ps: RecvFunc, rf_obs_Sp: RecvFunc,
+                  swd_obs: SurfaceWaveDisp, lims: Limits3) -> GlobalState3:
+    # =========================================================================
+    #      Start by calculating for some (arbitrary) initial model
+    # =========================================================================
+    model_0 = InitialModel3()
+    if not CheckPrior3(model_0, lims):
+        raise Error("Starting model does not fit prior distribution")
+
+    # Calculate synthetic data
+        # First, need to define the Vp and rho
+    fullmodel_0 = MakeFullModel(model_0)
+    rf_synth_Ps_m0 = SynthesiseRF(fullmodel_0, rf_obs_Ps) # forward model the RF data
+    rf_synth_Sp_m0 = SynthesiseRF(fullmodel_0, rf_obs_Sp) # forward model the RF data
+    swd_synth_m0 = SynthesiseSWD(fullmodel_0, swd_obs.period, 0) # forward model the SWD data
+
+    # Calculate covariance matrix (and inverse, and determinant)
+    cov_m0 = CalcCovarianceMatrix3(model_0,rf_synth_Ps_m0, rf_synth_Sp_m0,
+                                  swd_synth_m0)
+
+    # Calculate fit
+    fit_to_obs_m0 = Mahalanobis3(
+            rf_obs_Ps.amp, rf_synth_Ps_m0.amp, # RecvFunc Ps
+            rf_obs_Sp.amp, rf_synth_Sp_m0.amp, # RecvFunc Sp
+            swd_obs.c, swd_synth_m0.c,  # SurfaceWaveDisp
+            cov_m0.invCovar,             # CovarianceMatrix
+            )
+    return GlobalState3(
+        model=model_0,
+        cov=cov_m0,
+        fullmodel=fullmodel_0,
+        rf_synth_Ps=rf_synth_Ps_m0,
+        rf_synth_Sp=rf_synth_Sp_m0,
+        swd_synth=swd_synth_m0,
+        fit_to_obs=fit_to_obs_m0,
+    )
+
 
 
 def NextState(itr:int, rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
@@ -255,6 +399,61 @@ def NextState(itr:int, rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
     ), True, alpha
 
 
+
+def NextState3(itr:int, rf_obs_Ps: RecvFunc, rf_obs_Sp: RecvFunc,
+               swd_obs: SurfaceWaveDisp, lims: Limits3,
+              prev_state: GlobalState3) -> (GlobalState3, bool, float):
+    # Generate new model by perturbing the old model
+    model, changes_model = Mutate3(prev_state.model, itr)
+
+    if not CheckPrior3(model, lims): # check if mutated model compatible with prior distr.
+        #print('Failed Prior')
+        return prev_state, False, 0  # if not, continue to next iteration
+
+    fullmodel = MakeFullModel(model)
+    if changes_model.which_change == 'Noise':
+        # only need to recalculate covariance matrix if changed hyperparameter
+        rf_synth_Ps_m = prev_state.rf_synth_Ps
+        rf_synth_Sp_m = prev_state.rf_synth_Sp
+        swd_synth_m = prev_state.swd_synth
+        cov_m = CalcCovarianceMatrix3(model,prev_state.rf_synth_Ps,
+                                      prev_state.rf_synth_Sp, prev_state.swd_synth)
+
+    else:
+        cov_m = prev_state.cov
+        rf_synth_Ps_m = SynthesiseRF(fullmodel, prev_state.rf_synth_Ps) # forward model the RF data
+        rf_synth_Sp_m = SynthesiseRF(fullmodel, prev_state.rf_synth_Sp)
+        swd_synth_m = SynthesiseSWD(fullmodel, swd_obs.period, itr) # forward model the SWD data
+
+    # Calculate fit
+    fit_to_obs_m = Mahalanobis3(
+        rf_obs_Ps.amp, rf_synth_Ps_m.amp, # RecvFunc Ps
+        rf_obs_Sp.amp, rf_synth_Sp_m.amp, # RecvFunc Sp
+        swd_obs.c, swd_synth_m.c,  # SurfaceWaveDisp
+        cov_m.invCovar,             # CovarianceMatrix
+    )
+
+    # Calculate probability of keeping mutation
+    keep_yn, alpha = AcceptFromLikelihood(
+        fit_to_obs_m, prev_state.fit_to_obs, # float
+        cov_m, prev_state.cov, # CovarianceMatrix
+        changes_model, # form depends on which change
+    )
+
+    if not keep_yn:
+        return prev_state, False, alpha
+
+    return GlobalState3(
+        model=model,
+        cov=cov_m,
+        fullmodel=fullmodel,
+        rf_synth_Ps=rf_synth_Ps_m,
+        rf_synth_Sp=rf_synth_Sp_m,
+        swd_synth=swd_synth_m,
+        fit_to_obs=fit_to_obs_m,
+    ), True, alpha
+
+
 # =============================================================================
 #       Setting up the model.
 # =============================================================================
@@ -275,7 +474,18 @@ def InitialModel(rf_obs) -> Model:
     std_swd = 0.05 # arbitrary - the max allowed in Geoff Abers' code = 0.15
     return Model(vs, all_deps, idep, std_rf, lam_rf, std_swd)
 
-
+def InitialModel3() -> Model3:
+    vs = np.array([round(random.uniform(0.5,4.5),2)])   # arbitrary
+    all_deps = np.concatenate((np.arange(0,10,0.2),
+                                np.arange(10,60,1), np.arange(60,201,5)))
+    idep = np.array([random.randrange(0,len(all_deps))])  # arbitrary
+    std_rf_Ps = 0.05
+    lam_rf_Ps = 0.2 # this is as the example given by KL14
+    std_rf_Sp = 0.05
+    lam_rf_Sp = 0.2
+    std_swd = 0.05 # arbitrary - the max allowed in Geoff Abers' code = 0.15
+    return Model3(vs, all_deps, idep, std_rf_Ps, lam_rf_Ps,
+                 std_rf_Sp, lam_rf_Sp, std_swd)
 # =============================================================================
 #       Check against prior distribution (check reasonable limits)
 # =============================================================================
@@ -288,6 +498,21 @@ def CheckPrior(model: Model, limits: Limits) -> bool:
         _InBounds(model.all_deps[model.idep], limits.dep) and
         _InBounds(model.std_rf, limits.std_rf) and
         _InBounds(model.lam_rf, limits.lam_rf) and
+        _InBounds(model.std_swd, limits.std_swd) and
+        model.vs.size == model.idep.size and
+        (np.hstack([0,model.vs[
+                model.all_deps[model.idep]<= limits.crustal_thick[0]]]) <= 4.5).all()
+    )
+
+def CheckPrior3(model: Model3, limits: Limits3) -> bool:
+    return (
+        _InBounds(model.idep, (0,model.all_deps.size-2)) and
+        _InBounds(model.vs, limits.vs) and
+        _InBounds(model.all_deps[model.idep], limits.dep) and
+        _InBounds(model.std_rf_Ps, limits.std_rf_Ps) and
+        _InBounds(model.lam_rf_Ps, limits.lam_rf_Ps) and
+        _InBounds(model.std_rf_Sp, limits.std_rf_Sp) and
+        _InBounds(model.lam_rf_Sp, limits.lam_rf_Sp) and
         _InBounds(model.std_swd, limits.std_swd) and
         model.vs.size == model.idep.size and
         (np.hstack([0,model.vs[
@@ -436,6 +661,53 @@ def CalcCovarianceMatrix(model,rf_obs,swd_obs) -> CovarianceMatrix:
 
     return CovarianceMatrix(covar,invc,detc,R)
 
+def CalcCovarianceMatrix3(model,rf_obs_Ps, rf_obs_Sp,swd_obs) -> CovarianceMatrix:
+    #    First, calculate R based on lam_rf
+    # RF part of covariance: square matrix with length = number of timesteps in RF
+    w0=4.4 # constant, as KL14
+    nrf = rf_obs_Ps.amp.size
+    R_Ps=np.zeros((nrf,nrf))
+    for a in range(nrf):
+        for b in range(nrf):
+            R_Ps[a,b]=(np.exp(-(model.lam_rf_Ps*rf_obs_Ps.dt*abs(a-b)))*
+             np.cos(model.lam_rf_Ps*w0*rf_obs_Ps.dt*abs(a-b)))
+
+    nsrf = rf_obs_Sp.amp.size
+    R_Sp=np.zeros((nsrf,nsrf))
+    for a in range(nsrf):
+        for b in range(nsrf):
+            R_Sp[a,b]=(np.exp(-(model.lam_rf_Sp*rf_obs_Sp.dt*abs(a-b)))*
+             np.cos(model.lam_rf_Sp*w0*rf_obs_Sp.dt*abs(a-b)))
+
+
+    covar=np.zeros((nrf+nsrf+swd_obs.period.size, nrf+nsrf+swd_obs.period.size))
+    covar[:nrf, :nrf] = R_Ps*model.std_rf_Ps**2
+    covar[nrf:-swd_obs.period.size, nrf:-swd_obs.period.size]=R_Sp*model.std_rf_Sp**2
+    covar[-swd_obs.period.size:,-swd_obs.period.size:]=(
+            np.identity(swd_obs.period.size)*model.std_swd**2)
+
+    # Try to workaround potential mis-rotation near surface by increasing the
+    # std_rf near the surface, e.g. first 0.5 s
+    # For Ps
+    ind = int(0.5/rf_obs_Ps.dt) + 1  # <= 0.5 s
+    covar[:ind,:ind] *= rf_obs_Ps.std_sc
+    # For Sp
+    ind = int(5/rf_obs_Sp.dt) + 1 # <= 5s for Sp
+    covar[nrf:nrf+ind,nrf:nrf+ind] *= rf_obs_Sp.std_sc
+
+    invc=np.linalg.inv(covar)
+    #  Note: Need to take the determinant for use in calculating the acceptance
+    #        probability if changing a hyperparameter.  However, given that
+    #        this is a 130x130 odd matrix with all values <1, the determinant
+    #        is WAY too small.  However, we actually only care about the RATIO
+    #        between the new and old determinant, so it is fine to just scale
+    #        this up so that it doesn't get lost in the rounding error.
+    #  detc=np.linalg.det(covar)
+    detc = np.linalg.det(covar*1e4)
+    detc = detc / (10**int(np.log10(detc)))
+
+    return CovarianceMatrix(covar,invc,detc,R_Ps)
+
 
 
 # =============================================================================
@@ -499,7 +771,7 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
             target_depth = random.random()*np.max(model.all_deps)
             test_i = np.argmin(np.abs(model.all_deps-target_depth))
             if test_i not in model.idep: i_d = test_i
-                
+
         #unused_idep = [idx for idx,val in enumerate(model.all_deps)
         #        if idx not in idep]
         #i_d = random.sample(unused_idep, 1)[0]
@@ -550,6 +822,126 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
                                     which_change = 'Noise')
 
     return new_model, changes_model
+
+
+
+
+def Mutate3(model,itr) -> (Model3, ModelChange): # and ModelChange
+    # First, we choose which model parameter to perturb
+    # There are model.vs.size + model.dep.size + 3 (std_rf, lam_rf, std_swd)
+    # We can perturb by either (1) changing Vs, (2) changing nucleus depth,
+    # (3) having a layer birth, (4) having a layer depth, or
+    # (5) changing a hyperparameter.
+    # Choose one uniformly - although...
+    # KL14 suggest a limit of k Gaussians in the first 1000k(k+1) iterations
+    # (where k Gaussians == k+1 nuclei here)
+    if model.idep.size==1: # and don't kill your only layer...
+        perturbs=('Vs','Dep','Birth','Hyperparameter')
+    elif itr <= 750*(model.idep.size-1)*(model.idep.size) or model.idep.size >=15: # as KL14
+        perturbs=('Vs','Dep','Death','Hyperparameter')
+    else:
+        perturbs=('Vs','Dep','Birth','Death','Hyperparameter')
+    perturb = random.sample(perturbs, 1)[0]
+
+    if perturb=='Vs':          # Change Vs in a layer
+        i_vs = random.randint(0,model.vs.size-1)
+        old = model.vs[i_vs]
+        theta =_GetStdForGaussian(perturb, itr)
+        new = np.round(np.random.normal(old,theta),4)
+        changes_model = ModelChange(theta, old, new, which_change = perturb)
+        new_vs = model.vs.copy()
+        new_vs[i_vs] = new
+        new_model = model._replace(vs = new_vs)
+
+    elif perturb=='Dep':       # Change Depth of one node
+        # Remember, we assume possible model points follow the following sequence
+        # 1 km spacing from 0-60 km; 5 km spacing from 60-200 km
+        idep = model.idep.copy()
+        i_id = random.randrange(0,idep.size)
+        # perturb around index in alldeps array
+        theta =_GetStdForGaussian(perturb, itr)
+        idep[i_id] = round(np.random.normal(idep[i_id],theta))
+        changes_model = ModelChange(theta,model.idep[i_id],idep[i_id],
+                                    which_change = perturb)
+        new_model = model._replace(idep=idep)
+
+    elif perturb=='Birth':     # Layer Birth
+        # choose unoccupied position, unused_d (index i_d), with uniform probability
+        idep = model.idep.copy()
+        vs = model.vs.copy()
+        # We'll try and do this with uniform probability across the depth range
+        i_d = -1
+        while i_d < 0:
+            target_depth = random.random()*np.max(model.all_deps)
+            test_i = np.argmin(np.abs(model.all_deps-target_depth))
+            if test_i not in model.idep: i_d = test_i
+
+        #unused_idep = [idx for idx,val in enumerate(model.all_deps)
+        #        if idx not in idep]
+        #i_d = random.sample(unused_idep, 1)[0]
+        unused_d = model.all_deps[i_d]
+        theta = _GetStdForGaussian(perturb, itr)
+        # identify index of closest nucleus for old Vs value
+        i_old = abs(model.all_deps[idep]-unused_d).argmin()
+        # Make new array of depth indices, and identify new value index, i_new
+        idep = np.sort(np.append(idep,i_d))
+        i_new = np.where(idep==i_d)[0]
+        vs = np.insert(vs,i_new,np.round(np.random.normal(vs[i_old],theta),4))
+        changes_model = ModelChange(theta,model.vs[i_old],vs[i_new],
+                                    which_change = perturb)
+        new_model=model._replace(idep=idep,vs=vs)
+
+    elif perturb=='Death':     # Layer Death
+        # choose occupied position, i_id, with uniform probability
+        idep = model.idep.copy()
+        vs = model.vs.copy()
+        i_id = random.randrange(0,idep.size) # this is a [min, max) range
+        theta = _GetStdForGaussian(perturb, itr)
+        kill_d = model.all_deps[idep[i_id]]
+        idep_new = np.delete(idep,i_id)
+        vs = np.delete(vs,i_id)
+        i_new = abs(model.all_deps[idep_new]- kill_d).argmin()
+        changes_model = ModelChange(theta,model.vs[i_id],vs[i_new],
+                                    which_change = perturb)
+        new_model = model._replace(idep=idep_new,vs=vs)
+    else: # perturb=='Hyperparameter', Change a hyperparameter
+        hyperparams = ['Std_RF_Ps','Lam_RF_Ps', # For Ps
+                       'Std_RF_Sp', 'Lam_RF_Sp', # For Sp
+                       'Std_SWD']
+        hyperparam = random.sample(hyperparams, 1)[0]
+
+
+        if hyperparam == 'Std_RF_Ps':
+            theta = _GetStdForGaussian('Std_RF', itr)
+            old = model.std_rf_Ps
+            new = np.round(np.random.normal(old,theta),5)
+            new_model = model._replace(std_rf_Ps = new)
+        elif hyperparam == 'Std_RF_Sp':
+            theta = _GetStdForGaussian('Std_RF', itr)
+            old = model.std_rf_Sp
+            new = np.round(np.random.normal(old,theta),5)
+            new_model = model._replace(std_rf_Sp = new)
+        elif hyperparam == 'Lam_RF_Ps':
+            theta = _GetStdForGaussian('Lam_RF', itr)
+            old = model.lam_rf_Ps
+            new = np.round(np.random.normal(old,theta),4)
+            new_model = model._replace(lam_rf_Ps = new)
+        elif hyperparam == 'Lam_RF_Sp':
+            theta = _GetStdForGaussian('Lam_RF', itr)
+            old = model.lam_rf_Sp
+            new = np.round(np.random.normal(old,theta),4)
+            new_model = model._replace(lam_rf_Sp = new)
+        elif hyperparam == 'Std_SWD':
+            theta = _GetStdForGaussian(hyperparam, itr)
+            old = model.std_swd
+            new = np.round(np.random.normal(old,theta),4)
+            new_model = model._replace(std_swd = new)
+
+        changes_model = ModelChange(theta, old, new,
+                                    which_change = 'Noise')
+
+    return new_model, changes_model
+
 
 def _GetStdForGaussian(perturb, itr) -> float:
     if perturb=='Vs':          # Change Vs in a layer
@@ -610,10 +1002,8 @@ def _SynthesiseWV(synthmodel, rf_in) -> BodyWaveform:
                     # high frequencies is just a waste of time
     tot_time = dt*n_fft # 102.4 seconds, for 50s at dt=0.05
     dom_freq = (1/tot_time)*(np.arange(1,max_loop))
-    transfer_P_horz = np.zeros(n_fft, dtype = np.complex_)
-    transfer_P_vert = np.zeros(n_fft, dtype = np.complex_)
-    transfer_S_horz = np.zeros(n_fft, dtype = np.complex_)
-    transfer_S_vert = np.zeros(n_fft, dtype = np.complex_)
+    transfer_horz = np.zeros(n_fft, dtype = np.complex_)
+    transfer_vert = np.zeros(n_fft, dtype = np.complex_)
     c=1/rf_in.ray_param
     vp = synthmodel.vp[-1] # Vp in halfspace
     vs = synthmodel.vs[-1] # Vs in halfspace
@@ -625,34 +1015,19 @@ def _SynthesiseWV(synthmodel, rf_in) -> BodyWaveform:
         D = (J[0][0]-J[1][0])*(J[2][1]-J[3][1])-(J[0][1]-J[1][1])*(J[2][0]-J[3][0])
         # remember when indexing J that Python is zero-indexed!
         # Also that Z component polarity is reversed from BM&S because Z increases down!
-        transfer_P_horz[i]=2*c/(D*vp)*(J[3][1]-J[2][1])
-        transfer_P_vert[i]=2*c/(D*vp)*(J[3][0]-J[2][0])
-        transfer_S_horz[i]=-c/(D*vs)*(J[0][1]-J[1][1])
-        transfer_S_vert[i]=-c/(D*vs)*(J[0][0]-J[1][0])
+        if rf_in.rf_phase == 'Ps':
+            transfer_horz[i]=2*c/(D*vp)*(J[3][1]-J[2][1])
+            transfer_vert[i]=2*c/(D*vp)*(J[3][0]-J[2][0])
+        elif rf_in.rf_phase == 'Sp':
+            transfer_horz[i]=-c/(D*vs)*(J[0][1]-J[1][1])
+            transfer_vert[i]=-c/(D*vs)*(J[0][0]-J[1][0])
 
 
-    if rf_in.rf_phase == 'Ps':
-        P_horz = _IFFTSynth(transfer_P_horz, max_loop, dom_freq, T, dt, tmax)
-        P_vert = _IFFTSynth(transfer_P_vert, max_loop, dom_freq, T, dt, tmax)
-        P_horz, P_vert = _NormaliseSynth(P_horz, P_vert, rf_in.rf_phase)
-        return BodyWaveform(P_horz,P_vert,dt)
+    horz = _IFFTSynth(transfer_horz, max_loop, dom_freq, T, dt, tmax)
+    vert = _IFFTSynth(transfer_vert, max_loop, dom_freq, T, dt, tmax)
+    horz, vert = _NormaliseSynth(horz, vert, rf_in.rf_phase)
+    return BodyWaveform(horz,vert,dt)
 
-    elif rf_in.rf_phase == 'Sp':
-        S_horz = _IFFTSynth(transfer_S_horz, max_loop, dom_freq, T, dt, tmax)
-        S_vert = _IFFTSynth(transfer_S_vert, max_loop, dom_freq, T, dt, tmax)
-        S_horz, S_vert = _NormaliseSynth(S_horz, S_vert, rf_in.rf_phase)
-        return BodyWaveform(S_horz,S_vert,dt)
-
-    elif rf_in.rf_phase == 'Both':
-        P_horz = _IFFTSynth(transfer_P_horz, max_loop, dom_freq, T, dt, tmax)
-        P_vert = _IFFTSynth(transfer_P_vert, max_loop, dom_freq, T, dt, tmax)
-        P_horz, P_vert = _NormaliseSynth(P_horz, P_vert, 'Ps')
-
-        S_horz = _IFFTSynth(transfer_S_horz, max_loop, dom_freq, T, dt, tmax)
-        S_vert = _IFFTSynth(transfer_S_vert, max_loop, dom_freq, T, dt, tmax)
-        S_horz, S_vert = _NormaliseSynth(S_horz, S_vert, 'Sp')
-
-        return BodyWaveform(P_horz,P_vert,dt), BodyWaveform(S_horz,S_vert,dt)
 
 
 def _NormaliseSynth(horz, vert, rf_phase):
@@ -1221,6 +1596,17 @@ def _Secular(k, om, thick, mu, rho, vp, vs):
 def Mahalanobis(rf_obs,rf_synth, swd_obs,swd_synth, inv_cov) -> float:
     g_m = np.concatenate((rf_synth, swd_synth))
     d_obs = np.concatenate((rf_obs, swd_obs))
+    misfit = g_m - d_obs
+
+    # N.B. with np.matmul, it prepends or appends an additional dimension
+    # (depending on the position in matmul) if one of the arguments is a vector
+    # so don't need to explicitly transpose below
+    return np.matmul(np.matmul(misfit,inv_cov),misfit)
+
+def Mahalanobis3(rf_Ps_obs,rf_Ps_synth, rf_Sp_obs, rf_Sp_synth,
+                 swd_obs,swd_synth, inv_cov) -> float:
+    g_m = np.concatenate((rf_Ps_synth, rf_Sp_synth, swd_synth))
+    d_obs = np.concatenate((rf_Ps_obs, rf_Sp_obs, swd_obs))
     misfit = g_m - d_obs
 
     # N.B. with np.matmul, it prepends or appends an additional dimension
