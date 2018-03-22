@@ -5,7 +5,7 @@ Created on Mon Mar  5 14:23:28 2018
 @author: emily
 """
 
-import pipeline
+import pipeline_three
 import os
 import input_data
 import pstats
@@ -21,11 +21,11 @@ max_it=250000
 rnd_sd = 10
 
 
-save_name = 'NGEA_Sp_scale5'
+save_name = 'IGOM_Both_scale5'
 
 
 
-rf_obs, swd_obs, all_lims = input_data.LoadObservations()
+rf_obs_Ps, rf_obs_Sp, swd_obs, all_lims = input_data.LoadObservations()
 
 save_name += '_%d' % rnd_sd  # % is printf() type function
 suffix = None
@@ -47,8 +47,8 @@ os.mkdir(outdir)
 shutil.copyfile('input_data.py', os.path.join(outdir, 'input_data.py'))
 
 
-out = pipeline.JointInversion(rf_obs, swd_obs, all_lims, max_it, rnd_sd,
-                              os.path.join(outdir, save_name))
+out = pipeline_three.TripleInversion(rf_obs_Ps, rf_obs_Sp, swd_obs, all_lims,
+                            max_it, rnd_sd, os.path.join(outdir, save_name))
 
 
 

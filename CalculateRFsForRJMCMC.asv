@@ -117,7 +117,7 @@ for k = 1:length(rf_phases)
             
             
             which_c = input('Which cluster is better? 1 or 2?  (Press 3 to stop). ');
-            if which_c == 3; close; break; end
+            if which_c == 3; break; end
             rfs = rfs(icl==which_c,:); t = t(icl==which_c,:);
             baz = baz(icl == which_c); dist = dist(icl==which_c);
             evs = evs(icl == which_c);
@@ -134,7 +134,7 @@ for k = 1:length(rf_phases)
         ax=gca; ax.ThetaDir='clockwise'; ax.ThetaZeroLocation='top';
         ax.ThetaTick = 0:45:360; title('Backazimuth')
         
-        good = input('Redo this? y/[n] ','s'); close
+        good = input('Redo this? y/[n] ','s');
     end
     
     
@@ -143,8 +143,8 @@ for k = 1:length(rf_phases)
             ps.rf = rf_out; ps.baz = baz; ps.evs = evs; ps.dist = dist;
             ps.filter_corners = filter_corners; ps.rp = RF.RP;
         case 'Sp'
-            sp.rf = rf_out; sp.baz = baz; sp.evs = evs; sp.dist = dist;
-            sp.filter_corners = filter_corners; sp.rp = rp;
+            sp.rf = rf_out; sp.baz = baz; sp.evs = evs;
+            sp.filter_corners = filter_corners; sp.rf = rp;
     end
 end
 
@@ -220,10 +220,9 @@ else
     printforpython(c,4)
     fprintf('\t\t\t\t\t])\n\t\t\t\t)\n\n');
     
-    fprintf('\tall_lims = pipeline_three.Limits3(\n\t\t\t\tvs = (0.5, %.1f),', ...
-        min(5,0.55/RF.RP)) % ensures Vp < c always
-    fprintf('dep = (0,200), std_rf_Ps = (0, 0.05),\n\t\t\t\tlam_rf_Ps = (0.05,0.5),')
-    fprintf('std_rf_Sp = (0, 0.05),lam_rf_Sp = (0.05, 0.5),')
+    fprintf('\tall_lims = pipeline_three.Limits3(\n\t\t\t\tvs = (0.5, %.1f),', min(5,0.55/RF.RP)) % ensures Vp < c always
+    fprintf('dep = (0,200), std_rf_ps = (0, 0.05),\n\t\t\t\tlam_rf_ps = (0.05')
+    frprintf('std_rf_sp = (0, 0.05),lam_rf_sp = (0.05, 0.5),')
     fprintf('\n\t\t\t\tstd_swd = (0, 0.05), crustal_thick = (25,))');
 
     
@@ -231,11 +230,11 @@ else
         rf_phase = rf_phases{k};
         switch rf_phase
             case 'Ps'
-                rf_out = ps.rf; evs = ps.evs; dist = ps.dist; rp = ps.rp; 
-                baz = ps.baz; filter_corners = ps.filter_corners;
+                rf_out = ps.rf; evs = ps.evs; dist = ps.dist; 
+                baz = ps.baz; rp = ps.rp;
             case 'Sp'
-                rf_out = sp.rf; evs = sp.evs; dist = sp.dist; rp = sp.rp;
-                baz = sp.baz; filter_corners = sp.filter_corners;
+                rf_out = sp.rf; evs = sp.evs; rp = sp.rp;
+                dist = sp.dist; baz = sp.baz;
         end
         rf = interp1(rf_out(1,:), rf_out(2,:), 0:dt:30);
     
@@ -250,17 +249,14 @@ else
         fprintf('\n\t\t\t\tstd_sc = %g, rf_phase = ''%s'',', std_sc, rf_phase)
         fprintf('\n\t\t\t\tfilter_corners = [%g, %g]\n\t\t\t\t)\n\n',...
             filter_corners(1), filter_corners(2))
-        
-        for ie = 1:length(evs)
-            fprintf('\t\t\t\t#  %s\t\tBAZ: %.0f%c\t\tDIST: %.0f%c\n',...
-                evs{ie},baz(ie),char(176),dist(ie), char(176))
-        end
-        
     end
     
-    fprintf('\n\n\treturn (rf_obs_Ps, rf_obs_Sp, swd_obs, all_lims)\n\n\n');
+    fprintf('\n\n\treturn (rf_obs, swd_obs, all_lims)\n\n\n');
     
-
+    for ie = 1:length(evs)
+        fprintf('#  %s\t\tBAZ: %.0f%c\t\tDIST: %.0f%c\n',evs{ie},baz(ie),char(176),...
+            dist(ie), char(176))
+    end
 end
 
 
