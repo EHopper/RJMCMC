@@ -1,0 +1,401 @@
+         4298594769 function calls (2864743955 primitive calls) in 204478.908 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    2.613    2.613 204480.839 204480.839 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:211(TripleInversion)
+   249999    4.426    0.000 204400.212    0.818 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:403(NextState3)
+   187085   12.598    0.000 154805.575    0.827 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:1359(SynthesiseSWD)
+ 55249449 24325.993    0.000 154252.754    0.003 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:1505(_Secular)
+1363351/1344420   94.876    0.000 134646.888    0.100 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:1464(_FindMinValueSecularFunctionFine)
+1258697793 2484.879    0.000 83773.292    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\matlab.py:28(mldivide)
+1258697793 26476.907    0.000 81288.414    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:1813(lstsq)
+  2705748    4.309    0.000 71741.520    0.027 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\matlab.py:18(findmin)
+  2705748    7.949    0.000 71737.212    0.027 C:\Users\emily\Anaconda3\lib\site-packages\scipy\optimize\optimize.py:1927(brent)
+  2705748   18.721    0.000 71729.262    0.027 C:\Users\emily\Anaconda3\lib\site-packages\scipy\optimize\optimize.py:1984(_minimize_scalar_brent)
+  2705748  260.067    0.000 71704.181    0.027 C:\Users\emily\Anaconda3\lib\site-packages\scipy\optimize\optimize.py:1812(optimize)
+   374170    3.876    0.000 43464.240    0.116 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:975(SynthesiseRF)
+   374170 1080.296    0.003 37574.425    0.100 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:990(_SynthesiseWV)
+1532986688/130585330 28722.135    0.000 35668.846    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:1059(_CalcPropagatorMatrix)
+  2705748   34.966    0.000 24065.886    0.009 C:\Users\emily\Anaconda3\lib\site-packages\scipy\optimize\optimize.py:1781(get_bracket_info)
+-21396281 2917.545   -0.000 22095.909   -0.001 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\shape_base.py:239(hstack)
+   895668   48.178    0.000 20140.194    0.022 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:1431(_FindMinValueSecularFunctionCoarse)
+-1777571710 17424.164   -0.000 17424.164   -0.000 {built-in method numpy.linalg.lapack_lite.zgelsd}
+-21396281 2449.367   -0.000 13489.322   -0.001 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\shape_base.py:288(<listcomp>)
+-1470417916 12917.522   -0.000 12917.522   -0.000 {built-in method numpy.core.multiarray.array}
+-12858962 6177.126   -0.000 11104.653   -0.001 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\shape_base.py:11(atleast_1d)
+-2102485293 1322.939   -0.000 10679.129   -0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\shape_base.py:182(vstack)
+-2095256253 8218.609   -0.000 8218.609   -0.000 {built-in method numpy.core.multiarray.concatenate}
+-319082289 8080.934   -0.000 8080.934   -0.000 {built-in method numpy.core.multiarray.matmul}
+1751025186 6969.860    0.000 6969.860    0.000 {built-in method numpy.core.multiarray.zeros}
+-2102485293 1328.458   -0.000 6895.300   -0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\shape_base.py:237(<listcomp>)
+    45138 5768.553    0.128 6033.126    0.134 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:664(CalcCovarianceMatrix3)
+ 89999210 3235.181    0.000 5566.841    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\shape_base.py:63(atleast_2d)
+1315908368 3272.016    0.000 5528.889    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:139(_commonType)
+234455979 2618.817    0.000 5439.105    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:534(asanyarray)
+   374170  165.751    0.000 5056.981    0.014 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:1252(_CalculateRF)
+601769310  898.723    0.000 3784.412    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:2365(identity)
+1258697793 1590.856    0.000 3658.637    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:180(_fastCopyAndTranspose)
+-1773784872 1560.717   -0.000 3136.792   -0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:106(_makearray)
+1258697793 3068.201    0.000 3068.201    0.000 {built-in method numpy.linalg.lapack_lite.dgelsd}
+36668660/5238380  523.501    0.000 2918.795    0.001 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:1329(_ETMTMSumFFT)
+ 73337320  132.379    0.000 2395.294    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\fftpack.py:102(fft)
+1262439493  742.467    0.000 2290.556    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:504(transpose)
+ 79324040  145.566    0.000 2230.671    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\fftpack.py:47(_raw_fft)
+1607260735 1048.175    0.000 2166.586    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:55(_wrapfunc)
+603640160 1542.934    0.000 2103.368    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\twodim_base.py:139(eye)
+-1777571710 1919.742   -0.000 1919.742   -0.000 {built-in method numpy.core.multiarray._fastCopyAndTranspose}
+1355666960 1907.202    0.000 1907.202    0.000 {method 'astype' of 'numpy.ndarray' objects}
+1258697793 1347.065    0.000 1741.391    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:168(_to_native_byte_order)
+  1870850   19.165    0.000 1726.571    0.001 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\matlab.py:53(BpFilt)
+-459792492  945.405   -0.000 1414.965   -0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:124(_realType)
+-402581917  952.406   -0.000 1378.675   -0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:111(isComplexType)
+-1537012761  718.998   -0.000 1361.228   -0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:463(asarray)
+2056106414 1303.493    0.000 1303.493    0.000 {built-in method builtins.min}
+-1581811242 1298.116   -0.000 1298.116   -0.000 {method 'append' of 'list' objects}
+1258697793  763.607    0.000 1218.210    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:223(_assertNoEmpty2d)
+-1352662501 1216.524   -0.000 1216.524   -0.000 {built-in method builtins.len}
+ 73337320 1098.719    0.000 1098.719    0.000 {built-in method numpy.fft.fftpack_lite.cfftf}
+   374170    1.370    0.000  967.910    0.003 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\matlab.py:22(slepian)
+   374170  706.907    0.002  966.541    0.003 C:\Users\emily\Anaconda3\lib\site-packages\spectrum\mtm.py:231(dpss)
+ 55294587  489.304    0.000  964.386    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:1752(det)
+331496694  187.713    0.000  896.147    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:1502(_m3D)
+1275053934  873.568    0.000  873.568    0.000 {method 'copy' of 'numpy.ndarray' objects}
+   748340   28.408    0.000  810.876    0.001 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:1044(_IFFTSynth)
+603273490  538.012    0.000  795.099    0.000 <frozen importlib._bootstrap>:997(_handle_fromlist)
+-2094491033/-2094491103  790.714   -0.000  790.715   -0.000 {built-in method builtins.issubclass}
+-1555718839  751.036   -0.000  751.036   -0.000 {built-in method builtins.max}
+  1870850  105.176    0.000  728.191    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\signaltools.py:2461(detrend)
+337109244  173.499    0.000  725.989    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:138(reshape)
+118102446  159.999    0.000  722.078    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:1886(any)
+   374170    8.545    0.000  721.026    0.002 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:1203(_PrepWaveform)
+-155170202  681.999   -0.000  681.999   -0.000 {built-in method builtins.getattr}
+ 79324040  148.338    0.000  679.205    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\helper.py:257(put_twiddle_factors)
+  1870850    4.049    0.000  614.622    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\matlab.py:46(ButterBandpass)
+  1870850    3.252    0.000  610.573    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\filter_design.py:2226(butter)
+  1870850   44.619    0.000  607.321    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\filter_design.py:1727(iirfilter)
+1258697793  574.481    0.000  574.481    0.000 {built-in method math.log}
+ 79324040   75.589    0.000  502.522    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\helper.py:311(_prune_cache)
+1258697793  482.471    0.000  482.471    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:192(_assertRank2)
+147349001  481.051    0.000  481.051    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+118102446   88.555    0.000  478.255    0.000 {method 'any' of 'numpy.ndarray' objects}
+-450438242  471.808   -0.000  471.808   -0.000 {method 'get' of 'dict' objects}
+-1777571710  454.603   -0.000  454.603   -0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:219(_isEmpty2d)
+1263187833  438.255    0.000  438.255    0.000 {method 'transpose' of 'numpy.ndarray' objects}
+ 79324038  125.451    0.000  410.964    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\helper.py:317(_check_size)
+118102446   40.495    0.000  389.700    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_methods.py:37(_any)
+  1870850  120.357    0.000  341.510    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\linalg\basic.py:892(lstsq)
+  1870850    7.053    0.000  334.746    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\matlab.py:25(filtfilt)
+339586859  328.759    0.000  328.759    0.000 {method 'reshape' of 'numpy.ndarray' objects}
+  1870850   28.688    0.000  326.087    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\signaltools.py:2926(filtfilt)
+  1870850   14.180    0.000  318.091    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\filter_design.py:907(zpk2tf)
+-1775655722  305.032   -0.000  305.032   -0.000 {method '__array_prepare__' of 'numpy.ndarray' objects}
+  5612550   40.880    0.000  299.332    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\matlab.py:61(Taper)
+  3741700   66.828    0.000  285.422    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\polynomial.py:32(poly)
+ 68345810   55.952    0.000  272.184    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:150(ones)
+1213282041  258.593    0.000  258.593    0.000 {built-in method builtins.hasattr}
+  5986720   44.656    0.000  257.900    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\fftpack.py:198(ifft)
+   374170    1.087    0.000  234.815    0.001 C:\Users\emily\Anaconda3\lib\site-packages\spectrum\mtm.py:417(_autocov)
+   374170   13.760    0.000  233.497    0.001 C:\Users\emily\Anaconda3\lib\site-packages\spectrum\mtm.py:433(_crosscov)
+   374170   22.284    0.000  219.314    0.001 C:\Users\emily\Anaconda3\lib\site-packages\spectrum\mtm.py:514(_fftconvolve)
+ 79324038   86.365    0.000  207.981    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\helper.py:318(<listcomp>)
+-1694949687  197.960   -0.000  197.960   -0.000 {built-in method builtins.abs}
+ 79324040  104.126    0.000  164.760    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\helper.py:283(pop_twiddle_factors)
+ 68812755  153.899    0.000  153.899    0.000 {built-in method numpy.core.multiarray.copyto}
+  1870850   29.830    0.000  144.621    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\signaltools.py:2543(lfilter_zi)
+237972114   91.947    0.000  137.517    0.000 {built-in method builtins.sum}
+1258697793  133.268    0.000  133.268    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:130(_linalgRealType)
+  3741700   41.025    0.000  128.400    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\index_tricks.py:247(__getitem__)
+ 55668757  111.943    0.000  111.943    0.000 {method 'astype' of 'numpy.generic' objects}
+   374170   12.498    0.000  107.933    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:1166(_RotateToPSV)
+   748340   90.056    0.000  107.444    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\fftpack\basic.py:184(fft)
+  5986720  105.880    0.000  105.880    0.000 {built-in method numpy.fft.fftpack_lite.cfftb}
+  5620816   72.547    0.000  105.391    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:4894(insert)
+ 57210575   69.437    0.000  101.948    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:209(_assertNdSquareness)
+  1870850   62.272    0.000  100.606    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\filter_design.py:2081(_zpklp2bp)
+  5612550   86.699    0.000   97.875    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:3384(hanning)
+ 11421292   26.938    0.000   93.205    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:2174(amax)
+  4864210   22.327    0.000   89.671    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\helper.py:22(fftshift)
+  5612550   13.346    0.000   82.340    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:964(find_common_type)
+  3741700    5.568    0.000   81.184    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\signaltools.py:1193(lfilter)
+  1870850   32.291    0.000   80.053    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\filter_design.py:1919(_zpkbilinear)
+ 14966800   31.485    0.000   78.272    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:978(convolve)
+     7500    0.085    0.000   75.786    0.010 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\npyio.py:435(save)
+  3007359   46.028    0.000   74.744    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\function_base.py:25(linspace)
+   374170   71.476    0.000   73.204    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\fftpack\basic.py:292(ifft)
+  1870850    2.169    0.000   69.024    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\linalg\lapack.py:469(get_lapack_funcs)
+ 74087712   68.337    0.000   68.337    0.000 {built-in method numpy.core.multiarray.empty}
+  3741700   67.314    0.000   67.314    0.000 {built-in method scipy.signal.sigtools._linear_filter}
+  1496680    1.895    0.000   67.011    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:4020(median)
+  1870850   16.190    0.000   66.855    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\linalg\blas.py:226(_get_funcs)
+     7500    0.058    0.000   66.732    0.009 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\format.py:517(write_array)
+ 11421292    4.886    0.000   66.267    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_methods.py:25(_amax)
+  6735060    7.981    0.000   65.629    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:70(take)
+  1870850   34.619    0.000   65.147    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\linalg\lapack.py:511(_compute_lwork)
+  1496680    3.573    0.000   65.116    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:3966(_ureduce)
+     7500   64.436    0.009   64.436    0.009 {method 'tofile' of 'numpy.ndarray' objects}
+  3749200    7.152    0.000   61.753    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:2806(mean)
+ 11225100   47.035    0.000   61.388    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:942(_can_coerce_all)
+  1496680   11.477    0.000   60.398    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:4108(_median)
+  3741700   15.510    0.000   58.450    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\_lib\_util.py:192(_asarray_validated)
+ 27186464   55.660    0.000   55.660    0.000 {built-in method numpy.core.multiarray.arange}
+  3749200   20.967    0.000   54.601    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_methods.py:53(_mean)
+  1870850   25.407    0.000   53.356    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:300(solve)
+158648078   51.781    0.000   51.781    0.000 {method 'pop' of 'collections.OrderedDict' objects}
+110498898   46.574    0.000   46.574    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\type_check.py:148(imag)
+317296152   45.570    0.000   45.570    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\helper.py:318(<genexpr>)
+  1870850    4.336    0.000   44.828    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\signaltools.py:3122(_validate_pad)
+  1870850   38.980    0.000   44.248    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\linalg\special_matrices.py:555(companion)
+  1870850    7.876    0.000   43.893    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\linalg\blas.py:177(find_best_blas_type)
+    45138   42.833    0.001   43.732    0.001 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:449(inv)
+  1870850   23.425    0.000   40.492    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\_arraytools.py:57(odd_ext)
+ 55294587   28.868    0.000   39.847    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:2135(isscalar)
+  3741700   17.689    0.000   38.468    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:1152(asarray_chkfinite)
+  9362516   10.094    0.000   38.081    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:709(sort)
+  8090165    6.332    0.000   37.788    0.000 {method 'all' of 'numpy.ndarray' objects}
+   232222   20.344    0.000   32.629    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:533(MakeFullModel)
+  6735060   31.582    0.000   31.582    0.000 {method 'take' of 'numpy.ndarray' objects}
+  8090165    3.245    0.000   31.455    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_methods.py:40(_all)
+  1870850   24.915    0.000   30.744    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\filter_design.py:3324(buttap)
+143837542/143837434   27.163    0.000   29.529    0.000 {built-in method builtins.isinstance}
+ 57210575   28.283    0.000   28.283    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:198(_assertRankAtLeast2)
+  1870850    2.952    0.000   27.340    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\arraysetops.py:113(unique)
+ 79324038   27.206    0.000   27.206    0.000 {method 'pop' of 'list' objects}
+  3749966    6.503    0.000   27.112    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:5100(append)
+  1870850   12.310    0.000   23.223    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\arraysetops.py:250(_unique1d)
+  3741700    5.431    0.000   23.017    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:1973(all)
+ 14966800   22.507    0.000   22.507    0.000 {built-in method numpy.core.multiarray.correlate}
+   249999    4.229    0.000   21.195    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:829(Mutate3)
+  1999656    5.911    0.000   20.469    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:42(_wrapit)
+  3741700   11.133    0.000   20.328    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\type_check.py:17(mintypecode)
+   232222    1.041    0.000   19.822    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:1606(Mahalanobis3)
+ 16837650   19.074    0.000   19.074    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\_arraytools.py:9(axis_slice)
+  1870850    5.360    0.000   18.070    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:1730(sum)
+  3741700    6.560    0.000   17.941    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:2408(prod)
+ 11233366   16.264    0.000   16.264    0.000 {method 'sort' of 'numpy.ndarray' objects}
+   250000    3.748    0.000   16.170    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:507(CheckPrior3)
+  2245020   14.769    0.000   14.769    0.000 {built-in method numpy.core.multiarray.dot}
+ 79324040   14.461    0.000   14.461    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\fft\fftpack.py:95(_unitary)
+ 14966800    9.903    0.000   13.769    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:904(_mode_from_name)
+   748340    6.072    0.000   13.213    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\fftpack\basic.py:146(_fix_shape)
+  7109230   10.510    0.000   13.171    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:1432(rollaxis)
+  1496680    2.132    0.000   12.864    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:553(partition)
+  1496680    8.851    0.000   12.427    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\utils.py:1119(_median_nancheck)
+  1870850    0.885    0.000   12.145    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_methods.py:31(_sum)
+  3741700    1.512    0.000   11.381    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_methods.py:34(_prod)
+  1870850    2.675    0.000   10.838    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:774(__getitem__)
+  3749966    4.441    0.000   10.716    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:1380(ravel)
+ 79324038   10.645    0.000   10.645    0.000 {method 'values' of 'collections.OrderedDict' objects}
+ 48642100   10.371    0.000   10.371    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:951(<listcomp>)
+   374170    7.896    0.000   10.092    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:3859(sinc)
+   374170    4.691    0.000    8.819    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:1033(_NormaliseSynth)
+  1496680    8.507    0.000    8.507    0.000 {method 'partition' of 'numpy.ndarray' objects}
+  1870850    4.883    0.000    8.162    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:603(obj2sctype)
+  3741700    4.358    0.000    8.011    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:728(issubdtype)
+   593250    0.446    0.000    7.733    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:2792(round_)
+  3749200    7.008    0.000    7.712    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_methods.py:43(_count_reduce_items)
+   593250    0.588    0.000    7.288    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:2723(around)
+  1948448    5.564    0.000    7.157    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:522(_InBounds)
+  3741700    7.111    0.000    7.111    0.000 {method 'conjugate' of 'numpy.ndarray' objects}
+   310242    1.842    0.000    6.044    0.000 C:\Users\emily\Anaconda3\lib\random.py:282(sample)
+  1870850    5.679    0.000    5.679    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\getlimits.py:507(__init__)
+  3741700    1.984    0.000    5.434    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\_arraytools.py:49(axis_reverse)
+  1870850    1.517    0.000    5.307    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:860(<lambda>)
+   593250    4.848    0.000    4.848    0.000 {method 'round' of 'numpy.ndarray' objects}
+  1122510    2.526    0.000    4.608    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\fftpack\basic.py:123(_asfarray)
+     7505    4.532    0.001    4.532    0.001 {built-in method io.open}
+     7500    4.419    0.001    4.419    0.001 {method 'close' of '_io.BufferedWriter' objects}
+  7857570    4.325    0.000    4.325    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\type_check.py:107(real)
+  3007359    4.266    0.000    4.266    0.000 {built-in method numpy.core.multiarray.result_type}
+  1122510    0.869    0.000    4.202    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_internal.py:253(data_as)
+    31430    0.180    0.000    4.137    0.000 {built-in method builtins.print}
+    62865    0.272    0.000    3.958    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\iostream.py:342(write)
+  3741700    3.108    0.000    3.748    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\type_check.py:60(<listcomp>)
+  2705748    3.608    0.000    3.608    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\optimize\optimize.py:1764(__init__)
+  3749966    3.457    0.000    3.457    0.000 {method 'ravel' of 'numpy.ndarray' objects}
+    94299    2.799    0.000    3.429    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\iostream.py:180(schedule)
+  3007359    2.701    0.000    3.406    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\function_base.py:13(_index_deprecate)
+  1122510    3.333    0.000    3.333    0.000 C:\Users\emily\Anaconda3\lib\ctypes\__init__.py:484(cast)
+  1870850    2.304    0.000    3.300    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\filter_design.py:1815(<listcomp>)
+  3367530    3.154    0.000    3.154    0.000 {method 'flatten' of 'numpy.ndarray' objects}
+  3741700    2.379    0.000    3.152    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\filter_design.py:1905(_relative_degree)
+   232221    2.940    0.000    3.127    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:1620(AcceptFromLikelihood)
+  5612550    2.975    0.000    2.975    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:1016(<listcomp>)
+ 20579351    2.964    0.000    2.964    0.000 {method 'lower' of 'str' objects}
+  5238380    2.144    0.000    2.937    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\ma\core.py:6192(isMaskedArray)
+  5612550    2.930    0.000    2.930    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:1015(<listcomp>)
+  7230316    2.719    0.000    2.719    0.000 {built-in method numpy.core.multiarray.normalize_axis_index}
+   466945    0.648    0.000    2.692    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numeric.py:87(zeros_like)
+  1870850    2.060    0.000    2.562    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\getlimits.py:376(__new__)
+  5612550    2.476    0.000    2.476    0.000 {method 'index' of 'list' objects}
+  3741700    1.667    0.000    2.475    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\sparse\base.py:1111(isspmatrix)
+   620484    1.392    0.000    2.365    0.000 C:\Users\emily\Anaconda3\lib\abc.py:178(__instancecheck__)
+  3741700    2.335    0.000    2.335    0.000 {method 'index' of 'str' objects}
+     7500    0.143    0.000    2.160    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\format.py:282(_write_array_header)
+   614658    2.143    0.000    2.143    0.000 {built-in method numpy.core.multiarray.where}
+  2683893    2.119    0.000    2.119    0.000 {built-in method __new__ of type object at 0x000000006AC8B3F0}
+   121086    1.492    0.000    2.089    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:4689(delete)
+  3741700    1.361    0.000    2.059    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\numerictypes.py:660(issubclass_)
+   374170    0.374    0.000    1.993    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:910(argmax)
+   189456    1.932    0.000    1.932    0.000 {method 'normal' of 'mtrand.RandomState' objects}
+     7500    0.193    0.000    1.885    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\format.py:425(_filter_header)
+  1183161    1.676    0.000    1.676    0.000 {built-in method builtins.round}
+  1915988    1.646    0.000    1.646    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\linalg\linalg.py:101(get_linalg_error_extobj)
+   746111    1.592    0.000    1.592    0.000 {built-in method builtins.all}
+  3741700    1.570    0.000    1.570    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\type_check.py:62(<listcomp>)
+   231809    1.349    0.000    1.527    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\function_base.py:1848(diff)
+  1870850    1.519    0.000    1.519    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\getlimits.py:532(max)
+   249999    0.650    0.000    1.492    0.000 <string>:24(_replace)
+  5741902    1.401    0.000    1.401    0.000 {method 'item' of 'numpy.ndarray' objects}
+  1870850    1.393    0.000    1.393    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\linalg\lapack.py:530(<listcomp>)
+  1870850    1.329    0.000    1.329    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\signal\signaltools.py:440(_prod)
+   373348    0.425    0.000    1.315    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:2275(amin)
+   491733    0.858    0.000    1.236    0.000 C:\Users\emily\Anaconda3\lib\random.py:222(_randbelow)
+   157500    0.515    0.000    1.235    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:492(_tokenize)
+  2705748    1.220    0.000    1.220    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\optimize\optimize.py:1920(get_result)
+  2245020    0.918    0.000    1.213    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\fftpack\basic.py:24(istype)
+   374170    1.174    0.000    1.174    0.000 {method 'argmax' of 'numpy.ndarray' objects}
+  3741700    1.140    0.000    1.140    0.000 {method 'sort' of 'list' objects}
+   374170    1.070    0.000    1.070    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spectrum\mtm.py:541(<listcomp>)
+   748340    1.054    0.000    1.054    0.000 {method 'mro' of 'type' objects}
+  1122510    1.007    0.000    1.007    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_internal.py:241(__init__)
+  1870850    0.976    0.000    0.976    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\linalg\blas.py:206(<listcomp>)
+   930805    0.973    0.000    0.973    0.000 C:\Users\emily\Anaconda3\lib\_weakrefset.py:70(__contains__)
+   373348    0.120    0.000    0.890    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\_methods.py:28(_amin)
+   249999    0.196    0.000    0.841    0.000 <string>:16(_make)
+  2705748    0.784    0.000    0.784    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\optimize\optimize.py:1778(set_bracket)
+  2705748    0.747    0.000    0.747    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\optimize\optimize.py:137(_check_unknown_options)
+   466945    0.706    0.000    0.706    0.000 {built-in method numpy.core.multiarray.empty_like}
+  3007359    0.704    0.000    0.704    0.000 {built-in method _operator.index}
+  3741700    0.654    0.000    0.654    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\linalg\misc.py:169(_datacopied)
+   187085    0.624    0.000    0.624    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:1404(_CalcRaylPhaseVelInHalfSpace)
+   181491    0.342    0.000    0.595    0.000 C:\Users\emily\Anaconda3\lib\random.py:172(randrange)
+    62865    0.078    0.000    0.536    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\iostream.py:297(_schedule_flush)
+   374170    0.424    0.000    0.424    0.000 C:\Users\emily\Anaconda3\lib\site-packages\spectrum\mtm.py:464(<listcomp>)
+     7500    0.020    0.000    0.393    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:317(untokenize)
+  1614243    0.384    0.000    0.384    0.000 {method 'bit_length' of 'int' objects}
+    94299    0.179    0.000    0.369    0.000 C:\Users\emily\Anaconda3\lib\threading.py:1104(is_alive)
+     7500    0.231    0.000    0.362    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:243(untokenize)
+   142505    0.337    0.000    0.337    0.000 {method 'match' of '_sre.SRE_Pattern' objects}
+   814919    0.267    0.000    0.267    0.000 {method 'getrandbits' of '_random.Random' objects}
+    60297    0.076    0.000    0.263    0.000 C:\Users\emily\Anaconda3\lib\random.py:216(randint)
+   142500    0.077    0.000    0.217    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:152(_compile)
+        1    0.000    0.000    0.214    0.214 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:315(InitialState3)
+   241740    0.188    0.000    0.188    0.000 {method 'random' of '_random.Random' objects}
+    94299    0.174    0.000    0.174    0.000 {built-in method nt.urandom}
+    62865    0.125    0.000    0.165    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\iostream.py:284(_is_master_process)
+    94299    0.078    0.000    0.156    0.000 C:\Users\emily\Anaconda3\lib\threading.py:1062(_wait_for_tstate_lock)
+    78327    0.153    0.000    0.153    0.000 {method 'argmin' of 'numpy.ndarray' objects}
+   374170    0.152    0.000    0.152    0.000 {method 'pop' of 'dict' objects}
+   249999    0.143    0.000    0.143    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:946(_GetStdForGaussian)
+   142500    0.053    0.000    0.140    0.000 C:\Users\emily\Anaconda3\lib\re.py:231(compile)
+     2501    0.107    0.000    0.127    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:1645(SaveModel)
+    72765    0.070    0.000    0.115    0.000 <string>:12(__new__)
+   142500    0.088    0.000    0.094    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:230(add_whitespace)
+    94299    0.087    0.000    0.087    0.000 C:\Users\emily\Anaconda3\lib\site-packages\ipykernel\iostream.py:87(_event_pipe)
+   142500    0.087    0.000    0.087    0.000 C:\Users\emily\Anaconda3\lib\re.py:286(_compile)
+   374170    0.082    0.000    0.082    0.000 C:\Users\emily\Anaconda3\lib\site-packages\scipy\fftpack\basic.py:28(_datacopied)
+    94299    0.078    0.000    0.078    0.000 {method 'acquire' of '_thread.lock' objects}
+     7500    0.025    0.000    0.054    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\format.py:255(header_data_from_array_1_0)
+     9518    0.012    0.000    0.053    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\core\fromnumeric.py:966(argmin)
+    62865    0.041    0.000    0.041    0.000 {built-in method nt.getpid}
+    94299    0.034    0.000    0.034    0.000 C:\Users\emily\Anaconda3\lib\threading.py:506(is_set)
+     7500    0.029    0.000    0.029    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\format.py:223(dtype_to_descr)
+   142500    0.027    0.000    0.027    0.000 {method 'span' of '_sre.SRE_Match' objects}
+     7500    0.011    0.000    0.025    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\compat\py3k.py:32(asbytes)
+     7500    0.025    0.000    0.025    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\format.py:176(magic)
+     7500    0.024    0.000    0.024    0.000 {built-in method builtins.sorted}
+    12499    0.023    0.000    0.023    0.000 {method 'format' of 'str' objects}
+    22500    0.022    0.000    0.022    0.000 {built-in method builtins.repr}
+    90000    0.017    0.000    0.017    0.000 {method 'isidentifier' of 'str' objects}
+     7500    0.010    0.000    0.014    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\compat\py3k.py:37(asstr)
+     7500    0.009    0.000    0.012    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\compat\py3k.py:42(isfileobj)
+     7500    0.011    0.000    0.011    0.000 {method 'encode' of 'str' objects}
+    15000    0.011    0.000    0.011    0.000 {method 'join' of 'str' objects}
+     7500    0.011    0.000    0.011    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:224(__init__)
+     7500    0.010    0.000    0.010    0.000 {built-in method _struct.pack}
+    15001    0.010    0.000    0.010    0.000 {method 'write' of '_io.BufferedWriter' objects}
+    15000    0.010    0.000    0.010    0.000 {method 'read' of '_io.StringIO' objects}
+        5    0.000    0.000    0.008    0.002 C:\Users\emily\Anaconda3\lib\warnings.py:85(_showwarnmsg)
+        5    0.000    0.000    0.008    0.002 C:\Users\emily\Anaconda3\lib\warnings.py:20(_showwarnmsg_impl)
+        5    0.000    0.000    0.008    0.002 C:\Users\emily\Anaconda3\lib\warnings.py:106(_formatwarnmsg)
+        5    0.000    0.000    0.008    0.002 C:\Users\emily\Anaconda3\lib\warnings.py:35(_formatwarnmsg_impl)
+        5    0.000    0.000    0.007    0.001 C:\Users\emily\Anaconda3\lib\linecache.py:15(getline)
+        5    0.000    0.000    0.007    0.001 C:\Users\emily\Anaconda3\lib\linecache.py:37(getlines)
+        3    0.000    0.000    0.007    0.002 C:\Users\emily\Anaconda3\lib\linecache.py:82(updatecache)
+     7503    0.007    0.000    0.007    0.000 {method 'endswith' of 'str' objects}
+     7500    0.007    0.000    0.007    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:729(generate_tokens)
+     7500    0.006    0.000    0.006    0.000 C:\Users\emily\Anaconda3\lib\site-packages\numpy\lib\format.py:171(_check_version)
+        3    0.000    0.000    0.005    0.002 C:\Users\emily\Anaconda3\lib\tokenize.py:448(open)
+     7500    0.003    0.000    0.003    0.000 {method 'items' of 'dict' objects}
+     7500    0.002    0.000    0.002    0.000 {built-in method builtins.iter}
+        3    0.001    0.000    0.001    0.000 {method 'readlines' of '_io._IOBase' objects}
+        1    0.000    0.000    0.001    0.001 {built-in method _warnings.warn}
+        1    0.000    0.000    0.001    0.001 C:\Users\emily\Anaconda3\lib\shutil.py:96(copyfile)
+     45/4    0.000    0.000    0.001    0.000 C:\Users\emily\Anaconda3\lib\abc.py:194(__subclasscheck__)
+        8    0.001    0.000    0.001    0.000 {built-in method nt.stat}
+    41/19    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\typing.py:1144(__subclasscheck__)
+        1    0.000    0.000    0.000    0.000 {built-in method nt.mkdir}
+       61    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\_weakrefset.py:58(__iter__)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\shutil.py:84(_samefile)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\genericpath.py:94(samefile)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:355(detect_encoding)
+       26    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\codecs.py:318(decode)
+        2    0.000    0.000    0.000    0.000 {built-in method numpy.fft.fftpack_lite.cffti}
+       26    0.000    0.000    0.000    0.000 {built-in method _codecs.utf_8_decode}
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:379(read_or_stop)
+        3    0.000    0.000    0.000    0.000 {method 'readline' of '_io.BufferedReader' objects}
+        9    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\typing.py:875(__extrahook__)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\pipeline_three.py:477(InitialModel3)
+        5    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\warnings.py:398(__init__)
+        4    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\ntpath.py:74(join)
+       29    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\_weakrefset.py:26(__exit__)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\genericpath.py:16(exists)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\RJMCMC\input_data.py:6(LoadObservations)
+      8/4    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\typing.py:1169(__setattr__)
+       29    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\_weakrefset.py:20(__enter__)
+       29    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\_weakrefset.py:81(add)
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:385(find_cookie)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\shutil.py:76(copyfileobj)
+        2    0.000    0.000    0.000    0.000 {method 'read' of '_io.BufferedReader' objects}
+        2    0.000    0.000    0.000    0.000 C:/Users/emily/OneDrive/Documents/WORK/MATLAB/Scattered_Waves/RJMCMC/run_triple_inver.py:32(outdir_fn)
+        8    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\ntpath.py:121(splitdrive)
+       30    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\typing.py:1018(_abc_negative_cache)
+       19    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\typing.py:1032(_abc_negative_cache_version)
+       11    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\_weakrefset.py:36(__init__)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\ctypes\__init__.py:358(__getattr__)
+       26    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\typing.py:1088(__eq__)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\random.py:96(seed)
+       36    0.000    0.000    0.000    0.000 {method '__subclasses__' of 'type' objects}
+        5    0.000    0.000    0.000    0.000 {built-in method builtins.locals}
+       36    0.000    0.000    0.000    0.000 {built-in method builtins.setattr}
+       29    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\_weakrefset.py:16(__init__)
+       58    0.000    0.000    0.000    0.000 {method 'add' of 'set' objects}
+        3    0.000    0.000    0.000    0.000 {method 'seek' of '_io.BufferedReader' objects}
+       29    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\_weakrefset.py:52(_commit_removals)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\ctypes\__init__.py:365(__getitem__)
+        2    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\typing.py:1024(_abc_negative_cache)
+       20    0.000    0.000    0.000    0.000 {method 'startswith' of 'str' objects}
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\codecs.py:308(__init__)
+        1    0.000    0.000    0.000    0.000 {method 'seed' of 'mtrand.RandomState' objects}
+        1    0.000    0.000    0.000    0.000 {function Random.seed at 0x000001A469EB3D08}
+        2    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\typing.py:1038(_abc_negative_cache_version)
+       22    0.000    0.000    0.000    0.000 {built-in method sys._getframe}
+       20    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\_collections_abc.py:392(__subclasshook__)
+        3    0.000    0.000    0.000    0.000 {method 'decode' of 'bytes' objects}
+       29    0.000    0.000    0.000    0.000 {method 'remove' of 'set' objects}
+        4    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\typing.py:889(__extrahook__)
+        9    0.000    0.000    0.000    0.000 {method 'replace' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\random.py:366(uniform)
+        3    0.000    0.000    0.000    0.000 {method 'startswith' of 'bytes' objects}
+        5    0.000    0.000    0.000    0.000 {method 'strip' of 'str' objects}
+        3    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\codecs.py:259(__init__)
+        1    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\tokenize.py:344(_get_normal_name)
+        5    0.000    0.000    0.000    0.000 C:\Users\emily\Anaconda3\lib\_collections_abc.py:302(__subclasshook__)
+        1    0.000    0.000    0.000    0.000 {built-in method _codecs.lookup}
+       12    0.000    0.000    0.000    0.000 {built-in method nt.fspath}
+        1    0.000    0.000    0.000    0.000 {built-in method _stat.S_ISFIFO}
+        1    0.000    0.000    0.000    0.000 {method 'group' of '_sre.SRE_Match' objects}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+
+

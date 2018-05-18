@@ -21,7 +21,7 @@ max_it=250000
 rnd_sd = 10
 
 
-save_name = 'IGOM_Both_scale5'
+save_name = 'TEST_Both_scale5'
 
 
 
