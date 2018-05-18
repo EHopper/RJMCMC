@@ -262,7 +262,7 @@ def TripleInversion(rf_obs_Ps: RecvFunc, rf_obs_Sp: RecvFunc,
             mean_keep[n_save] = np.mean(all_keep)
             all_phi *= 0; all_alpha *= 0; all_keep *= 0
             all_hyperparameters[n_save,:] = np.array([state.model.std_rf_Ps,
-                               state.model.lam_rf_Ps, state.model.lam_rf_Sp,
+                               state.model.lam_rf_Ps, state.model.std_rf_Sp,
                                state.model.lam_rf_Sp, state.model.std_swd])
             all_models[:,n_save+1] = SaveModel(state.fullmodel, all_models[:,0])
             np.save((save_name+'_AllModels'),all_models[:,:n_save+1])

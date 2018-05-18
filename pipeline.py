@@ -24,17 +24,20 @@ import matlab
 # =============================================================================
 
 class RecvFunc(typing.NamedTuple):
-    amp: np.array  # assumed to be processed in same way as synthetics are here
-    dt: float      # constant timestep in s
-    rf_phase: str
-    ray_param: float  # tested assuming ray_param = 0.0618
-    filter_corners: list # Should be the short and long PERIOD corners of the
-                         # appropriate filter band (s)
-    std_sc: float # This is trying to account for near-surface misrotation
+    amp: list # of np.array  # assumed to be processed in same way as synthetics are here
+    dt: list # of float      # constant timestep in s
+    rf_phase: list # of str
+    ray_param: list # of float  # tested assuming ray_param = 0.0618
+    filter_corners: list # of list # Should be the short and long PERIOD 
+                         # corners of the appropriate filter band (s)
+    std_sc: list # of float # This is trying to account for near-surface misrotation
                     # scale std_rf by std_sc for the first 0.5s of the signal
                     # i.e. set to 1 to not bodge things!
+    weight_by: str # set to 'even' to weight RF and SWD misfit evenly
+                    #    to 'rf2'  to weight RF 2x as much as SWD misfit
 # Receiver function assumed to start at t=0s with a constant timestep, dt
 # required to be stretched to constant RP (equivalent to distance of 60 degrees)
+# This formulation should allow multiple input RFs
 
 class BodyWaveform(typing.NamedTuple):
     amp_R: np.array # horizontal (radial) energy
@@ -55,8 +58,8 @@ class Model(typing.NamedTuple):
     vs: np.array
     all_deps: np.array    # all possible depth nodes
     idep: np.array        # indices of used depth nodes
-    std_rf: float
-    lam_rf: float
+    std_rf: np.array      #  length == number of input RFs
+    lam_rf: np.array      #  length == number of input RFs
     std_swd: float
 # Inputs: dep=[list of depths, km]; vs=[list of Vs, km/s];
 # std_rf=RF standard deviation; lam_rf=RF lambda; std_swd=SWD dispersion std
@@ -73,6 +76,7 @@ class Limits(typing.NamedTuple):
     crustal_thick: tuple
 # Reasonable min and max values for all model parameters define the prior
 # distribution - i.e. uniform probability within some reasonable range of values
+# These limits are on the output vel model, so will not depend on inputs
 
 class CovarianceMatrix(typing.NamedTuple):
     Covar: np.array
@@ -100,7 +104,7 @@ class GlobalState(typing.NamedTuple):
     cov: CovarianceMatrix
     rf_synth: RecvFunc
     swd_synth: SurfaceWaveDisp
-    fit_to_obs: float
+    misfit_to_obs: float
 
 class Error(Exception): pass
 
@@ -108,33 +112,38 @@ class Error(Exception): pass
 # Overall process for the joint inversion
 # =============================================================================
 
-def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
+def JointInversion(rf_obs: list, swd_obs: SurfaceWaveDisp, lims: Limits,
                    max_iter: int, random_seed: int,
                    save_name:  str) -> Model:
-
+    
+    # NOTE: rf_obs should be a LIST of RecvFunc
+    if not type(rf_obs) == list: rf_obs = [rf_obs]
+    savename = open('failed_prior.txt', mode = 'w')
+    
     # N.B.  The variable random_seed ensures that the process is repeatable.
     random.seed(a = random_seed)
     np.random.seed(seed = random_seed+1)
 
-    state = InitialState(rf_obs, swd_obs, lims, rf_obs.rf_phase)
+    state = InitialState(rf_obs, swd_obs, lims)
 
 # =============================================================================
 #           Define parameters for convergence
 # =============================================================================
+
     ddeps=np.zeros(state.model.all_deps.size*2-1)
     ddeps[::2] = state.model.all_deps
     ddeps[1::2] = state.model.all_deps[:-1]+np.diff(state.model.all_deps)/2
     save_every = 100
-    all_models = np.zeros((ddeps.size,int(max_iter/save_every)+1))
+    all_models = np.zeros((ddeps.size,int((max_iter)/save_every)+2))
     all_models[:,0] = ddeps
     all_models[:,1] = SaveModel(state.fullmodel, ddeps)
-    all_hyperparameters = np.zeros((int(max_iter/save_every),3))
+    all_hyperparameters = np.zeros((int(max_iter/save_every)+1,1+2*len(rf_obs)))
     all_phi = np.zeros(save_every) # all misfits
     all_alpha = np.zeros(save_every) # all likelihoods
     all_keep = np.zeros(save_every)
-    mean_phi = np.zeros(int(max_iter/save_every))
-    mean_alpha = np.zeros(int(max_iter/save_every))
-    mean_keep = np.zeros(int(max_iter/save_every))
+    mean_phi = np.zeros(int(max_iter/save_every)+1)
+    mean_alpha = np.zeros(int(max_iter/save_every)+1)
+    mean_keep = np.zeros(int(max_iter/save_every)+1)
 
     n_save = 0
     n_mwin = 0
@@ -147,21 +156,21 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
             print("Iteration {}..".format(itr))
 
         state, keep_yn, all_alpha[n_mwin] = NextState(
-            itr, rf_obs, swd_obs, lims, state)
+            itr, rf_obs, swd_obs, lims, state, savename)
 
-        all_phi[n_mwin] = state.fit_to_obs
+        all_phi[n_mwin] = state.misfit_to_obs
         all_keep[n_mwin] = keep_yn
 
-        # Save every 500th iteration to see progress
+        # Save every XXXth (save_every) iteration to see progress
         n_mwin += 1
-        if itr / save_every > n_save:
 
+        if itr / save_every > n_save:
             mean_phi[n_save] = np.mean(all_phi[all_phi>0])
-            mean_alpha[n_save] = np.mean(all_alpha[all_alpha>0])
-            mean_keep[n_save] = np.mean(all_keep)
+            mean_alpha[n_save] = np.mean(all_alpha[all_phi>0])
+            mean_keep[n_save] = np.mean(all_keep[all_phi>0])
             all_phi *= 0; all_alpha *= 0; all_keep *= 0
-            all_hyperparameters[n_save,:] = np.array([state.model.std_rf,
-                               state.model.lam_rf, state.model.std_swd])
+            all_hyperparameters[n_save,:] = np.hstack([state.model.std_rf,
+                               state.model.lam_rf, np.array([state.model.std_swd])])
             all_models[:,n_save+1] = SaveModel(state.fullmodel, all_models[:,0])
             np.save((save_name+'_AllModels'),all_models[:,:n_save+1])
             np.save((save_name+'_Misfit'),np.vstack((mean_phi[:n_save],
@@ -173,12 +182,12 @@ def JointInversion(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
     return (None, all_models, all_phi, all_alpha, all_keep, state.fullmodel)
 
 
-def InitialState(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
-                 rf_phase) -> GlobalState:
+def InitialState(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, 
+                 lims: Limits) -> GlobalState:
     # =========================================================================
     #      Start by calculating for some (arbitrary) initial model
     # =========================================================================
-    model_0 = InitialModel(rf_obs.amp)
+    model_0 = InitialModel(rf_obs)
     if not CheckPrior(model_0, lims):
         raise Error("Starting model does not fit prior distribution")
 
@@ -192,9 +201,9 @@ def InitialState(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
     cov_m0 = CalcCovarianceMatrix(model_0,rf_synth_m0,swd_synth_m0)
 
     # Calculate fit
-    fit_to_obs_m0 = Mahalanobis(
-            rf_obs.amp, rf_synth_m0.amp, # RecvFunc
-            swd_obs.c, swd_synth_m0.c,  # SurfaceWaveDisp
+    misfit_to_obs_m0 = Mahalanobis(
+            rf_obs, rf_synth_m0, # RecvFunc
+            swd_obs, swd_synth_m0,  # SurfaceWaveDisp
             cov_m0.invCovar,             # CovarianceMatrix
             )
     return GlobalState(
@@ -203,19 +212,23 @@ def InitialState(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
         fullmodel=fullmodel_0,
         rf_synth=rf_synth_m0,
         swd_synth=swd_synth_m0,
-        fit_to_obs=fit_to_obs_m0,
+        misfit_to_obs=misfit_to_obs_m0,
     )
 
 
-def NextState(itr:int, rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
-              prev_state: GlobalState) -> (GlobalState, bool, float):
+def NextState(itr:int, rf_obs: list, swd_obs: SurfaceWaveDisp, lims: Limits,
+              prev_state: GlobalState, savename) -> (GlobalState, bool, float):
     # Generate new model by perturbing the old model
     model, changes_model = Mutate(prev_state.model, itr)
 
     if not CheckPrior(model, lims): # check if mutated model compatible with prior distr.
+#        print('Failed Prior (', itr, '): ', changes_model.which_change, 
+#              ' change to ', changes_model.new_param, ' (from ', 
+#              changes_model.old_param, ')', file = savename)
         #print('Failed Prior')
         return prev_state, False, 0  # if not, continue to next iteration
 
+    
     fullmodel = MakeFullModel(model)
     if changes_model.which_change == 'Noise':
         # only need to recalculate covariance matrix if changed hyperparameter
@@ -224,20 +237,21 @@ def NextState(itr:int, rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
         cov_m = CalcCovarianceMatrix(model,prev_state.rf_synth,prev_state.swd_synth)
 
     else:
+        #print(changes_model.which_change)
         cov_m = prev_state.cov
         rf_synth_m = SynthesiseRF(fullmodel, prev_state.rf_synth) # forward model the RF data
         swd_synth_m = SynthesiseSWD(fullmodel, swd_obs.period, itr) # forward model the SWD data
 
     # Calculate fit
-    fit_to_obs_m = Mahalanobis(
-        rf_obs.amp, rf_synth_m.amp, # RecvFunc
-        swd_obs.c, swd_synth_m.c,  # SurfaceWaveDisp
+    misfit_to_obs_m = Mahalanobis(
+        rf_obs, rf_synth_m, # RecvFunc
+        swd_obs, swd_synth_m,  # SurfaceWaveDisp
         cov_m.invCovar,             # CovarianceMatrix
     )
 
     # Calculate probability of keeping mutation
     keep_yn, alpha = AcceptFromLikelihood(
-        fit_to_obs_m, prev_state.fit_to_obs, # float
+        misfit_to_obs_m, prev_state.misfit_to_obs, # float
         cov_m, prev_state.cov, # CovarianceMatrix
         changes_model, # form depends on which change
     )
@@ -251,7 +265,7 @@ def NextState(itr:int, rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, lims: Limits,
         fullmodel=fullmodel,
         rf_synth=rf_synth_m,
         swd_synth=swd_synth_m,
-        fit_to_obs=fit_to_obs_m,
+        misfit_to_obs=misfit_to_obs_m,
     ), True, alpha
 
 
@@ -270,8 +284,10 @@ def InitialModel(rf_obs) -> Model:
     all_deps = np.concatenate((np.arange(0,10,0.2),
                                 np.arange(10,60,1), np.arange(60,201,5)))
     idep = np.array([random.randrange(0,len(all_deps))])  # arbitrary
-    std_rf = round(np.std(rf_obs,ddof=1),2) # start off assuming all data is noise (KL14)
-    lam_rf = 0.2 # this is as the example given by KL14
+    std_rf = np.array([round(np.std(rf_obs[0].amp,ddof=1),2)]) # start off assuming all data is noise (KL14)
+    for irf in range(1, len(rf_obs)):
+        std_rf = np.hstack((std_rf, round(np.std(rf_obs[irf].amp,ddof=1),2)))
+    lam_rf = 0.2 * np.ones(len(rf_obs),) # this is as the example given by KL14
     std_swd = 0.05 # arbitrary - the max allowed in Geoff Abers' code = 0.15
     return Model(vs, all_deps, idep, std_rf, lam_rf, std_swd)
 
@@ -290,8 +306,8 @@ def CheckPrior(model: Model, limits: Limits) -> bool:
         _InBounds(model.lam_rf, limits.lam_rf) and
         _InBounds(model.std_swd, limits.std_swd) and
         model.vs.size == model.idep.size and
-        (np.hstack([0,model.vs[
-                model.all_deps[model.idep]<= limits.crustal_thick[0]]]) <= 4.5).all()
+        (np.hstack([0,model.vs[model.all_deps[model.idep]<= 
+                               limits.crustal_thick[0]]])  <= 4.5).all()
     )
 
 def _InBounds(value, limit):
@@ -404,25 +420,31 @@ def CalcCovarianceMatrix(model,rf_obs,swd_obs) -> CovarianceMatrix:
     #    First, calculate R based on lam_rf
     # RF part of covariance: square matrix with length = number of timesteps in RF
     w0=4.4 # constant, as KL14
-    R=np.zeros((rf_obs.amp.size,rf_obs.amp.size))
-    for a in range(rf_obs.amp.size):
-        for b in range(rf_obs.amp.size):
-            R[a,b]=(np.exp(-(model.lam_rf*rf_obs.dt*abs(a-b)))*
-             np.cos(model.lam_rf*w0*rf_obs.dt*abs(a-b)))
-
-
-    covar=np.zeros((rf_obs.amp.size+swd_obs.period.size,
-                    rf_obs.amp.size+swd_obs.period.size))
-    covar[:rf_obs.amp.size,:rf_obs.amp.size]=R*model.std_rf**2
+    n_rft = rf_obs[0].amp.size # Assume all RF inputs are same length
+    n_data = swd_obs.period.size + len(rf_obs)*n_rft
+    R = np.zeros((n_rft*len(rf_obs), n_rft*len(rf_obs)))
+    covar = np.zeros((n_data, n_data))
+    
+    for irf in range(len(rf_obs)):
+        i1 = n_rft*irf
+        i2 = n_rft*(irf+1)
+        for a in range(i1, i2):
+            for b in range(i1, i2):
+                R[a,b]=(np.exp(-(model.lam_rf[irf]*rf_obs[irf].dt*abs(a-b)))*
+                 np.cos(model.lam_rf[irf]*w0*rf_obs[irf].dt*abs(a-b)))
+        covar[i1:i2,i1:i2] = R[i1:i2, i1:i2] * model.std_rf[irf]**2
+    
+        # Try to workaround potential mis-rotation near surface by increasing the
+        # std_rf near the surface, e.g. first 0.5 s
+        if rf_obs[irf].rf_phase == 'Ps': ind = int(0.5/rf_obs[irf].dt) + 1  # <= 0.5 s
+        if rf_obs[irf].rf_phase == 'Sp': ind = int(3/rf_obs[irf].dt) + 1 # <= 5s for Sp
+        covar[i1:i1+ind,i1:i1+ind] *= rf_obs[irf].std_sc
+    
+    
     covar[-swd_obs.period.size:,-swd_obs.period.size:]=(
             np.identity(swd_obs.period.size)*model.std_swd**2)
 
-    # Try to workaround potential mis-rotation near surface by increasing the
-    # std_rf near the surface, e.g. first 0.5 s
-    if rf_obs.rf_phase == 'Ps': ind = int(0.5/rf_obs.dt) + 1  # <= 0.5 s
-    if rf_obs.rf_phase == 'Sp': ind = int(5/rf_obs.dt) + 1 # <= 5s for Sp
-    covar[:ind,:ind] *= rf_obs.std_sc
-
+    #print(model.lam_rf, model.std_rf, model.std_swd)
     invc=np.linalg.inv(covar)
     #  Note: Need to take the determinant for use in calculating the acceptance
     #        probability if changing a hyperparameter.  However, given that
@@ -431,8 +453,14 @@ def CalcCovarianceMatrix(model,rf_obs,swd_obs) -> CovarianceMatrix:
     #        between the new and old determinant, so it is fine to just scale
     #        this up so that it doesn't get lost in the rounding error.
     #  detc=np.linalg.det(covar)
-    detc = np.linalg.det(covar*1e4)
-    detc = detc / (10**int(np.log10(detc)))
+    
+    if len(rf_obs) == 1: sc_by = 1e4
+    if len(rf_obs) == 2: sc_by = 5e2
+    detc = np.linalg.det(covar*sc_by)
+    if detc>1e300: detc=1e300
+    if detc<1e-300: detc=1e-300
+    
+    #detc = detc / (10**int(np.log10(detc)))
 
     return CovarianceMatrix(covar,invc,detc,R)
 
@@ -534,13 +562,19 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
         theta = _GetStdForGaussian(hyperparam, itr)
 
         if hyperparam == 'Std_RF':
-            old = model.std_rf
+            ih = random.randint(0,len(model.std_rf)-1)
+            old = model.std_rf[ih]
             new = np.round(np.random.normal(old,theta),5)
-            new_model = model._replace(std_rf = new)
+            new_noise = model.std_rf.copy()
+            new_noise[ih] = new
+            new_model = model._replace(std_rf = new_noise)
         elif hyperparam == 'Lam_RF':
-            old = model.lam_rf
+            ih = random.randint(0, len(model.lam_rf)-1)
+            old = model.lam_rf[ih]
             new = np.round(np.random.normal(old,theta),4)
-            new_model = model._replace(lam_rf = new)
+            new_noise = model.lam_rf.copy()
+            new_noise[ih] = new
+            new_model = model._replace(lam_rf = new_noise)
         elif hyperparam == 'Std_SWD':
             old = model.std_swd
             new = np.round(np.random.normal(old,theta),4)
@@ -580,19 +614,24 @@ def _GetStdForGaussian(perturb, itr) -> float:
 # from the Vs structure.  There are various (empirical) ways of doing this.
 # We also assume that the synthetic ray is incident from 60 degrees, so input
 # receiver function (observed) should also be stretched accordingly
-def SynthesiseRF(fullmodel, rf_in) -> RecvFunc:
+def SynthesiseRF(fullmodel, rf_all) -> list: # of RecvFunc
+    for irf in range(len(rf_all)):
+        rf_in = rf_all[irf]
+        
+        # Make synthetic waveforms for Sp or Ps or both
+        wv = _SynthesiseWV(fullmodel, rf_in)
+        # Multiply by rotation matrix
+        wv = _RotateToPSV(wv, fullmodel, rf_in)
+        # Prep data (filter, crop, align)
+        wv = _PrepWaveform(wv, Ts = [1, 100])
 
-    # Make synthetic waveforms for Sp or Ps or both
-    wv = _SynthesiseWV(fullmodel, rf_in)
-    # Multiply by rotation matrix
-    wv = _RotateToPSV(wv, fullmodel, rf_in)
-    # Prep data (filter, crop, align)
-    wv = _PrepWaveform(wv, Ts = [1, 100])
+        # And deconvolve it
+        rf_out = _CalculateRF(wv, rf_in)
+        
+        if irf == 0: rfs_out = [rf_out]
+        else:        rfs_out.append(rf_out)  
 
-    # And deconvolve it
-    rf = _CalculateRF(wv, rf_in)
-
-    return rf
+    return rfs_out
 
 
 def _SynthesiseWV(synthmodel, rf_in) -> BodyWaveform:
@@ -945,7 +984,8 @@ def _CalculateRF(waveform, rf_in) -> RecvFunc:
 
     return RecvFunc(amp = RF, dt = rf_dt, ray_param = rf_in.ray_param,
                     std_sc = rf_in.std_sc, rf_phase = rf_in.rf_phase,
-                    filter_corners = rf_in.filter_corners)
+                    filter_corners = rf_in.filter_corners, 
+                    weight_by = rf_in.weight_by)
 
 #  Extended time multi-taper method of deconvolution:
 #   Helffrich, G., 2006. Extended-time multitaper frequency domain
@@ -984,7 +1024,7 @@ def _ETMTMSumFFT(slepian_tapers, data_1, data_2, num_window):
 def SynthesiseSWD(model, period, itr) -> SurfaceWaveDisp:
     # Save time in early iterations when just trying to get the ballpark answer
     # by using a coarser estimate for the forward modelled dispersion
-    if itr < 1e5:
+    if itr < 1e4:
         ifcoarse = True
     else:
         ifcoarse = False
@@ -1218,10 +1258,27 @@ def _Secular(k, om, thick, mu, rho, vp, vs):
 # =============================================================================
 #       Find the misfit (scaled by covariance matrix)
 # =============================================================================
-def Mahalanobis(rf_obs,rf_synth, swd_obs,swd_synth, inv_cov) -> float:
-    g_m = np.concatenate((rf_synth, swd_synth))
-    d_obs = np.concatenate((rf_obs, swd_obs))
-    misfit = g_m - d_obs
+def Mahalanobis(rf_obs_all, rf_synth_all, swd_obs,swd_synth, inv_cov) -> float:
+    
+    # Make single vector out of all rf_obs
+    rf_obs = rf_obs_all[0].amp
+    rf_synth = rf_synth_all[0].amp
+    
+    for irf in range(1,len(rf_obs_all)):
+        rf_obs = np.hstack((rf_obs, rf_obs_all[irf].amp))
+        rf_synth = np.hstack((rf_synth, rf_synth_all[irf].amp))
+    
+#    g_m = np.concatenate((rf_synth, swd_synth.c))
+#    d_obs = np.concatenate((rf_obs, swd_obs.c))
+#    misfit = g_m - d_obs
+        
+    # More equally weight the surface wave and RF datasets?
+    misfit_rf = rf_synth-rf_obs
+    misfit_swd = swd_synth.c - swd_obs.c
+    if rf_obs_all[0].weight_by == 'even': misfit_rf = misfit_rf * misfit_swd.size/misfit_rf.size
+    if type(rf_obs_all[0].weight_by) == int:
+        misfit_rf = misfit_rf * rf_obs_all[0].weight_by * misfit_swd.size/misfit_rf.size
+    misfit = np.concatenate((misfit_rf, misfit_swd))
 
     # N.B. with np.matmul, it prepends or appends an additional dimension
     # (depending on the position in matmul) if one of the arguments is a vector
@@ -1231,27 +1288,46 @@ def Mahalanobis(rf_obs,rf_synth, swd_obs,swd_synth, inv_cov) -> float:
 # =============================================================================
 #       Choose whether or not to accept the change
 # =============================================================================
-def AcceptFromLikelihood(fit_to_obs_m, fit_to_obs_m0,
-                         cov_m, cov_m0, model_change) -> bool:
+def AcceptFromLikelihood(misfit_to_obs_m, misfit_to_obs_m0,
+                         cov_m, cov_m0, model_change):
+    # We have input misfit (smaller misfit == better fit to data!) for 
+    # the new model (_m), and the old model (_m0).  A much improved fit means
+    # misfit_m << misfit_m0 (and a much worse fit means misfit_m0 << misfit_m)
+    # We will output alpha, the likelihood of accepting (where high alpha
+    # means definitely accept, and low alpha means definitely don't.)
+    
+    # Smaller misfit means better fit, so if it is just a lot better,
+    # accept it without testing (to save some calculations!)
+    if 500 < misfit_to_obs_m0 - misfit_to_obs_m: return (1, 1e300)
+    if 500 < misfit_to_obs_m - misfit_to_obs_m0: return (0, 1e-300)
     # Form is dependent on which variable changed
     perturb = model_change.which_change
     if perturb == 'Vs' or perturb == 'Dep':
-        alpha_m_m0 = np.exp(-(fit_to_obs_m - fit_to_obs_m0)/2)
+        alpha_m_m0 = np.exp(-(misfit_to_obs_m - misfit_to_obs_m0)/2)
     elif perturb == 'Birth':
         dv = np.abs(model_change.old_param - model_change.new_param)
         alpha_m_m0 = ((model_change.theta * np.sqrt(2*np.pi) / dv) *
                       np.exp((dv*dv/(2*model_change.theta**2)) -
-                             (fit_to_obs_m - fit_to_obs_m0)/2))
+                             (misfit_to_obs_m - misfit_to_obs_m0)/2))
     elif perturb == 'Death':
         dv = np.abs(model_change.old_param - model_change.new_param)
         alpha_m_m0 = ((dv / (model_change.theta * np.sqrt(2*np.pi))) *
                       np.exp(-(dv*dv/(2*model_change.theta**2)) -
-                             (fit_to_obs_m - fit_to_obs_m0)/2))
+                             (misfit_to_obs_m - misfit_to_obs_m0)/2))
     elif perturb == 'Noise':
         alpha_m_m0 = ((cov_m0.detCovar/cov_m.detCovar) *
-                      np.exp(-(fit_to_obs_m - fit_to_obs_m0)/2))
+                      np.exp(-(misfit_to_obs_m - misfit_to_obs_m0)/2))
 
-
+#    if alpha_m_m0 == 0:
+#        print('Perturb ', perturb, ': ', round(misfit_to_obs_m), ' (new), ',
+#               round(misfit_to_obs_m0), ' (old) (', model_change.new_param
+#               , ', ', model_change.old_param, ') *********')
+#    else:
+#        print('Perturb ', perturb, ': ', round(misfit_to_obs_m), ', ',
+#               round(misfit_to_obs_m0),  ' (', model_change.new_param
+#               , ', ', model_change.old_param, ')' )
+    if alpha_m_m0 <= 1e-5:
+        return (0, 1e-5)
     keep_yn = random.random() # generate random number between 0-1
     return (keep_yn < alpha_m_m0, alpha_m_m0)
 
