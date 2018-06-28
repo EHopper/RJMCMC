@@ -24,15 +24,15 @@ import matlab
 # =============================================================================
 
 class RecvFunc(typing.NamedTuple):
-    amp: list # of np.array  # assumed to be processed in same way as synthetics are here
-    dt: list # of float      # constant timestep in s
-    rf_phase: list # of str
-    ray_param: list # of float  # tested assuming ray_param = 0.0618
-    filter_corners: list # of list # Should be the short and long PERIOD 
-                         # corners of the appropriate filter band (s)
-    std_sc: list # of float # This is trying to account for near-surface misrotation
-                    # scale std_rf by std_sc for the first 0.5s of the signal
-                    # i.e. set to 1 to not bodge things!
+    amp: np.array  # assumed to be processed in same way as synthetics are here
+    dt: float      # constant timestep in s
+    rf_phase: str
+    ray_param: float  # tested assuming ray_param = 0.0618
+    filter_corners: list # Should be the short and long PERIOD
+                                  # corners of the appropriate filter band (s)
+    std_sc: float # This is trying to account for near-surface misrotation
+                            # scale std_rf by std_sc for the first 0.5s of the signal
+                            # i.e. set to 1 to not bodge things!
     weight_by: str # set to 'even' to weight RF and SWD misfit evenly
                     #    to 'rf2'  to weight RF 2x as much as SWD misfit
 # Receiver function assumed to start at t=0s with a constant timestep, dt
@@ -115,11 +115,11 @@ class Error(Exception): pass
 def JointInversion(rf_obs: list, swd_obs: SurfaceWaveDisp, lims: Limits,
                    max_iter: int, random_seed: int,
                    save_name:  str) -> Model:
-    
-    # NOTE: rf_obs should be a LIST of RecvFunc
-    if not type(rf_obs) == list: rf_obs = [rf_obs]
+
+    # N.B. Input more than one RF by making a list of RecvFunc
+
     savename = open('failed_prior.txt', mode = 'w')
-    
+
     # N.B.  The variable random_seed ensures that the process is repeatable.
     random.seed(a = random_seed)
     np.random.seed(seed = random_seed+1)
@@ -137,7 +137,8 @@ def JointInversion(rf_obs: list, swd_obs: SurfaceWaveDisp, lims: Limits,
     all_models = np.zeros((ddeps.size,int((max_iter)/save_every)+2))
     all_models[:,0] = ddeps
     all_models[:,1] = SaveModel(state.fullmodel, ddeps)
-    all_hyperparameters = np.zeros((int(max_iter/save_every)+1,1+2*len(rf_obs)))
+    all_hyperparameters = np.zeros((int(max_iter/save_every)+1,
+                                    1+2*len(rf_obs)))
     all_phi = np.zeros(save_every) # all misfits
     all_alpha = np.zeros(save_every) # all likelihoods
     all_keep = np.zeros(save_every)
@@ -182,7 +183,7 @@ def JointInversion(rf_obs: list, swd_obs: SurfaceWaveDisp, lims: Limits,
     return (None, all_models, all_phi, all_alpha, all_keep, state.fullmodel)
 
 
-def InitialState(rf_obs: RecvFunc, swd_obs: SurfaceWaveDisp, 
+def InitialState(rf_obs: list, swd_obs: SurfaceWaveDisp,
                  lims: Limits) -> GlobalState:
     # =========================================================================
     #      Start by calculating for some (arbitrary) initial model
@@ -222,13 +223,13 @@ def NextState(itr:int, rf_obs: list, swd_obs: SurfaceWaveDisp, lims: Limits,
     model, changes_model = Mutate(prev_state.model, itr)
 
     if not CheckPrior(model, lims): # check if mutated model compatible with prior distr.
-#        print('Failed Prior (', itr, '): ', changes_model.which_change, 
-#              ' change to ', changes_model.new_param, ' (from ', 
+#        print('Failed Prior (', itr, '): ', changes_model.which_change,
+#              ' change to ', changes_model.new_param, ' (from ',
 #              changes_model.old_param, ')', file = savename)
         #print('Failed Prior')
         return prev_state, False, 0  # if not, continue to next iteration
 
-    
+
     fullmodel = MakeFullModel(model)
     if changes_model.which_change == 'Noise':
         # only need to recalculate covariance matrix if changed hyperparameter
@@ -279,7 +280,7 @@ def NextState(itr:int, rf_obs: list, swd_obs: SurfaceWaveDisp, lims: Limits,
 # lag time between two samples (according to an expression involving lambda)
 # but SWD noise is assume to be uncorrelated, so only one hyperparameter is
 # inverted for the dispersion data.
-def InitialModel(rf_obs) -> Model:
+def InitialModel(rf_obs: list) -> Model:
     vs = np.array([round(random.uniform(0.5,4.5),2)])   # arbitrary
     all_deps = np.concatenate((np.arange(0,10,0.2),
                                 np.arange(10,60,1), np.arange(60,201,5)))
@@ -306,7 +307,7 @@ def CheckPrior(model: Model, limits: Limits) -> bool:
         _InBounds(model.lam_rf, limits.lam_rf) and
         _InBounds(model.std_swd, limits.std_swd) and
         model.vs.size == model.idep.size and
-        (np.hstack([0,model.vs[model.all_deps[model.idep]<= 
+        (np.hstack([0,model.vs[model.all_deps[model.idep]<=
                                limits.crustal_thick[0]]])  <= 4.5).all()
     )
 
@@ -424,7 +425,7 @@ def CalcCovarianceMatrix(model,rf_obs,swd_obs) -> CovarianceMatrix:
     n_data = swd_obs.period.size + len(rf_obs)*n_rft
     R = np.zeros((n_rft*len(rf_obs), n_rft*len(rf_obs)))
     covar = np.zeros((n_data, n_data))
-    
+
     for irf in range(len(rf_obs)):
         i1 = n_rft*irf
         i2 = n_rft*(irf+1)
@@ -433,14 +434,14 @@ def CalcCovarianceMatrix(model,rf_obs,swd_obs) -> CovarianceMatrix:
                 R[a,b]=(np.exp(-(model.lam_rf[irf]*rf_obs[irf].dt*abs(a-b)))*
                  np.cos(model.lam_rf[irf]*w0*rf_obs[irf].dt*abs(a-b)))
         covar[i1:i2,i1:i2] = R[i1:i2, i1:i2] * model.std_rf[irf]**2
-    
+
         # Try to workaround potential mis-rotation near surface by increasing the
         # std_rf near the surface, e.g. first 0.5 s
         if rf_obs[irf].rf_phase == 'Ps': ind = int(0.5/rf_obs[irf].dt) + 1  # <= 0.5 s
-        if rf_obs[irf].rf_phase == 'Sp': ind = int(3/rf_obs[irf].dt) + 1 # <= 5s for Sp
+        if rf_obs[irf].rf_phase == 'Sp': ind = int(3/rf_obs[irf].dt) + 1 # <= 3s for Sp
         covar[i1:i1+ind,i1:i1+ind] *= rf_obs[irf].std_sc
-    
-    
+
+
     covar[-swd_obs.period.size:,-swd_obs.period.size:]=(
             np.identity(swd_obs.period.size)*model.std_swd**2)
 
@@ -453,13 +454,13 @@ def CalcCovarianceMatrix(model,rf_obs,swd_obs) -> CovarianceMatrix:
     #        between the new and old determinant, so it is fine to just scale
     #        this up so that it doesn't get lost in the rounding error.
     #  detc=np.linalg.det(covar)
-    
+
     if len(rf_obs) == 1: sc_by = 1e4
     if len(rf_obs) == 2: sc_by = 5e2
     detc = np.linalg.det(covar*sc_by)
     if detc>1e300: detc=1e300
     if detc<1e-300: detc=1e-300
-    
+
     #detc = detc / (10**int(np.log10(detc)))
 
     return CovarianceMatrix(covar,invc,detc,R)
@@ -527,7 +528,7 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
             target_depth = random.random()*np.max(model.all_deps)
             test_i = np.argmin(np.abs(model.all_deps-target_depth))
             if test_i not in model.idep: i_d = test_i
-                
+
         #unused_idep = [idx for idx,val in enumerate(model.all_deps)
         #        if idx not in idep]
         #i_d = random.sample(unused_idep, 1)[0]
@@ -617,7 +618,7 @@ def _GetStdForGaussian(perturb, itr) -> float:
 def SynthesiseRF(fullmodel, rf_all) -> list: # of RecvFunc
     for irf in range(len(rf_all)):
         rf_in = rf_all[irf]
-        
+
         # Make synthetic waveforms for Sp or Ps or both
         wv = _SynthesiseWV(fullmodel, rf_in)
         # Multiply by rotation matrix
@@ -627,9 +628,9 @@ def SynthesiseRF(fullmodel, rf_all) -> list: # of RecvFunc
 
         # And deconvolve it
         rf_out = _CalculateRF(wv, rf_in)
-        
+
         if irf == 0: rfs_out = [rf_out]
-        else:        rfs_out.append(rf_out)  
+        else:        rfs_out.append(rf_out)
 
     return rfs_out
 
@@ -984,7 +985,7 @@ def _CalculateRF(waveform, rf_in) -> RecvFunc:
 
     return RecvFunc(amp = RF, dt = rf_dt, ray_param = rf_in.ray_param,
                     std_sc = rf_in.std_sc, rf_phase = rf_in.rf_phase,
-                    filter_corners = rf_in.filter_corners, 
+                    filter_corners = rf_in.filter_corners,
                     weight_by = rf_in.weight_by)
 
 #  Extended time multi-taper method of deconvolution:
@@ -1259,19 +1260,19 @@ def _Secular(k, om, thick, mu, rho, vp, vs):
 #       Find the misfit (scaled by covariance matrix)
 # =============================================================================
 def Mahalanobis(rf_obs_all, rf_synth_all, swd_obs,swd_synth, inv_cov) -> float:
-    
+
     # Make single vector out of all rf_obs
     rf_obs = rf_obs_all[0].amp
     rf_synth = rf_synth_all[0].amp
-    
+
     for irf in range(1,len(rf_obs_all)):
         rf_obs = np.hstack((rf_obs, rf_obs_all[irf].amp))
         rf_synth = np.hstack((rf_synth, rf_synth_all[irf].amp))
-    
+
 #    g_m = np.concatenate((rf_synth, swd_synth.c))
 #    d_obs = np.concatenate((rf_obs, swd_obs.c))
 #    misfit = g_m - d_obs
-        
+
     # More equally weight the surface wave and RF datasets?
     misfit_rf = rf_synth-rf_obs
     misfit_swd = swd_synth.c - swd_obs.c
@@ -1290,12 +1291,12 @@ def Mahalanobis(rf_obs_all, rf_synth_all, swd_obs,swd_synth, inv_cov) -> float:
 # =============================================================================
 def AcceptFromLikelihood(misfit_to_obs_m, misfit_to_obs_m0,
                          cov_m, cov_m0, model_change):
-    # We have input misfit (smaller misfit == better fit to data!) for 
+    # We have input misfit (smaller misfit == better fit to data!) for
     # the new model (_m), and the old model (_m0).  A much improved fit means
     # misfit_m << misfit_m0 (and a much worse fit means misfit_m0 << misfit_m)
     # We will output alpha, the likelihood of accepting (where high alpha
     # means definitely accept, and low alpha means definitely don't.)
-    
+
     # Smaller misfit means better fit, so if it is just a lot better,
     # accept it without testing (to save some calculations!)
     if 500 < misfit_to_obs_m0 - misfit_to_obs_m: return (1, 1e300)
