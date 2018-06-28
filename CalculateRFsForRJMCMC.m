@@ -9,7 +9,7 @@ cd(basedir)
 
 
 Project = 'SEGMeNT_5';
-staname = 'YQ.IGOM';
+staname = 'YQ.MBEY';
 rf_phases = {'Ps','Sp'};
 
 phase_vel_name = 'SEGMeNT_phv.txt';
