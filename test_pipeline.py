@@ -63,7 +63,7 @@ class PipelineTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(actual.c, expected.c,
                                              decimal = 2)
         np.testing.assert_array_equal(actual.period, expected.period)
-        
+
     def assertSynthModelEqual(self, actual, expected):
         np.testing.assert_array_equal(actual.vs, expected.vs)
         np.testing.assert_array_equal(actual.vp, expected.vp)
@@ -80,8 +80,8 @@ class PipelineTest(unittest.TestCase):
     deps = np.concatenate((np.arange(0,10,0.2),
                            np.arange(10,60,1), np.arange(60,201,5)))
     normdist =  np.random.normal(0,0.5,int(1e6)) # Gaussian distribution, std = 0.5
-        
-    
+
+
     @parameterized.expand([
         ("Seed == 1", normdist, 1,
              pipeline.Model(vs = np.array(1.04), all_deps = deps, idep = np.array(16),
@@ -93,7 +93,7 @@ class PipelineTest(unittest.TestCase):
 
     def test_InitialModel(self, name, normdist, random_seed, expected):
         fake_rf = pipeline.RecvFunc(normdist, 0, '', 0, [0], 0, '')
-        
+
         random.seed(a = random_seed)
         np.random.seed(seed = random_seed+1)
 
@@ -158,7 +158,7 @@ class PipelineTest(unittest.TestCase):
 
     @parameterized.expand([
             #("1x1 rf", model, rf_obs, swd_obs, pipeline.CovarianceMatrix(1,1,1)),
-            ("2x2 rf, 1 sw", model, rf_obs, swd_obs,
+            ("2x2 rf, 1 sw", model, [rf_obs], swd_obs,
                  pipeline.CovarianceMatrix(
                         R = np.array([[1, 0.928302], # calculated in Matlab (code gave
                              [0.928302, 1]]), # ouput as figure 4 from KL14)
@@ -171,7 +171,7 @@ class PipelineTest(unittest.TestCase):
                         detCovar = 2.7650942305, # 0.00027650942305,
                                ),
                          ),
-            ("3x3 rf, 4 sw", model, rf_obs._replace(amp = np.arange(3)),
+            ("3x3 rf, 4 sw", model, [rf_obs._replace(amp = np.arange(3))],
                  swd_obs._replace(period = np.arange(4)),
                  pipeline.CovarianceMatrix(
                         R = np.array([[1, 0.928302, 0.818653],
@@ -191,7 +191,7 @@ class PipelineTest(unittest.TestCase):
                                ),
                          ),
             ("change std", model._replace(std_rf = np.array([np.sqrt(10)]), std_swd = 2),
-                 rf_obs, swd_obs,
+                 [rf_obs], swd_obs,
                  pipeline.CovarianceMatrix(
                         R = np.array([[1, 0.928302], # calculated in Matlab (code gave
                              [0.928302, 1]]), # ouput as figure 4 from KL14)
@@ -204,7 +204,7 @@ class PipelineTest(unittest.TestCase):
                         detCovar = 5.53018846104696, #55.3018846104696,
                                ),
                          ),
-            ("change lam",model._replace(lam_rf = np.array([1])), rf_obs, swd_obs,
+            ("change lam",model._replace(lam_rf = np.array([1])), [rf_obs], swd_obs,
                  pipeline.CovarianceMatrix(
                         R = np.array([[1,0.35326101],
                               [0.35326101,1]]),
@@ -217,7 +217,7 @@ class PipelineTest(unittest.TestCase):
                         detCovar = 1.7504133111, #0.0017504133111,
                              ),
                          ),
-             ("Change std_sc", model, rf_obs._replace(amp = np.arange(3), std_sc = 2),
+             ("Change std_sc", model, [rf_obs._replace(amp = np.arange(3), std_sc = 2)],
                  swd_obs._replace(period = np.arange(4)),
                  pipeline.CovarianceMatrix(
                         R = np.array([[1, 0.928302, 0.818653],
@@ -236,9 +236,31 @@ class PipelineTest(unittest.TestCase):
                         detCovar = 2.20895305, #0.00000002761189,
                                ),
                          ),
+               ("List of two 2x2 rf, 1 sw",
+                    model._replace(std_rf = np.array([np.sqrt(0.1), np.sqrt(0.2)]),
+                                   lam_rf = np.array([0.2, 0.15])),
+                    [rf_obs, rf_obs._replace(std_sc = 1.5, rf_phase = 'Sp')], swd_obs,
+                    pipeline.CovarianceMatrix(
+                        R = np.array([[1, 0.928302, 0., 0.],
+                             [0.928302, 1., 0., 0.],
+                             [0., 0., 1., 0.950113],
+                             [0., 0., 0.950113, 1.]]),
+                        Covar = np.array([[0.1, 0.0928302, 0., 0., 0],
+                                 [0.0928302, 0.1, 0., 0., 0.],
+                                 [0., 0., 0.3, 0.2850338, 0.],
+                                 [0., 0., 0.2850338, 0.3, 0.],
+                                 [0., 0., 0., 0., 0.2]]),
+                        invCovar = np.array([[72.33026556,-67.144357,0., 0., 0.],
+                                    [-67.144357,72.33026556,0., 0., 0.],
+                                    [0., 0., 34.2632655, -32.5539626, 0.],
+                                    [0., 0., -32.5539626, 34.2632655, 0.],
+                                    [0., 0., 0., 0., 5.]]),
+                        detCovar = 7.5657958 # 75657957.528858,
+                               ),
+                         ),
             ])
     def test_CalcCovarianceMatrix(self, name, model, rf_obs, swd_obs, expected):
-        cov = pipeline.CalcCovarianceMatrix(model, [rf_obs], swd_obs)
+        cov = pipeline.CalcCovarianceMatrix(model, rf_obs, swd_obs)
         cov = cov._replace(detCovar = cov.detCovar / (10**int(np.log10(cov.detCovar))))
         self.assertCovarianceMatrixEqual(cov, expected)
     del model, rf_obs, swd_obs
@@ -3005,7 +3027,7 @@ class PipelineTest(unittest.TestCase):
     deps = np.concatenate((np.arange(0,10,0.2), np.arange(10,60,1), np.arange(60,201,5)))
     model = pipeline.Model(vs = np.array([3.4, 4.5]), all_deps = deps,
                            idep = np.array([60, 80]),
-                           std_rf = np.array([0.1]), lam_rf = np.array([0.2]), 
+                           std_rf = np.array([0.1]), lam_rf = np.array([0.2]),
                            std_swd = 0.2)
     swd_obs = pipeline.SurfaceWaveDisp(c = 0, period = 1/np.arange(0.02,0.11,0.01))
     rf_obs = pipeline.RecvFunc(amp = np.array([0]), dt = 0.25,
@@ -3119,33 +3141,33 @@ class PipelineTest(unittest.TestCase):
 #         Test the whole thing???!
 # =============================================================================
     rf_phase = 'Sp' # 'Ps'
-       
+
     model = pipeline.Model(vs = np.array([3.7, 4.3, 4.7, 4.6]),
                            all_deps = np.concatenate((np.arange(0,10,0.2),
-                                                      np.arange(10,60,1), 
-                                                      np.arange(60,201,5))), 
+                                                      np.arange(10,60,1),
+                                                      np.arange(60,201,5))),
                            idep = np.array([10, 30, 90, 110]),
-                           std_rf = np.array([0.05]), 
+                           std_rf = np.array([0.05]),
                            lam_rf = np.array([0.2]), std_swd = 0.05)
 
-    
-    
+
+
     @parameterized.expand([
         ("Sp simple model, 100 runs", rf_phase, model, 100, 20,
-             pipeline.SynthModel(vs = np.array([4.2695, 4.6153]), 
+             pipeline.SynthModel(vs = np.array([4.2695, 4.6153]),
                                   vp = np.array([7.467, 8.077]),
-                                  rho = np.array([3.11, 3.433]), 
+                                  rho = np.array([3.11, 3.433]),
                                   thickness = np.array([28., 28.]),
                                   layertops = np.array([0., 28.]),
                                   avdep = np.array([14., 42.]),
                                   ),
             ),
         ("Ps simple model, 120 runs", 'Ps', model, 120, 8,
-             pipeline.SynthModel(vs = np.array([4.382, 4.6856]), 
+             pipeline.SynthModel(vs = np.array([4.382, 4.6856]),
                                   vp = np.array([7.684, 8.2]),
-                                  rho = np.array([3.182, 3.438]), 
+                                  rho = np.array([3.182, 3.438]),
                                   thickness = np.array([60.6, 60.6]),
-                                  layertops = np.array([0., 60.6]), 
+                                  layertops = np.array([0., 60.6]),
                                   avdep = np.array([30.3, 90.9])
                                   ),
             ),
@@ -3161,51 +3183,51 @@ class PipelineTest(unittest.TestCase):
                                              ),
             ),
         ])
-    
+
     def testRunJointInv(self, name, rf_phase, model, max_it, rnd_sd, model_out):
         fullmodel = pipeline.MakeFullModel(model)
         all_lims = pipeline.Limits(
-                    vs = (0.5, 5.0),dep = (0,200), std_rf = (0.01, 0.05), 
+                    vs = (0.5, 5.0),dep = (0,200), std_rf = (0.01, 0.05),
                     lam_rf = (0.05, 0.5),std_swd = (0.01, 0.05),
                     crustal_thick = (25,)
                     )
-        
-        
+
+
         period = np.array([9, 10.12, 11.57,
                            13.5, 16.2, 20.25, 25, 32, 40, 50, 60, 80,
         					])
         swd = pipeline.SynthesiseSWD(fullmodel, period, 1e6)
-        
+
         if rf_phase == 'Both':
-            rf_in = pipeline.RecvFunc(amp = np.array([0,1]), dt = 0.25, 
+            rf_in = pipeline.RecvFunc(amp = np.array([0,1]), dt = 0.25,
                             rf_phase = 'Ps', ray_param = 0.06147,
                             filter_corners = [1,100], std_sc = 5,
                             weight_by = 'even')
             rf_Ps = pipeline.SynthesiseRF(fullmodel, [rf_in])
-            rf_in = pipeline.RecvFunc(amp = np.array([0,1]), dt = 0.25, 
+            rf_in = pipeline.RecvFunc(amp = np.array([0,1]), dt = 0.25,
                             rf_phase = 'Sp', ray_param = 0.11012,
                             filter_corners = [4,100], std_sc = 5,
                             weight_by = 'even')
             rf_Sp = pipeline.SynthesiseRF(fullmodel, [rf_in])
-            
+
             out = pipeline.JointInversion([rf_Ps[0], rf_Sp[0]], swd, all_lims,
                                           max_it, rnd_sd, 'junk')
             self.assertSynthModelEqual(model_out, out[-1])
         else:
-            
+
             if rf_phase == 'Ps': rp = 0.06147; fc = [1, 100]
             if rf_phase == 'Sp': rp = 0.11012; fc = [4, 100]
             rf_in = pipeline.RecvFunc(amp = np.array([0,1]), dt = 0.25,
                                   rf_phase = rf_phase, ray_param = rp,
                                   filter_corners = fc, std_sc = 5,
-                                  weight_by = 'even') 
+                                  weight_by = 'even')
             rf = pipeline.SynthesiseRF(fullmodel, [rf_in])
-            
+
             out = pipeline.JointInversion(rf, swd, all_lims, max_it, rnd_sd, 'junk')
             self.assertSynthModelEqual(model_out, out[-1])
 
 
-        
+
 
 
 if __name__ == "__main__":
