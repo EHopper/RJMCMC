@@ -67,10 +67,10 @@ for irf = 1:length(rf_phases)
     
     switch rf_phase
         case 'Ps'
-            plot_RF_with_std(time, rfs, t_fine, rf_fine, ...
+            plot_RF_with_std2(time, rfs, t_fine, rf_fine, ...
                 std_fine, max(RF.cp_depths), titstr);    
         case 'Sp'
-            plot_RF_with_std(-time, -rfs, -t_fine, -rf_fine, ...
+            plot_RF_with_std2(-time, -rfs, -t_fine, -rf_fine, ...
                 std_fine, max(RF.cp_depths), titstr); 
     end
     
@@ -146,7 +146,7 @@ dt = 0.25; std_sc = 5;
 
 
 
-clc; close all; ifplot = 0;
+clc; close all; ifplot = 1;
 
 fprintf('\n\nimport pipeline\nimport numpy as np\n\n');
 
@@ -186,16 +186,19 @@ fprintf('\tswd_obs = pipeline.SurfaceWaveDisp(\n\t\t\t\tperiod = np.array([');
 printforpython(periods,3)
 fprintf('\t\t\t\t\t]),\n\t\t\t\tc = np.array([')
 printforpython(c,4)
+fprintf('\t\t\t\t\t]),\n\t\t\t\tstd = np.array([')
+printforpython(c_std,4)
 fprintf('\t\t\t\t\t])\n\t\t\t\t)\n\n');
 if ifplot
-    figure; plot(periods,c); 
+    figure; plot(periods,c,'k-','linewidth',2); hold on; 
+    plot(periods,c+c_std,'--',periods,c-c_std,'--','color',0.74*[1 1 1]);
     xlabel('Period (s)'); ylabel('Phase Velocity (km/s)');
 end
 
 fprintf('\tall_lims = pipeline.Limits(\n\t\t\t\tvs = (0.5, %.1f),', ...
     min(5,0.55/rf_out.rp)) % ensures Vp < c always
-fprintf('dep = (0,200), std_rf = (0, 0.05),\n\t\t\t\tlam_rf = (0.05')
-fprintf(', 0.5), std_swd = (0, 0.05), crustal_thick = (25,))');
+fprintf('dep = (0,200), std_rf = (1, 2),\n\t\t\t\tlam_rf = (0.05')
+fprintf(', 0.5), std_swd = (1, 2), crustal_thick = (25,))');
 
 fprintf('\n\n\tvs_in = ''unknown''')
 
