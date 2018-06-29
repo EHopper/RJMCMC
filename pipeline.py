@@ -25,6 +25,7 @@ import matlab
 
 class RecvFunc(typing.NamedTuple):
     amp: np.array  # assumed to be processed in same way as synthetics are here
+    std: np.array  # same length as amp, comes from bootstrapping
     dt: float      # constant timestep in s
     rf_phase: str
     ray_param: float  # tested assuming ray_param = 0.0618
