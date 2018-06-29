@@ -53,6 +53,7 @@ class RotBodyWaveform(typing.NamedTuple):
 class SurfaceWaveDisp(typing.NamedTuple):
     period: np.array    # dominant period of dispersion measurement, seconds
     c: np.array  # phase velocity in km/s
+    std: np.array # std at each period
 # Surface wave dispersion measurements are allowed at any series of periods (s)
 
 class Model(typing.NamedTuple):
@@ -197,7 +198,7 @@ def InitialState(rf_obs: list, swd_obs: SurfaceWaveDisp,
         # First, need to define the Vp and rho
     fullmodel_0 = MakeFullModel(model_0)
     rf_synth_m0 = SynthesiseRF(fullmodel_0, rf_obs) # forward model the RF data
-    swd_synth_m0 = SynthesiseSWD(fullmodel_0, swd_obs.period, 0) # forward model the SWD data
+    swd_synth_m0 = SynthesiseSWD(fullmodel_0, swd_obs, 0) # forward model the SWD data
 
     # Calculate covariance matrix (and inverse, and determinant)
     cov_m0 = CalcCovarianceMatrix(model_0,rf_synth_m0,swd_synth_m0)
@@ -242,7 +243,7 @@ def NextState(itr:int, rf_obs: list, swd_obs: SurfaceWaveDisp, lims: Limits,
         #print(changes_model.which_change)
         cov_m = prev_state.cov
         rf_synth_m = SynthesiseRF(fullmodel, prev_state.rf_synth) # forward model the RF data
-        swd_synth_m = SynthesiseSWD(fullmodel, swd_obs.period, itr) # forward model the SWD data
+        swd_synth_m = SynthesiseSWD(fullmodel, swd_obs, itr) # forward model the SWD data
 
     # Calculate fit
     misfit_to_obs_m = Mahalanobis(
@@ -275,8 +276,8 @@ def NextState(itr:int, rf_obs: list, swd_obs: SurfaceWaveDisp, lims: Limits,
 #       Setting up the model.
 # =============================================================================
 # Our model variables consist of (1) Depth of nuclei; (2) Vs of nuclei;
-# and two hyperparameters that define the noise of the RFs [std_rf, lam_rf];
-# and one hyperparameter defining the noise of the SWD [std_SWD]
+# and two hyperparameters that define the noise of the RFs [std_rf_sc, lam_rf];
+# and one hyperparameter defining the noise of the SWD [std_swd_sc]
 # Note that RF noise is assumed to be correlated in some way, dependent on the
 # lag time between two samples (according to an expression involving lambda)
 # but SWD noise is assume to be uncorrelated, so only one hyperparameter is
@@ -286,12 +287,10 @@ def InitialModel(rf_obs: list) -> Model:
     all_deps = np.concatenate((np.arange(0,10,0.2),
                                 np.arange(10,60,1), np.arange(60,201,5)))
     idep = np.array([random.randrange(0,len(all_deps))])  # arbitrary
-    std_rf = np.array([round(np.std(rf_obs[0].amp,ddof=1),2)]) # start off assuming all data is noise (KL14)
-    for irf in range(1, len(rf_obs)):
-        std_rf = np.hstack((std_rf, round(np.std(rf_obs[irf].amp,ddof=1),2)))
+    std_rf_sc = np.ones(len(rf_obs),) # use this as a MULTIPLIER for calc std
     lam_rf = 0.2 * np.ones(len(rf_obs),) # this is as the example given by KL14
-    std_swd = 0.05 # arbitrary - the max allowed in Geoff Abers' code = 0.15
-    return Model(vs, all_deps, idep, std_rf, lam_rf, std_swd)
+    std_swd_sc = 1 # use this as a MULTIPLIER for calc data std
+    return Model(vs, all_deps, idep, std_rf_sc, lam_rf, std_swd_sc)
 
 
 # =============================================================================
@@ -434,17 +433,18 @@ def CalcCovarianceMatrix(model,rf_obs,swd_obs) -> CovarianceMatrix:
             for b in range(i1, i2):
                 R[a,b]=(np.exp(-(model.lam_rf[irf]*rf_obs[irf].dt*abs(a-b)))*
                  np.cos(model.lam_rf[irf]*w0*rf_obs[irf].dt*abs(a-b)))
-        covar[i1:i2,i1:i2] = R[i1:i2, i1:i2] * model.std_rf[irf]**2
+                covar[a,b]=R[a,b]*rf_obs[irf].std[a]*rf_obs[irf].std[b]
+        covar[i1:i2,i1:i2] = R[i1:i2, i1:i2] * model.std_rf_sc[irf]
 
         # Try to workaround potential mis-rotation near surface by increasing the
         # std_rf near the surface, e.g. first 0.5 s
-        if rf_obs[irf].rf_phase == 'Ps': ind = int(0.5/rf_obs[irf].dt) + 1  # <= 0.5 s
-        if rf_obs[irf].rf_phase == 'Sp': ind = int(3/rf_obs[irf].dt) + 1 # <= 3s for Sp
+        if rf_obs[irf].rf_phase == 'Ps': ind = int(1/rf_obs[irf].dt) + 1  # <= 1s
+        if rf_obs[irf].rf_phase == 'Sp': ind = int(5/rf_obs[irf].dt) + 1 # <= 5s for Sp
         covar[i1:i1+ind,i1:i1+ind] *= rf_obs[irf].std_sc
 
 
     covar[-swd_obs.period.size:,-swd_obs.period.size:]=(
-            np.identity(swd_obs.period.size)*model.std_swd**2)
+            np.identity(swd_obs.period.size)*swd_obs.std**2*model.std_swd_sc)
 
     #print(model.lam_rf, model.std_rf, model.std_swd)
     invc=np.linalg.inv(covar)
@@ -595,13 +595,13 @@ def _GetStdForGaussian(perturb, itr) -> float:
     elif perturb=='Birth' or perturb=='Death': # Layer Birth/Death
         theta=0.5              # half B&c12's theta2 for new velocity
     elif perturb=='Std_RF':    # Change hyperparameter - std_rf
-        theta=1e-3             # B&c12's theta_h_j
+        theta=0.1             # B&c12's theta_h_j
     elif perturb=='Std_SWD':   # Change hyperparameter - std_swd
-        theta=1e-2             # B&c12's theta_h_j
+        theta=0.1             # B&c12's theta_h_j
     elif perturb=='Lam_RF':    # Change hyperparameter - lam_swd
         theta=1e-2
 
-    if itr < 250:
+    if itr < 500:
         theta = theta*2
 
     return theta
@@ -985,7 +985,8 @@ def _CalculateRF(waveform, rf_in) -> RecvFunc:
 
 
     return RecvFunc(amp = RF, dt = rf_dt, ray_param = rf_in.ray_param,
-                    std_sc = rf_in.std_sc, rf_phase = rf_in.rf_phase,
+                    std = rf_in.ray_param, std_sc = rf_in.std_sc, 
+                    rf_phase = rf_in.rf_phase,
                     filter_corners = rf_in.filter_corners,
                     weight_by = rf_in.weight_by)
 
@@ -1023,7 +1024,7 @@ def _ETMTMSumFFT(slepian_tapers, data_1, data_2, num_window):
 #   Attenuation for Near-Surface Site Characterization," Ph.D. Dissertation,
 #   Georgia Institute of Technology.
 
-def SynthesiseSWD(model, period, itr) -> SurfaceWaveDisp:
+def SynthesiseSWD(model, swd_in, itr) -> SurfaceWaveDisp:
     # Save time in early iterations when just trying to get the ballpark answer
     # by using a coarser estimate for the forward modelled dispersion
     if itr < 1e4:
@@ -1033,11 +1034,11 @@ def SynthesiseSWD(model, period, itr) -> SurfaceWaveDisp:
 
 
 
-    freq = 1/period
+    freq = 1/swd_in.period
 
     if model.vs.size == 1:
         cr = _CalcRaylPhaseVelInHalfSpace(model.vp[0], model.vs[0])
-        return SurfaceWaveDisp(period = period,
+        return SurfaceWaveDisp(period = swd_in.period,
                                c = np.ones(freq.size)*cr)
         # no freq. dependence in homogeneous half space
 
@@ -1066,7 +1067,7 @@ def SynthesiseSWD(model, period, itr) -> SurfaceWaveDisp:
             cr[i_om] = _FindMinValueSecularFunctionFine(omega[i_om], k_lims[:,i_om],
               n_ksteps, model.thickness, model.rho, model.vp, model.vs, mu)
 
-    return SurfaceWaveDisp(period = period, c = cr)
+    return SurfaceWaveDisp(period = swd_in.period, c = cr, std = swd_in.std)
 
 def _CalcRaylPhaseVelInHalfSpace(vp, vs):
     # Note: they actually do this in a cleverer way (see commented MATLAB code)
