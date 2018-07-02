@@ -60,9 +60,9 @@ class Model(typing.NamedTuple):
     vs: np.array
     all_deps: np.array    # all possible depth nodes
     idep: np.array        # indices of used depth nodes
-    std_rf: np.array      #  length == number of input RFs
+    std_rf_sc: np.array      #  length == number of input RFs
     lam_rf: np.array      #  length == number of input RFs
-    std_swd: float
+    std_swd_sc: float
 # Inputs: dep=[list of depths, km]; vs=[list of Vs, km/s];
 # std_rf=RF standard deviation; lam_rf=RF lambda; std_swd=SWD dispersion std
 # Note that std_rf, lam_rf, std_swd are all inputs to the covariance matrix,
@@ -72,9 +72,9 @@ class Model(typing.NamedTuple):
 class Limits(typing.NamedTuple):
     vs: tuple
     dep: tuple
-    std_rf: tuple
+    std_rf_sc: tuple
     lam_rf: tuple
-    std_swd: tuple
+    std_swd_sc: tuple
     crustal_thick: tuple
 # Reasonable min and max values for all model parameters define the prior
 # distribution - i.e. uniform probability within some reasonable range of values
@@ -172,8 +172,8 @@ def JointInversion(rf_obs: list, swd_obs: SurfaceWaveDisp, lims: Limits,
             mean_alpha[n_save] = np.mean(all_alpha[all_phi>0])
             mean_keep[n_save] = np.mean(all_keep[all_phi>0])
             all_phi *= 0; all_alpha *= 0; all_keep *= 0
-            all_hyperparameters[n_save,:] = np.hstack([state.model.std_rf,
-                               state.model.lam_rf, np.array([state.model.std_swd])])
+            all_hyperparameters[n_save,:] = np.hstack([state.model.std_rf_sc,
+                               state.model.lam_rf, np.array([state.model.std_swd_sc])])
             all_models[:,n_save+1] = SaveModel(state.fullmodel, all_models[:,0])
             np.save((save_name+'_AllModels'),all_models[:,:n_save+1])
             np.save((save_name+'_Misfit'),np.vstack((mean_phi[:n_save],
@@ -303,9 +303,9 @@ def CheckPrior(model: Model, limits: Limits) -> bool:
         _InBounds(model.idep, (0,model.all_deps.size-2)) and
         _InBounds(model.vs, limits.vs) and
         _InBounds(model.all_deps[model.idep], limits.dep) and
-        _InBounds(model.std_rf, limits.std_rf) and
+        _InBounds(model.std_rf_sc, limits.std_rf_sc) and
         _InBounds(model.lam_rf, limits.lam_rf) and
-        _InBounds(model.std_swd, limits.std_swd) and
+        _InBounds(model.std_swd_sc, limits.std_swd_sc) and
         model.vs.size == model.idep.size and
         (np.hstack([0,model.vs[model.all_deps[model.idep]<=
                                limits.crustal_thick[0]]])  <= 4.5).all()
@@ -429,12 +429,12 @@ def CalcCovarianceMatrix(model,rf_obs,swd_obs) -> CovarianceMatrix:
     for irf in range(len(rf_obs)):
         i1 = n_rft*irf
         i2 = n_rft*(irf+1)
-        for a in range(i1, i2):
-            for b in range(i1, i2):
+        for a in range(i1, i2): 
+            for b in range(i1, i2): 
                 R[a,b]=(np.exp(-(model.lam_rf[irf]*rf_obs[irf].dt*abs(a-b)))*
                  np.cos(model.lam_rf[irf]*w0*rf_obs[irf].dt*abs(a-b)))
-                covar[a,b]=R[a,b]*rf_obs[irf].std[a]*rf_obs[irf].std[b]
-        covar[i1:i2,i1:i2] = R[i1:i2, i1:i2] * model.std_rf_sc[irf]
+                covar[a,b]=R[a,b]*rf_obs[irf].std[a-i1]*rf_obs[irf].std[b-i1]
+        covar[i1:i2,i1:i2] *= model.std_rf_sc[irf]
 
         # Try to workaround potential mis-rotation near surface by increasing the
         # std_rf near the surface, e.g. first 0.5 s
@@ -564,12 +564,12 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
         theta = _GetStdForGaussian(hyperparam, itr)
 
         if hyperparam == 'Std_RF':
-            ih = random.randint(0,len(model.std_rf)-1)
-            old = model.std_rf[ih]
+            ih = random.randint(0,len(model.std_rf_sc)-1)
+            old = model.std_rf_sc[ih]
             new = np.round(np.random.normal(old,theta),5)
-            new_noise = model.std_rf.copy()
+            new_noise = model.std_rf_sc.copy()
             new_noise[ih] = new
-            new_model = model._replace(std_rf = new_noise)
+            new_model = model._replace(std_rf_sc = new_noise)
         elif hyperparam == 'Lam_RF':
             ih = random.randint(0, len(model.lam_rf)-1)
             old = model.lam_rf[ih]
@@ -578,9 +578,9 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
             new_noise[ih] = new
             new_model = model._replace(lam_rf = new_noise)
         elif hyperparam == 'Std_SWD':
-            old = model.std_swd
+            old = model.std_swd_sc
             new = np.round(np.random.normal(old,theta),4)
-            new_model = model._replace(std_swd = new)
+            new_model = model._replace(std_swd_sc = new)
 
         changes_model = ModelChange(theta, old, new,
                                     which_change = 'Noise')
@@ -985,7 +985,7 @@ def _CalculateRF(waveform, rf_in) -> RecvFunc:
 
 
     return RecvFunc(amp = RF, dt = rf_dt, ray_param = rf_in.ray_param,
-                    std = rf_in.ray_param, std_sc = rf_in.std_sc, 
+                    std = rf_in.std, std_sc = rf_in.std_sc, 
                     rf_phase = rf_in.rf_phase,
                     filter_corners = rf_in.filter_corners,
                     weight_by = rf_in.weight_by)
@@ -1039,7 +1039,8 @@ def SynthesiseSWD(model, swd_in, itr) -> SurfaceWaveDisp:
     if model.vs.size == 1:
         cr = _CalcRaylPhaseVelInHalfSpace(model.vp[0], model.vs[0])
         return SurfaceWaveDisp(period = swd_in.period,
-                               c = np.ones(freq.size)*cr)
+                               c = np.ones(freq.size)*cr,
+                               std = swd_in.std)
         # no freq. dependence in homogeneous half space
 
     # Set bounds of tested Rayleigh wave phase velocity

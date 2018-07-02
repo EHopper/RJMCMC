@@ -19,11 +19,11 @@ pr.enable()
 
 
 
-max_it = 250000
+max_it = 50000#250000
 rnd_sd = 8 # random seed
 
 
-save_name = 'MBEY_Both_scale5'
+save_name = 'Test_Sp'
 
 
 
@@ -34,6 +34,8 @@ for irf in range(len(rf_obs)):
     plt.subplot(1, npan, irf+1); plt.title('Receiver Function')
     rft = np.arange(0,rf_obs[irf].dt*rf_obs[irf].amp.size,rf_obs[irf].dt)
     plt.plot(rf_obs[irf].amp, rft, 'r-', linewidth=2)
+    plt.plot(rf_obs[irf].amp-rf_obs[irf].std, rft, 'r--', linewidth=1)
+    plt.plot(rf_obs[irf].amp+rf_obs[irf].std, rft, 'r--', linewidth=1)
     plt.plot([0,0],[0,30],'--',color='0.6')
     plt.ylim(30,0)
     plt.xlabel('RF Amplitude')
