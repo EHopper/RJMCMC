@@ -5,8 +5,8 @@ Created on Fri Mar  9 07:33:21 2018
 @author: emily
 """
 
-save_name = 'MBEY_Both_scale5_8'#'MBEY_Sp_scale5_10'#'MBEY_Ps_scale5'
-fol_append = '_00005' #''
+save_name = 'Test_Sp_8'#'MBEY_Sp_scale5_10'#'MBEY_Ps_scale5'
+fol_append = '_00004' #''
 save_every = 100
 
 import pipeline
@@ -32,7 +32,7 @@ std_mod = np.std(good_mods, axis = 1)
 
 good_mod = pipeline.Model(vs = mean_mod, all_deps = all_models[:,0],
                           idep = np.arange(0,mean_mod.size),
-                          lam_rf = 0, std_rf = 0, std_swd = 0)
+                          lam_rf = 0, std_rf_sc = 0, std_swd_sc = 0)
 fullmodel = pipeline.MakeFullModel(good_mod)
 
 
@@ -107,10 +107,10 @@ for k in range(1,good_mods.shape[1]):
     mod_space[range(mod_space.shape[0]),inds] += 1
 
 
-
-synth_swd = pipeline.SynthesiseSWD(fullmodel, swd_obs.period, 1e6)
+#%%
+synth_swd = pipeline.SynthesiseSWD(fullmodel, swd_obs, 1e6)
 if nit*save_every<1e5:
-    synth_swd_coarse = pipeline.SynthesiseSWD(fullmodel, swd_obs.period, 1)
+    synth_swd_coarse = pipeline.SynthesiseSWD(fullmodel, swd_obs, 1)
 synth_rf = pipeline.SynthesiseRF(fullmodel, rf_obs)
 
 
@@ -132,10 +132,11 @@ for irf in range(len(rf_obs)):
     rft = np.arange(0,rf_obs[irf].dt*rf_obs[irf].amp.size,rf_obs[irf].dt)
     plt.plot(rf_obs[irf].amp, rft, 'r-', linewidth=2)
     plt.plot(synth_rf[irf].amp,rft, '-',color = '0.25', linewidth=2)
-    plt.plot(rf_obs[irf].amp-0.02,rft, 'r--', linewidth=1)
-    plt.plot(rf_obs[irf].amp+0.02,rft, 'r--', linewidth=1)
+    plt.plot(rf_obs[irf].amp-rf_obs[irf].std,rft, 'r--', linewidth=1)
+    plt.plot(rf_obs[irf].amp+rf_obs[irf].std,rft, 'r--', linewidth=1)
     plt.plot([0,0],[0,30],'--',color='0.6')
-    plt.ylim(30,0)
+    plt.ylim(30,0) 
+    plt.xlim(-0.5, 0.5)
     plt.xlabel('RF Amplitude')
     plt.ylabel('Time (s)')
 
@@ -144,8 +145,8 @@ plt.plot(swd_obs.period, swd_obs.c,  'r-', linewidth=2)
 plt.plot(synth_swd.period, synth_swd.c, '-',color = '0.25', linewidth=2)
 if nit*save_every<1e5:
     plt.plot(synth_swd_coarse.period, synth_swd_coarse.c, '-',color = '0.5', linewidth=2)
-plt.plot(swd_obs.period, swd_obs.c-0.025,  'r--', linewidth=1)
-plt.plot(swd_obs.period, swd_obs.c+0.025,  'r--', linewidth=1)
+plt.plot(swd_obs.period, swd_obs.c-swd_obs.std,  'r--', linewidth=1)
+plt.plot(swd_obs.period, swd_obs.c+swd_obs.std,  'r--', linewidth=1)
 plt.xlabel('Period (s)')
 plt.ylabel('Phase velocity (km/s)')
 plt.tight_layout()
@@ -205,7 +206,7 @@ for irf in range(len(rf_obs)):
     plt.xlabel('Iteration # /100')
     plt.ylabel('Std of RF')
     plt.xlim(0,nm)
-    plt.ylim(0.0095,0.0525)
+    plt.ylim(0.9,2.1)
     for k in range(inc_ints.size):
         plt.plot(inc_ints[[k,k]]/save_every,[0.,0.06],'--',color = '0.6')
     plt.plot(good_it*np.ones(2),[0.0, 0.06], 'r--')
@@ -227,7 +228,7 @@ plt.plot(hyperparams[0:nm,len(rf_obs)*2])
 plt.xlabel('Iteration # /100')
 plt.ylabel('Std of SWD')
 plt.xlim(0,nm)
-plt.ylim(0.0095,0.0525)
+plt.ylim(0.9,2.1)
 for k in range(inc_ints.size):
     plt.plot(inc_ints[[k,k]]/save_every,[0., 0.175],'--',color = '0.6')
 plt.plot(good_it*np.ones(2),[0.,0.175], 'r--')
