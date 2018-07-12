@@ -5,8 +5,8 @@ Created on Fri Mar  9 07:33:21 2018
 @author: emily
 """
 
-save_name = 'Test_Sp_8'#'MBEY_Sp_scale5_10'#'MBEY_Ps_scale5'
-fol_append = '_00004' #''
+save_name = 'Test_Ps_12'#'MBEY_Sp_scale5_10'#'MBEY_Ps_scale5'
+fol_append = '_00000' #''
 save_every = 100
 
 import pipeline
@@ -45,7 +45,7 @@ for k in range(all_models[1,].size-1):
     ax1.plot(all_models[:,k],all_models[:,0],
           '-',linewidth=1,color=colstr)
 if type(vs_in) == np.ndarray:
-    ax1.plot(vs_in[:,1],vs_in[:,0],'-',linewidth=1,color='r')    
+    ax1.plot(vs_in[:,1],vs_in[:,0],'-',linewidth=1,color='r')
 ax1.set_ylim((195,0))
 #ax1.plot(actual_model,all_models[:,0],'r-',linewidth=3)
 ax1.set_xlim((2,5.5))
@@ -135,7 +135,7 @@ for irf in range(len(rf_obs)):
     plt.plot(rf_obs[irf].amp-rf_obs[irf].std,rft, 'r--', linewidth=1)
     plt.plot(rf_obs[irf].amp+rf_obs[irf].std,rft, 'r--', linewidth=1)
     plt.plot([0,0],[0,30],'--',color='0.6')
-    plt.ylim(30,0) 
+    plt.ylim(30,0)
     plt.xlim(-0.5, 0.5)
     plt.xlabel('RF Amplitude')
     plt.ylabel('Time (s)')
@@ -210,7 +210,7 @@ for irf in range(len(rf_obs)):
     for k in range(inc_ints.size):
         plt.plot(inc_ints[[k,k]]/save_every,[0.,0.06],'--',color = '0.6')
     plt.plot(good_it*np.ones(2),[0.0, 0.06], 'r--')
-    
+
     plt.subplot(312)
     plt.title('RF Noise Correlation')
     plt.plot(hyperparams[0:nm,len(rf_obs)+irf])

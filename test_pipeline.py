@@ -63,7 +63,7 @@ class PipelineTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(actual.c, expected.c,
                                              decimal = 2)
         np.testing.assert_array_equal(actual.period, expected.period)
-        np.testing.assert_array_almost_equal(actual.std, expected.std, 
+        np.testing.assert_array_almost_equal(actual.std, expected.std,
                                              decimal = 2)
 
     def assertSynthModelEqual(self, actual, expected):
@@ -158,7 +158,7 @@ class PipelineTest(unittest.TestCase):
     swd_obs = pipeline.SurfaceWaveDisp(period = np.arange(1), # only length matters
                                        c = np.arange(0), # irrelevant
                                        std = np.sqrt(0.2),
-                                       ) 
+                                       )
     # Note that all determinants have undergone the fix (as in pipeline)
     # to make them easier to deal with - i.e. make all so floor(log10(det))=0
 
@@ -177,9 +177,9 @@ class PipelineTest(unittest.TestCase):
                         detCovar = 2.7650942305, # 0.00027650942305,
                                ),
                          ),
-            ("3x3 rf, 4 sw", model, [rf_obs._replace(amp = np.arange(3), 
+            ("3x3 rf, 4 sw", model, [rf_obs._replace(amp = np.arange(3),
                                     std = np.sqrt(0.1)*np.ones(3,))],
-                 swd_obs._replace(period = np.arange(4), 
+                 swd_obs._replace(period = np.arange(4),
                                   std = np.sqrt(0.2)*np.ones(4,)),
                  pipeline.CovarianceMatrix(
                         R = np.array([[1, 0.928302, 0.818653],
@@ -2856,7 +2856,7 @@ class PipelineTest(unittest.TestCase):
                        0.00024, 0.00031, 0.00218, 0.00538, 0.00851, 0.00709,
                        0.00360, 0.00136, 0.00132, 0.00193, 0.00197, 0.00170,
                        0.00140, 0.00071, 0.00012, 0.00161, 0.00606, 0.01038,
-                       0.01032, 0.00610, 0.00220]), 
+                       0.01032, 0.00610, 0.00220]),
                         std = np.ones(120,),
                         dt = 0.25, ray_param = 0.0618,
                         rf_phase = 'Ps', std_sc = 1, filter_corners = [1,100],
@@ -3061,12 +3061,12 @@ class PipelineTest(unittest.TestCase):
             ("Worse misfit", model, swd_obs, rf_obs, 0, 1, 14.9089), #44.197)
             ("Weight differently", model, swd_obs, rf_obs._replace(weight_by = 2),
                          0, 1, 15.4059),
-             ("Two RFs", model._replace(std_rf_sc = np.ones(2,), 
-                                        lam_rf = 0.2*np.ones(2,)), 
+             ("Two RFs", model._replace(std_rf_sc = np.ones(2,),
+                                        lam_rf = 0.2*np.ones(2,)),
                          swd_obs, rf_obs, 2, 2, 0.00512)
             ])
 
-    def test_Mahalanobis(self, name, model, swd_obs, rf_obs, round_to, 
+    def test_Mahalanobis(self, name, model, swd_obs, rf_obs, round_to,
                          nrfs, expected):
         fullmodel = pipeline.MakeFullModel(model)
         rf_obs = pipeline.SynthesiseRF(fullmodel, [rf_obs])
@@ -3075,9 +3075,9 @@ class PipelineTest(unittest.TestCase):
         rf_obs = rf_obs * nrfs # make repeated list
         rf_round = rf_round * nrfs
         swd_round = swd_obs._replace(c = np.round(swd_obs.c, round_to))
-        
+
         cov = pipeline.CalcCovarianceMatrix(model, rf_obs, swd_obs)
-        
+
         out = pipeline.Mahalanobis(rf_obs, rf_round, swd_obs,
                                    swd_round, cov.invCovar)
         self.assertAlmostEqual(out, expected, places = 3)
@@ -3180,23 +3180,23 @@ class PipelineTest(unittest.TestCase):
 
     @parameterized.expand([
         ("Sp simple model, 100 runs", rf_phase, model, 100, 20,
-             pipeline.SynthModel(vs = np.array([4.2695, 4.6153]),
-                                  vp = np.array([7.467, 8.077]),
-                                  rho = np.array([3.11, 3.433]),
-                                  thickness = np.array([28., 28.]),
-                                  layertops = np.array([0., 28.]),
-                                  avdep = np.array([14., 42.]),
+             pipeline.SynthModel(vs = np.array([4.5144]),
+                                  vp = np.array([7.9]),
+                                  rho = np.array([3.428]),
+                                  thickness = np.array([125.]),
+                                  layertops = np.array([0.]),
+                                  avdep = np.array([62.5]),
                                   ),
             ),
-#        ("Ps simple model, 120 runs", 'Ps', model, 120, 8,
-#             pipeline.SynthModel(vs = np.array([4.382, 4.6856]),
-#                                  vp = np.array([7.684, 8.2]),
-#                                  rho = np.array([3.182, 3.438]),
-#                                  thickness = np.array([60.6, 60.6]),
-#                                  layertops = np.array([0., 60.6]),
-#                                  avdep = np.array([30.3, 90.9])
-#                                  ),
-#            ),
+        ("Ps simple model, 120 runs", 'Ps', model, 120, 8,
+             pipeline.SynthModel(vs = np.array([4.418, 4.4432]),
+                                  vp = np.array([7.752, 7.8]),
+                                  rho = np.array([3.205, 3.221]),
+                                  thickness = np.array([89.8, 89.8]),
+                                  layertops = np.array([0., 89.8]),
+                                  avdep = np.array([44.9, 134.7])
+                                  ),
+            ),
 #        ("Both Ps and Sp, 100 runs", 'Both', model._replace(
 #                    vs = np.array([2.5, 3.7, 4.3, 4.6]),
 #                    idep = np.array([4, 10, 30, 90])),
