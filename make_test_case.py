@@ -10,7 +10,7 @@ import numpy as np
 import os
 
 rf_phase = 'Both' #'Sp' # 'Ps' # 'Both'
-weight_by = 'even' # 'even' 'rf2'
+weight_by = 'rf2' # 'even' 'rf2'
 
 basedir = 'D:/Scattered_Waves/RJMCMC/'
 #'C:/Users/Emily/Documents/RJMCMC/'
@@ -67,7 +67,7 @@ rf_in = [pipeline.RecvFunc(amp = np.array([0,1]), dt = 0.25,
 rf_Ps = pipeline.SynthesiseRF(fullmodel, rf_in)
 rf_Sp = pipeline.SynthesiseRF(fullmodel, [rf_in[0]._replace(rf_phase = 'Sp',
                                                        ray_param = 0.11012,
-                                                       filter_corners = [4,100]
+                                                       filter_corners = [4,100],
                                                        std_sc = 5)])
 
 if rf_phase == 'Ps': rf = rf_Ps

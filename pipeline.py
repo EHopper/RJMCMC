@@ -429,8 +429,8 @@ def CalcCovarianceMatrix(model,rf_obs,swd_obs) -> CovarianceMatrix:
     for irf in range(len(rf_obs)):
         i1 = n_rft*irf
         i2 = n_rft*(irf+1)
-        for a in range(i1, i2): 
-            for b in range(i1, i2): 
+        for a in range(i1, i2):
+            for b in range(i1, i2):
                 R[a,b]=(np.exp(-(model.lam_rf[irf]*rf_obs[irf].dt*abs(a-b)))*
                  np.cos(model.lam_rf[irf]*w0*rf_obs[irf].dt*abs(a-b)))
                 covar[a,b]=R[a,b]*rf_obs[irf].std[a-i1]*rf_obs[irf].std[b-i1]
@@ -985,7 +985,7 @@ def _CalculateRF(waveform, rf_in) -> RecvFunc:
 
 
     return RecvFunc(amp = RF, dt = rf_dt, ray_param = rf_in.ray_param,
-                    std = rf_in.std, std_sc = rf_in.std_sc, 
+                    std = rf_in.std, std_sc = rf_in.std_sc,
                     rf_phase = rf_in.rf_phase,
                     filter_corners = rf_in.filter_corners,
                     weight_by = rf_in.weight_by)
@@ -1279,9 +1279,12 @@ def Mahalanobis(rf_obs_all, rf_synth_all, swd_obs,swd_synth, inv_cov) -> float:
     # More equally weight the surface wave and RF datasets?
     misfit_rf = rf_synth-rf_obs
     misfit_swd = swd_synth.c - swd_obs.c
-    if rf_obs_all[0].weight_by == 'even': misfit_rf = misfit_rf * misfit_swd.size/misfit_rf.size
-    if type(rf_obs_all[0].weight_by) == int:
-        misfit_rf = misfit_rf * rf_obs_all[0].weight_by * misfit_swd.size/misfit_rf.size
+
+    try: weight_by = int(rf_obs_all[0].weight_by[2:])
+    except: weight_by = 2
+    if rf_obs_all[0].weight_by == 'even': weight_by = 1
+
+    misfit_rf = misfit_rf * weight_by * misfit_swd.size/misfit_rf.size
     misfit = np.concatenate((misfit_rf, misfit_swd))
 
     # N.B. with np.matmul, it prepends or appends an additional dimension
