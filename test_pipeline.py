@@ -3227,17 +3227,20 @@ class PipelineTest(unittest.TestCase):
         swd = pipeline.SynthesiseSWD(fullmodel, swd_in, 1e6)
 
         if rf_phase == 'Both':
+            # NOTE that have to weight by rf2 if inverting 2 RFs so
+            # total weighting of each datum (Ps, Sp, SWD) is equal
+            # (as weight misfit to SWD and RFs by length of the signal)
             rf_in = pipeline.RecvFunc(amp = np.array([0,1]), dt = 0.25,
                             std = np.sqrt(0.05)*np.ones(120,),
                             rf_phase = 'Ps', ray_param = 0.06147,
                             filter_corners = [1,100], std_sc = 5,
-                            weight_by = 'even')
+                            weight_by = 'rf2')
             rf_Ps = pipeline.SynthesiseRF(fullmodel, [rf_in])
             rf_in = pipeline.RecvFunc(amp = np.array([0,1]), dt = 0.25,
                             std = np.sqrt(0.05)*np.ones(120,),
                             rf_phase = 'Sp', ray_param = 0.11012,
                             filter_corners = [4,100], std_sc = 5,
-                            weight_by = 'even')
+                            weight_by = 'rf2')
             rf_Sp = pipeline.SynthesiseRF(fullmodel, [rf_in])
 
             out = pipeline.JointInversion([rf_Ps[0], rf_Sp[0]], swd, all_lims,

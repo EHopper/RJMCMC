@@ -5,7 +5,7 @@ Created on Fri Mar  9 07:33:21 2018
 @author: emily
 """
 
-save_name = 'Test_Ps_12'#'MBEY_Sp_scale5_10'#'MBEY_Ps_scale5'
+save_name = 'Test_Both_25'#'MBEY_Sp_scale5_10'#'MBEY_Ps_scale5'
 fol_append = '_00000' #''
 save_every = 100
 
