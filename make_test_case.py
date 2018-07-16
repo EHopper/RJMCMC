@@ -10,7 +10,7 @@ import numpy as np
 import os
 
 rf_phase = 'Both' #'Sp' # 'Ps' # 'Both'
-weight_by = 'rf2' # 'even' 'rf2'
+weight_by = 'rf4' # 'even' 'rf2'
 
 basedir = 'D:/Scattered_Waves/RJMCMC/'
 #'C:/Users/Emily/Documents/RJMCMC/'

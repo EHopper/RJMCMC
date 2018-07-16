@@ -1284,8 +1284,12 @@ def Mahalanobis(rf_obs_all, rf_synth_all, swd_obs,swd_synth, inv_cov) -> float:
     except: weight_by = 2
     if rf_obs_all[0].weight_by == 'even': weight_by = 1
 
+    total_misfit = np.sum(misfit_rf)+np.sum(misfit_swd)
     misfit_rf = misfit_rf * weight_by * misfit_swd.size/misfit_rf.size
+
     misfit = np.concatenate((misfit_rf, misfit_swd))
+    total_scaled_misfit = np.sum(misfit)
+    misfit = misfit*total_misfit/total_scaled_misfit
 
     # N.B. with np.matmul, it prepends or appends an additional dimension
     # (depending on the position in matmul) if one of the arguments is a vector
