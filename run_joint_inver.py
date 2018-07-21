@@ -19,8 +19,8 @@ pr.enable()
 
 
 
-max_it = 100000#250000
-rnd_sd = 30# random seed
+max_it = 80000#250000
+rnd_sd = 50# random seed
 
 
 save_name = 'Test_Both'
