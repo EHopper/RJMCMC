@@ -3054,16 +3054,16 @@ class PipelineTest(unittest.TestCase):
                                weight_by = 'even')
 
     @parameterized.expand([
-            ("Moho only", model, swd_obs, rf_obs, 2, 1, 0.00806), #1.0496), check with matlab!
+            ("Moho only", model, swd_obs, rf_obs, 2, 1, 0.0257),
             ("More complicated", model._replace(vs = np.array([1.8, 2.5, 3.7, 4.7, 4.6]),
                                                 idep = np.array([12, 30, 42, 68, 120])),
-                        swd_obs, rf_obs, 2, 1, 0.01166), #1.535),
-            ("Worse misfit", model, swd_obs, rf_obs, 0, 1, 14.9089), #44.197)
-            ("Weight differently", model, swd_obs, rf_obs._replace(weight_by = 2),
-                         0, 1, 15.4059),
+                        swd_obs, rf_obs, 2, 1, 0.0375), #1.535),
+            ("Worse misfit", model, swd_obs, rf_obs, 0, 1, 15.406),
+            ("Weight differently", model, swd_obs, rf_obs._replace(weight_by = 'rf2'),
+                         0, 1, 17.394),
              ("Two RFs", model._replace(std_rf_sc = np.ones(2,),
                                         lam_rf = 0.2*np.ones(2,)),
-                         swd_obs, rf_obs, 2, 2, 0.00512)
+                         swd_obs, rf_obs, 2, 2, 0.0493)
             ])
 
     def test_Mahalanobis(self, name, model, swd_obs, rf_obs, round_to,
@@ -3197,17 +3197,19 @@ class PipelineTest(unittest.TestCase):
                                   avdep = np.array([44.9, 134.7])
                                   ),
             ),
-#        ("Both Ps and Sp, 100 runs", 'Both', model._replace(
-#                    vs = np.array([2.5, 3.7, 4.3, 4.6]),
-#                    idep = np.array([4, 10, 30, 90])),
-#                100, 20, pipeline.SynthModel(vs = np.array([4.128, 4.6153]),
-#                                             vp = np.array([7.189, 8.077]),
-#                                             rho = np.array([3.024, 3.433]),
-#                                             thickness = np.array([30.5, 30.5]),
-#                                             layertops = np.array([0, 30.5]),
-#                                             avdep = np.array([15.25, 45.75]),
-#                                             ),
-#            ),
+        ("Both Ps and Sp, 100 runs", 'Both', model._replace(
+                    vs = np.array([2.5, 3.7, 4.3, 4.6]),
+                    idep = np.array([4, 10, 30, 90]),
+                    std_rf_sc = np.array([1, 1.2]),
+                    lam_rf = np.array([0.2, 0.2])),
+                100, 20, pipeline.SynthModel(vs = np.array([4.187, 4.7026]),
+                                             vp = np.array([7.305, 8.23]),
+                                             rho = np.array([3.059, 3.437]),
+                                             thickness = np.array([36.5, 36.5]),
+                                             layertops = np.array([0, 36.5]),
+                                             avdep = np.array([18.25, 54.75]),
+                                             ),
+            ),
         ])
 
     def testRunJointInv(self, name, rf_phase, model, max_it, rnd_sd, model_out):
@@ -3227,20 +3229,17 @@ class PipelineTest(unittest.TestCase):
         swd = pipeline.SynthesiseSWD(fullmodel, swd_in, 1e6)
 
         if rf_phase == 'Both':
-            # NOTE that have to weight by rf2 if inverting 2 RFs so
-            # total weighting of each datum (Ps, Sp, SWD) is equal
-            # (as weight misfit to SWD and RFs by length of the signal)
             rf_in = pipeline.RecvFunc(amp = np.array([0,1]), dt = 0.25,
                             std = np.sqrt(0.05)*np.ones(120,),
                             rf_phase = 'Ps', ray_param = 0.06147,
                             filter_corners = [1,100], std_sc = 5,
-                            weight_by = 'rf2')
+                            weight_by = 'rf1')
             rf_Ps = pipeline.SynthesiseRF(fullmodel, [rf_in])
             rf_in = pipeline.RecvFunc(amp = np.array([0,1]), dt = 0.25,
                             std = np.sqrt(0.05)*np.ones(120,),
                             rf_phase = 'Sp', ray_param = 0.11012,
                             filter_corners = [4,100], std_sc = 5,
-                            weight_by = 'rf2')
+                            weight_by = 'rf1')
             rf_Sp = pipeline.SynthesiseRF(fullmodel, [rf_in])
 
             out = pipeline.JointInversion([rf_Ps[0], rf_Sp[0]], swd, all_lims,

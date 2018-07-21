@@ -1267,10 +1267,14 @@ def Mahalanobis(rf_obs_all, rf_synth_all, swd_obs,swd_synth, inv_cov) -> float:
     # Make single vector out of all rf_obs
     rf_obs = rf_obs_all[0].amp
     rf_synth = rf_synth_all[0].amp
+    rf_std = rf_obs_all[0].std
 
     for irf in range(1,len(rf_obs_all)):
         rf_obs = np.hstack((rf_obs, rf_obs_all[irf].amp))
         rf_synth = np.hstack((rf_synth, rf_synth_all[irf].amp))
+        rf_std = np.hstack((rf_std,rf_obs_all[irf].std))
+
+    std_sc = np.mean(swd_obs.std)/np.mean(rf_std)
 
 #    g_m = np.concatenate((rf_synth, swd_synth.c))
 #    d_obs = np.concatenate((rf_obs, swd_obs.c))
@@ -1281,15 +1285,20 @@ def Mahalanobis(rf_obs_all, rf_synth_all, swd_obs,swd_synth, inv_cov) -> float:
     misfit_swd = swd_synth.c - swd_obs.c
 
     try: weight_by = int(rf_obs_all[0].weight_by[2:])
-    except: weight_by = 2
+    except: weight_by = 1
     if rf_obs_all[0].weight_by == 'even': weight_by = 1
 
-    total_misfit = np.sum(misfit_rf)+np.sum(misfit_swd)
-    misfit_rf = misfit_rf * weight_by * misfit_swd.size/misfit_rf.size
+    # NOTE that have to weight by rfs x 2 if inverting 2 RFs so
+    # total weighting of each datum (Ps, Sp, SWD) is equal
+    # (as weight misfit to SWD and RFs by length of the signal)
+    # Also, this whole scaling basically ends up being x1 given
+    # the relative length of the inputs and order of mag of misfits
 
+
+    misfit_rf = (misfit_rf * weight_by * len(rf_obs_all) *
+                 misfit_swd.size/misfit_rf.size *
+                 std_sc)
     misfit = np.concatenate((misfit_rf, misfit_swd))
-    total_scaled_misfit = np.sum(misfit)
-    misfit = misfit*total_misfit/total_scaled_misfit
 
     # N.B. with np.matmul, it prepends or appends an additional dimension
     # (depending on the position in matmul) if one of the arguments is a vector

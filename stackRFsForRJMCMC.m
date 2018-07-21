@@ -1,4 +1,4 @@
-clearvars;% close all; clc
+clearvars; close all; clc
 basedir='C:\Users\emily\OneDrive\Documents\WORK\MATLAB\Scattered_Waves\';
 javaaddpath([basedir 'Functions/taup/lib/TauP-1.1.7.jar']);
 javaaddpath([basedir 'Functions/taup/lib/log4j-1.2.8.jar']);
@@ -8,19 +8,25 @@ addpath([basedir 'Functions/SACfun']); addpath([basedir 'Functions']);
 cd(basedir)
 
 
-latlon = [-10.5 34.5];
+% lats = 33.8;%33:0.1:34.5;
+% lons = -83.4;
+% for ila = 1:length(lats)
+%     for ilo = 1:length(lons)
+%         latlon=[lats(ila) lons(ilo)];
+latlon = [-10.65 34.5]; %
 rf_phases = {'Ps','Sp'};
 
-Project = 'SEGMeNT_4';
+Project = 'SEGMeNT_4'; %
 datadir=[basedir 'Data\CCP\' Project '\CCP\']; 
 Ps=load([datadir 'meanbtstrapPs22.mat']);
-Sp=load([datadir 'meanbtstrap97.mat']); 
+Sp=load([datadir 'meanbtstrap97.mat']); %
 
 phase_vel_name = 'SEGMeNT_phv.txt';
 
 
 
 % Output RF for RJMCMC
+maxdep=300;
 
 % Identify nearest station and the migration model used
 Projdir=[basedir 'Data/Projects/' Project '/'];
@@ -48,15 +54,18 @@ for irf = 1:length(rf_phases)
         case 'Ps'; RF = Ps; ind_rad = 0.15;
         case 'Sp'; RF = Sp; ind_rad = 0.25;
     end
-    
+    inds = find(RF.cp_depths>maxdep);
+    RF.plane_RF(:,inds)=[];
+    RF.std_RF(:,inds)=[];
+    RF.cp_depths(inds)=[];
     % Find lat/lon points that are within 0.2 degrees of desired point
     inds = find(abs(RF.model_lons - latlon(2))<ind_rad & ...
         abs(RF.model_lats - latlon(1))<ind_rad);
     
     rfs = RF.plane_RF(inds,:); rfs(rfs==0) = nan;
     
-    time = interp1(Migration_Models.(rf_phase).Reference_Depth,...
-        Migration_Models.(rf_phase).Reference_DT, RF.cp_depths);
+    time = interp1(Migration_Models.(rf_phase)(end).Reference_Depth,...
+        Migration_Models.(rf_phase)(end).Reference_DT, RF.cp_depths);
     rf_t = [time', nanmedian(rfs,1)'];
     std = RF.std_RF(inds,:); std(std==0) = nan;
     std = nanmedian(std,1)';
@@ -92,7 +101,7 @@ end
 
 
 % Plot map showing area averaged over
-figure; hold on; box on
+figure('color','w','position',[985 245 560 420]); hold on; box on
 lon=[33.5 36.1]; lat=[-11.6 -8.5];
 Countries=shaperead([basedir 'Data/Misc/ne_50m_admin_0_countries.shp'],'UseGeoCoords',true);
 Lakes=shaperead([basedir 'Data/Misc/ne_50m_lakes.shp'],'UseGeoCoords',true);
@@ -113,11 +122,20 @@ for il = [6,10,164]%1:length(Lakes)
     plot(Lakes(il).Lon,Lakes(il).Lat,'k-');
 end
 daspect([111.16, 111.16*distance(mean(lat),0,mean(lat),1), 1]);
+plot(slocs(:,2),slocs(:,1),'cv','markersize',1);
 axis([lon lat]);
 
-plot(Sp.model_lons(allrfs.rf2.inds),Sp.model_lats(allrfs.rf2.inds),'k.');
-plot(Ps.model_lons(allrfs.rf1.inds),Ps.model_lats(allrfs.rf1.inds),'r.');
-
+if length(rf_phases) == 2
+    plot(Sp.model_lons(allrfs.rf2.inds),Sp.model_lats(allrfs.rf2.inds),'k.');
+    plot(Ps.model_lons(allrfs.rf1.inds),Ps.model_lats(allrfs.rf1.inds),'r.');
+else
+    ph = rf_phases{1};
+    eval(['plot(' ph '.model_lons(allrfs.rf1.inds),'...
+        ph '.model_lats(allrfs.rf1.inds),''k.'');']);
+end
+% pause; close all
+%     end
+% end
 
 %% Load in the phase velocities
 filename=[basedir 'Data/Velocity_Models/PhaseVels/SEGMeNT_phv.txt'];
