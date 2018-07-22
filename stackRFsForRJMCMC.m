@@ -15,6 +15,8 @@ cd(basedir)
 %         latlon=[lats(ila) lons(ilo)];
 latlon = [-10.65 34.5]; %
 rf_phases = {'Ps','Sp'};
+weight_by = [1 1];
+
 
 Project = 'SEGMeNT_4'; %
 datadir=[basedir 'Data\CCP\' Project '\CCP\']; 
@@ -91,11 +93,13 @@ for irf = 1:length(rf_phases)
             allrfs.(fldname).inds = inds; allrfs.(fldname).flip = 0;
             allrfs.(fldname).filter_corners = [1,100]; 
             allrfs.(fldname).rp = Migration_Models.(rf_phase).Reference_RP;
+            allrfs.(fldname).stdsc=0.5;
         case 'Sp'
             allrfs.(fldname).rf = rf_t; allrfs.(fldname).std = std; 
             allrfs.(fldname).inds = inds; allrfs.(fldname).flip = 1;
             allrfs.(fldname).filter_corners = [4,100]; 
             allrfs.(fldname).rp = Migration_Models.(rf_phase).Reference_RP;
+            allrfs.(fldname).stdsc=5;
     end
 end
 
@@ -160,7 +164,7 @@ end
 
 %% Print for copying into input_data.py
 
-dt = 0.25; std_sc = 5;
+dt = 0.25; %stdsc = 5;
 
 
 
@@ -184,7 +188,9 @@ for irf = 1:length(rf_phases)
     fprintf('\n\t\t\t\tstd = np.array([');
     printforpython(std,3); fprintf('\t\t\t\t\t]),');
     fprintf('\n\t\t\t\tdt = %.3f, ray_param = %.5f,', dt, rf_out.rp);
-    fprintf('\n\t\t\t\tstd_sc = %g, rf_phase = ''%s'',', std_sc, rf_phases{irf})
+    fprintf('\n\t\t\t\tstd_sc = %g, rf_phase = ''%s'',', ...
+        rf_out.stdsc, rf_phases{irf})
+    fprintf('\n\t\t\t\tweight_by = ''rf%.0g'',',weight_by(irf))
     fprintf('\n\t\t\t\tfilter_corners = [%g, %g]\n\t\t\t\t),\n', ...
         rf_out.filter_corners(1), rf_out.filter_corners(2))
     
@@ -215,8 +221,8 @@ end
 
 fprintf('\tall_lims = pipeline.Limits(\n\t\t\t\tvs = (0.5, %.1f),', ...
     min(5,0.55/rf_out.rp)) % ensures Vp < c always
-fprintf('dep = (0,200), std_rf = (1, 2),\n\t\t\t\tlam_rf = (0.05')
-fprintf(', 0.5), std_swd = (1, 2), crustal_thick = (25,))');
+fprintf('dep = (0,200), std_rf_sc = (1, 2),\n\t\t\t\tlam_rf = (0.05')
+fprintf(', 0.5), std_swd_sc = (1, 2), crustal_thick = (25,))');
 
 fprintf('\n\n\tvs_in = ''unknown''')
 

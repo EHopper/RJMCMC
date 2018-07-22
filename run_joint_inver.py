@@ -19,11 +19,11 @@ pr.enable()
 
 
 
-max_it = 80000#250000
-rnd_sd = 50# random seed
+max_it = 250000#250000
+rnd_sd = 1# random seed
 
 
-save_name = 'Test_Both'
+save_name = 'MAND_Both'
 
 
 
