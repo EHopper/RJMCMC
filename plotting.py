@@ -13,6 +13,7 @@ import pipeline
 import numpy as np
 import matplotlib.pyplot as plt
 import shutil
+#import scipy.stats as sts
 
 shutil.copyfile('./output/'+save_name+fol_append+'/input_data.py', './input_data.py')
 
@@ -27,7 +28,8 @@ good_mods = all_models[:,np.where(all_models[0,]>0)[0]]
 nit = good_mods.shape[1]
 nit_cutoff = int(nit/10)
 good_mods = good_mods[:,-nit_cutoff:]
-mean_mod = np.mean(good_mods, axis = 1)
+mean_mod = np.median(good_mods, axis = 1)
+#mean_mod = mean_mod[0][:,0]
 std_mod = np.std(good_mods, axis = 1)
 
 good_mod = pipeline.Model(vs = mean_mod, all_deps = all_models[:,0],
