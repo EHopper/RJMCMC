@@ -8,12 +8,14 @@ addpath([basedir 'Functions/SACfun']); addpath([basedir 'Functions']);
 cd(basedir)
 
 
-% lats = 33.8;%33:0.1:34.5;
-% lons = -83.4;
-% for ila = 1:length(lats)
-%     for ilo = 1:length(lons)
-%         latlon=[lats(ila) lons(ilo)];
-latlon = [-10.65 34.5]; %
+lats = -9.15;%:-0.05:-9.15;%33:0.1:34.5;
+lons = 34.45;
+for ila = 1:length(lats)
+    for ilo = 1:length(lons)
+        latlon=[lats(ila) lons(ilo)];
+% Loc for thickened lithosphere, North Basin flank[-9.15 34.45];
+% Loc for thinned lithosphere, North Basin [-9.6 34.2];
+% Loc for thinned crust on eastern shore of Central Basin [-10.65 34.5]; %
 rf_phases = {'Ps','Sp'};
 weight_by = [1 1];
 
@@ -137,9 +139,9 @@ else
     eval(['plot(' ph '.model_lons(allrfs.rf1.inds),'...
         ph '.model_lats(allrfs.rf1.inds),''k.'');']);
 end
-% pause; close all
-%     end
-% end
+pause; close all
+    end
+end
 
 %% Load in the phase velocities
 filename=[basedir 'Data/Velocity_Models/PhaseVels/SEGMeNT_phv.txt'];

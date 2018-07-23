@@ -135,7 +135,7 @@ def JointInversion(rf_obs: list, swd_obs: SurfaceWaveDisp, lims: Limits,
     ddeps=np.zeros(state.model.all_deps.size*2-1)
     ddeps[::2] = state.model.all_deps
     ddeps[1::2] = state.model.all_deps[:-1]+np.diff(state.model.all_deps)/2
-    save_every = 100
+    save_every = 1
     all_models = np.zeros((ddeps.size,int((max_iter)/save_every)+2))
     all_models[:,0] = ddeps
     all_models[:,1] = SaveModel(state.fullmodel, ddeps)
@@ -494,7 +494,7 @@ def Mutate(model,itr) -> (Model, ModelChange): # and ModelChange
     elif itr <= 750*(model.idep.size-1)*(model.idep.size) or model.idep.size >=15: # as KL14
         perturbs=('Vs','Dep','Death','Hyperparameter')
     else:
-        perturbs=('Vs','Dep','Birth','Death','Hyperparameter')
+        perturbs=('Vs','Dep','Birth','Hyperparameter') # 'Death'
     perturb = random.sample(perturbs, 1)[0]
 
     if perturb=='Vs':          # Change Vs in a layer

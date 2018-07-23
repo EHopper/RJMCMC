@@ -19,11 +19,11 @@ pr.enable()
 
 
 
-max_it = 250000#250000
+max_it = 1e6#250000
 rnd_sd = 1# random seed
 
 
-save_name = 'MAND_Both'
+save_name = 'KIPE_Both'
 
 
 
