@@ -135,7 +135,7 @@ def JointInversion(rf_obs: list, swd_obs: SurfaceWaveDisp, lims: Limits,
     ddeps=np.zeros(state.model.all_deps.size*2-1)
     ddeps[::2] = state.model.all_deps
     ddeps[1::2] = state.model.all_deps[:-1]+np.diff(state.model.all_deps)/2
-    save_every = 1
+    save_every = 100
     all_models = np.zeros((ddeps.size,int((max_iter)/save_every)+2))
     all_models[:,0] = ddeps
     all_models[:,1] = SaveModel(state.fullmodel, ddeps)

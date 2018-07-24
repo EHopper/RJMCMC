@@ -19,8 +19,8 @@ pr.enable()
 
 
 
-max_it = 1e6#250000
-rnd_sd = 1# random seed
+max_it = int(1e6)#250000
+rnd_sd = 10# random seed
 
 
 save_name = 'KIPE_Both'

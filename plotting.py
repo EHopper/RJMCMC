@@ -5,9 +5,9 @@ Created on Fri Mar  9 07:33:21 2018
 @author: emily
 """
 
-save_name = 'MAND_Both_1'#'MBEY_Sp_scale5_10'#'MBEY_Ps_scale5'
+save_name = 'KIPE_Both_1'#'MBEY_Sp_scale5_10'#'MBEY_Ps_scale5'
 fol_append = '_00000' #''
-save_every = 100
+save_every = 1
 
 import pipeline
 import numpy as np
@@ -42,7 +42,7 @@ fullmodel = pipeline.MakeFullModel(good_mod)
 fig1 = plt.figure(figsize = (14,8));
 
 ax1 = plt.subplot(131)
-for k in range(all_models[1,].size-1):
+for k in np.arange(0,all_models[1,].size-1,1):
     colstr = str(0.75-k/2/all_models[1,].size)
     ax1.plot(all_models[:,k],all_models[:,0],
           '-',linewidth=1,color=colstr)
