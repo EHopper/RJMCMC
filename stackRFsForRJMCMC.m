@@ -242,6 +242,7 @@ fprintf('\n\n\treturn (rf_obs, swd_obs, all_lims, vs_in)\n\n\n');
 
 
 
+<<<<<<< HEAD
 % %% Plot phase velocities
 % 
 % Countries=shaperead([basedir 'Data/Misc/ne_50m_admin_0_countries.shp'],'UseGeoCoords',true);
@@ -270,3 +271,33 @@ fprintf('\n\n\treturn (rf_obs, swd_obs, all_lims, vs_in)\n\n\n');
 % 
 % 
 % 
+=======
+%% Plot phase velocities
+
+Countries=shaperead([basedir 'Data/Misc/ne_50m_admin_0_countries.shp'],'UseGeoCoords',true);
+Lakes=shaperead([basedir 'Data/Misc/ne_50m_lakes.shp'],'UseGeoCoords',true);
+
+
+figure('color','w','position',[1,41,1280,607]);
+for ip = 1:length(periods) % 12
+    
+    subplot(3,4,ip); hold on
+    
+    inds = find(phv(:,3)==periods(ip) & phv(:,2)>33);
+    scatter(phv(inds,2),phv(inds,1),10,phv(inds,5),'filled','o');
+    c= colorbar('location','eastoutside'); ylabel(c,'Std');%ylabel(c,'Phase Velocity (km/s)');
+    
+    for ic = 1:length(Countries); plot(Countries(ic).Lon,Countries(ic).Lat,'k-'); end
+    for il = 1:length(Lakes); plot(Lakes(il).Lon,Lakes(il).Lat,'b-'); end
+    box on; set(gca, 'xgrid','on','ygrid','on','layer','top');
+    axis([33, 35,-12, -8.5 ])
+    daspect([1/distance(-11,33,-11,34) 1/distance(-11,33,-12,33) 1])
+    %xlabel('Longitude (\degE)'); ylabel('Latitude (\deg N)');
+    title([num2str(periods(ip)) ' s']); caxis([0 0.05]);
+    
+end
+colormap(flipud(jet))
+
+
+
+>>>>>>> de46ad71e44db7a25db11df962635ba7c98dd1ee
