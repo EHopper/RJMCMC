@@ -27,7 +27,7 @@ all_models = np.load(save_name+'_AllModels.npy')
 
 good_mods = all_models[:,np.where(all_models[0,]>0)[0]]
 nit = good_mods.shape[1]
-nit_cutoff = int(nit/100)
+nit_cutoff = int(nit/10)
 good_mods = good_mods[:,-nit_cutoff:]
 mean_mod = np.median(good_mods, axis = 1)
 #mean_mod = mean_mod[0][:,0]
