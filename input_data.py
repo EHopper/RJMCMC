@@ -133,4 +133,3 @@ def LoadObservations():
 	vs_in = 'unknown'
 
 	return (rf_obs, swd_obs, all_lims, vs_in)
-
